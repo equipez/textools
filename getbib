@@ -1,0 +1,50 @@
+#!/bin/bash
+# Usage: getbib [NAME_OF_TEX_FILE or NAME_OF_AUX_FILE]
+# This script exports a BibTeX file containing only the cited terms according to the current .aux
+# file. It is based on bibexport. $BAKDIR contains recent backups.
+
+# Get the name of the TeX file without path or extension. If the input is empty, then use the latest
+# aux file under the current directory to decide the name.
+if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
+    TEXNAME=`find ./ -maxdepth 1 -type f -name "*.aux" -print0 | xargs -r -0 ls -1 -t | head -1`
+else
+    TEXNAME=$1
+fi
+TEXNAME=${TEXNAME##*/}
+TEXNAME=${TEXNAME%.*}
+if [[ -z "$TEXNAME" ]]; then
+    echo "No TeX or aux file found."
+    exit -1
+fi
+
+# Name of the BibTeX file.
+BIBFILE=ref-$TEXNAME.bib
+
+# Directory to contain the backups.
+BAKDIR=$HOME/.vim/backup/
+mkdir -p $BAKDIR
+
+# Make a backup of the current BibTeX file in the current directory.
+TIME=`date +%Y.%m.%d-%H.%M.%S`
+FULLBIBNAME=`realpath $BIBFILE`
+FULLBIBNAME=${FULLBIBNAME//\//%}
+if [[ -f "$BIBFILE" ]]; then
+    BAKBIBFILE=$FULLBIBNAME-$TIME
+    mv $BIBFILE $BAKBIBFILE
+fi
+
+# Export the current BibTeX file.
+bibexport -o $BIBFILE $TEXNAME
+
+# Move $BAKBIBFILE to $BAKDIR if it is different from the current one. Otherwise, remove it.
+if [[ -f "$BAKBIBFILE" ]]; then
+    diff -q $BIBFILE $BAKBIBFILE > /dev/null
+    if [[ $? -eq 1 ]]; then
+        mv $BAKBIBFILE $BAKDIR
+    else
+        rm $BAKBIBFILE
+    fi
+fi
+
+# Keep at most 20 latest files under $BAKDIR.
+(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +21 | xargs -I {} rm -- {})

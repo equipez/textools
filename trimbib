@@ -1,0 +1,138 @@
+#!/bin/bash
+# Usage: trimbib [NAME_OF_BIBTEX_FILE]
+# This script trims BibTeX files using biber in the following way.
+# 1. Only one of the duplicated items is kept. (but which one?)
+# 2. Items are ordered chronically.
+# 3. Macros are sorted alphabetically.
+# 4. The file is indented.
+
+# Get the name of the BibTeX file without path. If the input is empty, then use the latest BibTeX
+# file under the current directory.
+if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
+	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
+else
+	BIBFILE=$1
+fi
+# If $BIBFILE is a link, we work on its target.
+BIBFILE=`readlink -f $BIBFILE`
+# Get the directory where $BIBFILE is located.
+BIBDIR=$(dirname "${BIBFILE}")
+
+BIBFILE=${BIBFILE##*/}
+if [[ -z "$BIBFILE" ]]; then
+	echo "No BibTeX file found."
+	exit -1
+fi
+
+
+# Anchors. They are used to divide the BibTeX file into different sections.
+# Between %MACRO_BEGIN% and %MACRO_END%, macro strings are defined; the BibTeX items come after
+# %MACRO_END%. Within the macro strings, between %JOURNAL_ABBREVIATION_BEGIN% and
+# %JOURNAL_ABBREVIATION_END%, we have the strings for journal abbreviations; between
+# %SERIES_ABBREVIATION_BEGIN% and %SERIES_ABBREVIATION_END%, we have the strings for series
+# abbreviations.
+MACROEND="%MACRO_END%"
+JBEGIN="%JOURNAL_ABBREVIATION_BEGIN%"
+JEND="%JOURNAL_ABBREVIATION_END%"
+SBEGIN="%SERIES_ABBREVIATION_BEGIN%"
+SEND="%SERIES_ABBREVIATION_END%"
+
+# Temporary files.
+MACROS="macros"
+TMPMACROS="tmpmacros"
+BIBEROUT="biberout"
+BIBITEMS="bibitems"
+
+# Directory to contain the backups.
+BAKDIR=$HOME/.vim/backup/
+mkdir -p $BAKDIR
+
+# Change the directory to $BIBDIR.
+cd $BIBDIR
+
+# Print the macros in $BIBFILE to $MACROS
+if grep -q "$MACROEND" $BIBFILE ; then
+	sed "/$MACROEND/q" $BIBFILE > $MACROS
+else
+	echo "" > $MACROS
+fi
+# Sort the macros.
+# Sort the lines between %JOURNAL_ABBREVIATION_BEGIN% and %JOURNAL_ABBREVIATION_END%
+gawk -v BN="$JBEGIN" -v ED="$JEND" '$0~BN {f=1} $0~ED {f=0; n=asort(a); for (i=1;i<=n;i++) print a[i]} !f; f{a[$0]=$0}' $MACROS > $TMPMACROS
+# Sort the lines between %SERIES_ABBREVIATION_BEGIN% and /%SERIES_ABBREVIATION_END%
+gawk -v BN="$SBEGIN" -v ED="$SEND" '$0~BN {f=1} $0~ED {f=0; n=asort(a); for (i=1;i<=n;i++) print a[i]} !f; f{a[$0]=$0}' $TMPMACROS > $MACROS
+rm $TMPMACROS
+
+# Configuration for biber.
+################################################################################
+cat > biber.conf <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<output_align>true</output_align>
+	<output_fieldcase>lower</output_fieldcase>
+
+	<!--!!!The following lines make biber to sort the BibTeX items according to year, author, and title.!!!-->
+	<sortingtemplate name="tool">
+		<sort order="1" sort_direction="ascending">
+			<sortitem order="1">year</sortitem>
+		</sort>
+		<sort order="2" sort_direction="ascending">
+			<sortitem order="1">author</sortitem>
+		</sort>
+		<sort order="3" sort_direction="ascending">
+			<sortitem order="1">title</sortitem>
+		</sort>
+	</sortingtemplate>
+
+	<!--!!!By default, biber removes all the nonstandard fields.!!!-->
+	<!--!!!The following lines ensure that the nonstandard field "_number" will not be removed from article.!!!-->
+  	<datamodel>
+		<fields>
+	  		<field fieldtype="field" datatype="literal">_number</field>
+		</fields>
+		<entryfields>
+	  		<entrytype>article</entrytype>
+	  		<field>_number</field>
+		</entryfields>
+  	</datamodel>
+</config>
+EOF
+################################################################################
+
+# Invoke biber. By default, biber uses "location" instead of "address", "journaltitle" instead of
+# "journal", and "date" instead of year (due to the difference between BibTeX and BibLaTeX).
+# We use "--output-field-replace" to disable such behavior.
+biber --output-file $BIBEROUT --tool --configfile=biber.conf --output_indent=4 --output-field-replace=location:address,journaltitle:journal,date:year $BIBFILE
+
+rm biber.conf
+
+# Print the sorted BibTeX items into $BIBITEMS.
+gawk -v line=$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' $BIBEROUT) 'NR>line' $BIBEROUT >  $BIBITEMS
+rm $BIBEROUT
+
+# Backup the current $BIBFILE in $BAKBIBFILE.
+TIME=`date +%Y.%m.%d-%H.%M.%S`
+FULLBIBNAME=`realpath $BIBFILE`
+FULLBIBNAME=${FULLBIBNAME//\//%}
+BAKBIBFILE=$FULLBIBNAME-$TIME
+mv $BIBFILE $BAKBIBFILE
+
+# Generate the new $BAKBIBFILE.
+cat $MACROS > $BIBFILE
+rm $MACROS
+echo "" >> $BIBFILE
+cat $BIBITEMS >> $BIBFILE
+rm $BIBITEMS
+
+# Move $BAKBIBFILE to $BAKDIR if it is different from the current one. Otherwise, remove it.
+diff -q $BIBFILE $BAKBIBFILE > /dev/null
+if [[ $? -eq 1 ]]; then
+	mv $BAKBIBFILE $BAKDIR
+else
+	rm $BAKBIBFILE
+fi
+
+# Keep at most 20 latest files under $BAKDIR.
+(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +21 | xargs -I {} rm -- {})
+
+rm $BIBFILE.blg

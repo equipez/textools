@@ -30,11 +30,11 @@ FULLBIBNAME=`realpath $BIBFILE`
 FULLBIBNAME=${FULLBIBNAME//\//%}
 if [[ -f "$BIBFILE" ]]; then
     BAKBIBFILE=$FULLBIBNAME-$TIME
-    mv $BIBFILE $BAKBIBFILE
+    cp $BIBFILE $BAKBIBFILE
 fi
 
 # Export the current BibTeX file.
-bibexport -o $BIBFILE $TEXNAME
+bibexport --nosave -o $BIBFILE $TEXNAME
 
 # Move $BAKBIBFILE to $BAKDIR if it is different from the current one. Otherwise, remove it.
 if [[ -f "$BAKBIBFILE" ]]; then

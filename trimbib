@@ -66,7 +66,7 @@ rm $TMPMACROS
 # Configuration for biber.
 ################################################################################
 cat > biber.conf <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <config>
 	<output_align>true</output_align>
 	<output_fieldcase>lower</output_fieldcase>
@@ -99,10 +99,19 @@ cat > biber.conf <<EOF
 EOF
 ################################################################################
 
-# Invoke biber. By default, biber uses "location" instead of "address", "journaltitle" instead of
-# "journal", and "date" instead of year (due to the difference between BibTeX and BibLaTeX).
-# We use "--output-field-replace" to disable such behavior.
-biber --output-file $BIBEROUT --tool --configfile=biber.conf --output_indent=4 --output-field-replace=location:address,journaltitle:journal,date:year $BIBFILE
+# Invoke biber.
+# 1. "--output-safechars --output-safecharsset=full" tells biber to encode all non-ascii characters
+#    into LaTeX macros. By default, this is disabled. Similar behavior can be invoked by
+#    "--decodecharsset=null"; however, as of 2021-03-22, this approach seems buggy, because it will
+#    cause biber to remove all the curly braces enclosing only one letter, e.g., {H}ilbert.
+# 2. By default, biber uses "location" instead of "address", "journaltitle" instead of "journal",
+#    and "date" instead of year (due to the difference between BibTeX and BibLaTeX). We use
+#    "--output-field-replace" to disable such behavior.
+biber --output-file $BIBEROUT \
+    --tool --configfile=biber.conf \
+    --output-safechars --output-safecharsset=full \
+    --output_indent=4 \
+    --output-field-replace=location:address,journaltitle:journal,date:year $BIBFILE
 
 rm biber.conf
 

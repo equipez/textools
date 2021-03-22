@@ -1,0 +1,6 @@
+#!/bin/bash
+# This script copies some 
+
+VIM=$HOME/.vim
+cp -r $VIM/ftplugin/latex-suite/templates $TEXTOOLS/Vim-LaTeX-Suite/
+cp -r $VIM/zscripts/*LaTeX* $TEXTOOLS/Vim-LaTeX-Suite/

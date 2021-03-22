@@ -84,15 +84,66 @@ cat > biber.conf <<EOF
 		</sort>
 	</sortingtemplate>
 
-	<!--!!!By default, biber removes all the nonstandard fields.!!!-->
-	<!--!!!The following lines ensure that the nonstandard field "_number" will not be removed from article.!!!-->
+	<!--!!!By default, biber maps "masterthesis" to "thesis" with a "type = {masterthesis}".!!!-->
+	<!--!!!It does similar things on "phdthesis".!!!-->
+    <!--!!!In addition, it maps "techreport" to "report" with type={techreport}.!!!-->
+	<!--!!!The following lines revokes this behavior.!!!-->
+    <sourcemap>
+        <maps datatype="bibtex">
+            <map>
+                <map_step map_type_source="mastersthesis" map_type_target="masterthesis" map_final="1"/>
+            </map>
+            <map>
+                <map_step map_type_source="phdthesis" map_type_target="phdthesis" map_final="1"/>
+            </map>
+            <map>
+                <map_step map_type_source="techreport" map_type_target="techreport" map_final="1"/>
+            </map>
+        </maps>
+    </sourcemap>
+
+	<!--!!!By default, biber removes the "nonstandard fields".!!!-->
+	<!--!!!The following lines ensure that the nonstandard fields are retained in certain entries.!!!-->
   	<datamodel>
 		<fields>
+            <!--!!!Put the name of the desired fields here.!!!-->
 	  		<field fieldtype="field" datatype="literal">_number</field>
+	  		<field fieldtype="field" datatype="literal">school</field>
+	  		<field fieldtype="field" datatype="literal">address</field>
+	  		<field fieldtype="field" datatype="literal">note</field>
 		</fields>
 		<entryfields>
+            <!--!!!For article, retain "_number", "note".!!!-->
 	  		<entrytype>article</entrytype>
 	  		<field>_number</field>
+	  		<field>note</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For book, retain "_number", "note".!!!-->
+	  		<entrytype>book</entrytype>
+	  		<field>note</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For phdthesis, retain "school", "address", "note".!!!-->
+	  		<entrytype>phdthesis</entrytype>
+	  		<field>school</field>
+	  		<field>address</field>
+	  		<field>note</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For incollection, retain "note".!!!-->
+	  		<entrytype>incollection</entrytype>
+	  		<field>note</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For inproceedings, retain "note".!!!-->
+	  		<entrytype>inproceedings</entrytype>
+	  		<field>note</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For misc, retain "note".!!!-->
+	  		<entrytype>misc</entrytype>
+	  		<field>note</field>
 		</entryfields>
   	</datamodel>
 </config>

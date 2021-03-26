@@ -1,0 +1,108 @@
+#!/bin/bash
+
+BIBLATEX=1
+
+# Get the name of the bib file without path. If the input is empty, then use the latest bib
+# file under the current directory.
+if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
+	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
+else
+	BIBFILE=$1
+fi
+
+BIBFILE=${BIBFILE##*/}
+if [[ -z "$BIBFILE" ]]; then
+	echo "No bib file found."
+	exit -1
+fi
+
+# Get the directory where this script resides
+TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+if [[ $BIBLATEX == 1 ]] ; then
+    BCPY="python $TEXTOOLSDIR/python/biblatex_check.py"
+else
+    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py"
+fi
+
+# Log files
+LOG=checkbib.log
+BCPYLOG="bcpy.log"
+BIBERLOG="biber.log"
+
+echo ""
+echo "Checking $BIBFILE ..."
+echo ""
+echo "" > $LOG
+
+echo "===> Looking for non-ASCII characters ..."
+grep --color='auto' -P -n "[^\x00-\x7F]" $BIBFILE
+echo "Result of checking $BIBFILE" >> $LOG
+echo "" >> $LOG
+echo "===> Non-ASCII characters:" >> $LOG
+echo "" >> $LOG
+grep -P -n "[^\x00-\x7F]" $BIBFILE >> $LOG
+
+echo ""
+echo "===> Checking the capital letters that need to be protected by curly braces ..."
+echo "" >> $LOG
+echo "--------------------------------------------------" >> $LOG
+echo "" >> $LOG
+echo "===> Capital letters that need to be protected by curly braces:" >> $LOG
+echo "" >> $LOG
+CAPITAL_WORDS="Yuan Powell \
+    Armijo BFGS Banach Bernoulli Bregman Broyden Cauchy DFP DFO Euclid Euclidean Euler \
+    Eulerian Fortran GNU Gauss Gaussian Hermit Hermitian  Hessian Hilbert Hilbertian \
+    Jacobi Jacobian Kronecker Lagrange Lagrangian Laplace Laplacian Lebesgue Levenberg Lipschitz \
+    Lipschitzian MATLAB Matlab Marquardt Moore Newton Newtonian ODE PDE Plateau Python RAS \
+    Riemann Riemannian Rockafellar SGD Schwarz Seidel Givens Householder Frobenius Schmidt \
+    Einstein Fenchel Moreau Young Minkowski Stiefel Grassmann Grassmannian Neumann Fischer Halmos \
+    Turing Knuth Dirichlet Poisson DtN Steklov Courant Hausdorff Hoffman Taylor Nesterov Polyak \
+    Lasso LASSO ADMM APG FISTA CPU FPU GPU Hadamard Weierstrass Liouville Abel Abelian Galois \
+    Hamilton Hamiltonian Atiyah Fourier Gronwall Bellman LaSalle Bihari \
+    Ky Fan \
+    Poincare Poincar.*\'e.* Poincar.*\'{e}.* \
+    Frechet Fr.*\'e.*chet Fr.*\'{e}.*chet \
+    Fejer Fej.*\'e.*r Fej.*\'{e}.*r \
+    Holder H.*\"o.*lder H.*\"{o}.*lder \
+    KL K-L Kurdyka Lojasiewicz \L.*ojasiewicz {\L.*}.*ojasiewicz"
+for WORD in $CAPITAL_WORDS
+do
+    grep -n "title" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' $WORD
+    grep -n "title" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' $WORD >> $LOG
+done
+
+echo ""
+echo "===> Running $BCPY $BIBFILE ... "
+$BCPY $BIBFILE | grep "flawed name\|missing field\|wrong type\|non-unique id" \
+    | sed 's/>/\n/g' | sed 's/</\n/g' \
+    | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
+    | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
+cat $BCPYLOG
+echo "" >> $LOG
+echo "--------------------------------------------------" >> $LOG
+echo "" >> $LOG
+echo "===> Message from $BCPY:" >> $LOG
+cat $BCPYLOG >> $LOG
+rm $BCPYLOG
+rm bibtex_check.html
+
+echo ""
+echo "===> Running biber --tool -V $BIBFILE ..."
+echo ""
+biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > $BIBERLOG 2>&1
+rm $BIBFILE.blg
+rm -f ${BIBFILE%.*}_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
+cat $BIBERLOG
+echo "" >> $LOG
+echo "--------------------------------------------------" >> $LOG
+echo "" >> $LOG
+echo "===> Message from biber:" >> $LOG
+echo "" >> $LOG
+cat $BIBERLOG >> $LOG
+rm $BIBERLOG
+
+echo ""
+echo "Done. Log written in $LOG."
+echo ""
+
+exit 0

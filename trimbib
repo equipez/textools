@@ -1,12 +1,16 @@
 #!/bin/bash
 # Usage: trimbib [NAME_OF_BIBTEX_FILE]
-# This script trims BibTeX files using biber in the following way.
-# 1. Only one of the duplicated items is kept. (but which one?)
-# 2. Items are ordered chronically.
+# This script trims bib files using biber in the following way.
+# 1. Only one of the duplicated entries is kept. (But which one? I am not sure what is biber's rule.)
+# 2. Items are ordered by author, year, and the entry key.
 # 3. Macros are sorted alphabetically.
 # 4. The file is indented.
 
-# Get the name of the BibTeX file without path. If the input is empty, then use the latest BibTeX
+BIBLATEX=1
+
+TRIMBIBLOG="trimbib.log"
+
+# Get the name of the bib file without path. If the input is empty, then use the latest bib
 # file under the current directory.
 if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
@@ -20,50 +24,51 @@ BIBDIR=$(dirname "${BIBFILE}")
 
 BIBFILE=${BIBFILE##*/}
 if [[ -z "$BIBFILE" ]]; then
-	echo "No BibTeX file found."
+	echo "No bib file found."
 	exit -1
 fi
 
+CHECKBIBLOG=checkbib.log
+checkbib $BIBFILE
 
-# Anchors. They are used to divide the BibTeX file into different sections.
-# Between %MACRO_BEGIN% and %MACRO_END%, macro strings are defined; the BibTeX items come after
-# %MACRO_END%. Within the macro strings, between %JOURNAL_ABBREVIATION_BEGIN% and
-# %JOURNAL_ABBREVIATION_END%, we have the strings for journal abbreviations; between
-# %SERIES_ABBREVIATION_BEGIN% and %SERIES_ABBREVIATION_END%, we have the strings for series
-# abbreviations.
-MACROEND="%MACRO_END%"
-JBEGIN="%JOURNAL_ABBREVIATION_BEGIN%"
-JEND="%JOURNAL_ABBREVIATION_END%"
-SBEGIN="%SERIES_ABBREVIATION_BEGIN%"
-SEND="%SERIES_ABBREVIATION_END%"
+read -n1 -s -r -p \
+    $'Continue to trim the bib file? [Y/n] \nRevise it before trimming if it contains major mistakes.\n' KEY
+
+if ! [[ "$KEY" = 'Y' || "$KEY" = 'y' || "$KEY" = "" ]]; then
+    exit 1
+fi
+
+echo "**************** checkbib.log before trimming ****************" | cat - $CHECKBIBLOG > tmp && mv tmp $CHECKBIBLOG
+mv $CHECKBIBLOG $CHECKBIBLOG.bak
 
 # Temporary files.
 MACROS="macros"
-TMPMACROS="tmpmacros"
 BIBEROUT="biberout"
-BIBITEMS="bibitems"
+BIBENTRIES="bibentries"
 
 # Directory to contain the backups.
-BAKDIR=$HOME/.vim/backup/
+BAKDIR=./backup/
 mkdir -p $BAKDIR
 
 # Change the directory to $BIBDIR.
 cd $BIBDIR
 
 # Print the macros in $BIBFILE to $MACROS
-if grep -q "$MACROEND" $BIBFILE ; then
-	sed "/$MACROEND/q" $BIBFILE > $MACROS
-else
-	echo "" > $MACROS
-fi
-# Sort the macros.
-# Sort the lines between %JOURNAL_ABBREVIATION_BEGIN% and %JOURNAL_ABBREVIATION_END%
-gawk -v BN="$JBEGIN" -v ED="$JEND" '$0~BN {f=1} $0~ED {f=0; n=asort(a); for (i=1;i<=n;i++) print a[i]} !f; f{a[$0]=$0}' $MACROS > $TMPMACROS
-# Sort the lines between %SERIES_ABBREVIATION_BEGIN% and /%SERIES_ABBREVIATION_END%
-gawk -v BN="$SBEGIN" -v ED="$SEND" '$0~BN {f=1} $0~ED {f=0; n=asort(a); for (i=1;i<=n;i++) print a[i]} !f; f{a[$0]=$0}' $TMPMACROS > $MACROS
-rm $TMPMACROS
+echo ""
+echo "Sorting the macros ..."
+grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" $BIBFILE |sed 's/.*@/@/' \
+    | sed 's/@String/@string/' | sed 's/@STRING/@string/' \
+    | sed 's/\.\s*"\s*}/\."}/' \
+    | sed 's/\s*=\s*/\ =\ /' \
+    > $MACROS
 
-# Configuration for biber.
+
+# Print the bib entries by biber
+echo ""
+echo "Invoking biber to sort the bib entries ..."
+echo ""
+
+# Configuration of biber.
 ################################################################################
 cat > biber.conf <<EOF
 <?xml version="1.0"?>
@@ -71,19 +76,69 @@ cat > biber.conf <<EOF
 	<output_align>true</output_align>
 	<output_fieldcase>lower</output_fieldcase>
 
-	<!--!!!The following lines make biber to sort the BibTeX items according to year, author, and title.!!!-->
+	<!--!!!The following lines make biber to sort the bib entries according to year, author, and title.!!!-->
 	<sortingtemplate name="tool">
 		<sort order="1" sort_direction="ascending">
-			<sortitem order="1">year</sortitem>
-		</sort>
-		<sort order="2" sort_direction="ascending">
 			<sortitem order="1">author</sortitem>
 		</sort>
+		<sort order="2" sort_direction="ascending">
+			<sortitem order="1">year</sortitem>
+		</sort>
 		<sort order="3" sort_direction="ascending">
-			<sortitem order="1">title</sortitem>
+			<sortitem order="1">entrykey</sortitem>
 		</sort>
 	</sortingtemplate>
 
+	<!--!!!By default, biber removes the "nonstandard fields".!!!-->
+	<!--!!!The following lines ensure that the nonstandard fields are retained in certain entries.!!!-->
+    <!--!!!See https://tex.stackexchange.com/questions/415028/prevent-biber-tool-from-removing-non-standard-fields-in-bib-files !!!-->
+  	<datamodel>
+		<fields>
+            <!--!!!Put the name of the desired fields here.!!!-->
+	  		<field fieldtype="field" datatype="literal">_number</field>
+	  		<field fieldtype="field" datatype="literal">_publisher</field>
+	  		<field fieldtype="field" datatype="literal">journal</field>
+	  		<field fieldtype="field" datatype="literal">school</field>
+	  		<field fieldtype="field" datatype="literal">address</field>
+		</fields>
+		<entryfields>
+            <!--!!!For article, retain "_number", "_publisher", "journal".!!!-->
+	  		<entrytype>article</entrytype>
+	  		<field>_number</field>
+	  		<field>_publisher</field>
+	  		<field>journal</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For masterthesis, retain "school", "address", "note".!!!-->
+	  		<entrytype>masterthesis</entrytype>
+	  		<field>school</field>
+	  		<field>address</field>
+	  		<field>note</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For phdthesis, retain "school", "address", "note".!!!-->
+	  		<entrytype>phdthesis</entrytype>
+	  		<field>school</field>
+	  		<field>address</field>
+	  		<field>note</field>
+		</entryfields>
+		<entryfields>
+            <!--!!!For techreport, retain "number", "institution", "address", "note".!!!-->
+	  		<entrytype>techreport</entrytype>
+	  		<field>number</field>
+	  		<field>institution</field>
+	  		<field>address</field>
+	  		<field>note</field>
+		</entryfields>
+  	</datamodel>
+EOF
+
+if [[ $BIBLATEX == 1 ]] ; then
+cat >> biber.conf <<EOF
+</config>
+EOF
+else
+cat >> biber.conf <<EOF
 	<!--!!!By default, biber maps "masterthesis" to "thesis" with a "type = {masterthesis}".!!!-->
 	<!--!!!It does similar things on "phdthesis".!!!-->
     <!--!!!In addition, it maps "techreport" to "report" with type={techreport}.!!!-->
@@ -101,53 +156,9 @@ cat > biber.conf <<EOF
             </map>
         </maps>
     </sourcemap>
-
-	<!--!!!By default, biber removes the "nonstandard fields".!!!-->
-	<!--!!!The following lines ensure that the nonstandard fields are retained in certain entries.!!!-->
-  	<datamodel>
-		<fields>
-            <!--!!!Put the name of the desired fields here.!!!-->
-	  		<field fieldtype="field" datatype="literal">_number</field>
-	  		<field fieldtype="field" datatype="literal">school</field>
-	  		<field fieldtype="field" datatype="literal">address</field>
-	  		<field fieldtype="field" datatype="literal">note</field>
-		</fields>
-		<entryfields>
-            <!--!!!For article, retain "_number", "note".!!!-->
-	  		<entrytype>article</entrytype>
-	  		<field>_number</field>
-	  		<field>note</field>
-		</entryfields>
-		<entryfields>
-            <!--!!!For book, retain "_number", "note".!!!-->
-	  		<entrytype>book</entrytype>
-	  		<field>note</field>
-		</entryfields>
-		<entryfields>
-            <!--!!!For phdthesis, retain "school", "address", "note".!!!-->
-	  		<entrytype>phdthesis</entrytype>
-	  		<field>school</field>
-	  		<field>address</field>
-	  		<field>note</field>
-		</entryfields>
-		<entryfields>
-            <!--!!!For incollection, retain "note".!!!-->
-	  		<entrytype>incollection</entrytype>
-	  		<field>note</field>
-		</entryfields>
-		<entryfields>
-            <!--!!!For inproceedings, retain "note".!!!-->
-	  		<entrytype>inproceedings</entrytype>
-	  		<field>note</field>
-		</entryfields>
-		<entryfields>
-            <!--!!!For misc, retain "note".!!!-->
-	  		<entrytype>misc</entrytype>
-	  		<field>note</field>
-		</entryfields>
-  	</datamodel>
 </config>
 EOF
+fi
 ################################################################################
 
 # Invoke biber.
@@ -158,17 +169,25 @@ EOF
 # 2. By default, biber uses "location" instead of "address", "journaltitle" instead of "journal",
 #    and "date" instead of year (due to the difference between BibTeX and BibLaTeX). We use
 #    "--output-field-replace" to disable such behavior.
-biber --output-file $BIBEROUT \
-    --tool --configfile=biber.conf \
-    --output-safechars --output-safecharsset=full \
-    --output_indent=4 \
-    --output-field-replace=location:address,journaltitle:journal,date:year $BIBFILE
+if [[ $BIBLATEX == 1 ]] ; then
+    biber --output-file $BIBEROUT \
+        --tool --configfile=biber.conf \
+        --output-safechars --output-safecharsset=full \
+        --output_indent=4 $BIBFILE
+else
+    biber --output-file $BIBEROUT \
+        --tool --configfile=biber.conf \
+        --output-safechars --output-safecharsset=full \
+        --output_indent=4 \
+        --output-field-replace=location:address,journaltitle:journal,date:year $BIBFILE
+fi
 
 rm biber.conf
 
-# Print the sorted BibTeX items into $BIBITEMS.
-gawk -v line=$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' $BIBEROUT) 'NR>line' $BIBEROUT >  $BIBITEMS
+# Print the sorted bib entries into $BIBENTRIES.
+gawk -v line=$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' $BIBEROUT) 'NR>line' $BIBEROUT >  $BIBENTRIES
 rm $BIBEROUT
+
 
 # Backup the current $BIBFILE in $BAKBIBFILE.
 TIME=`date +%Y.%m.%d-%H.%M.%S`
@@ -177,22 +196,72 @@ FULLBIBNAME=${FULLBIBNAME//\//%}
 BAKBIBFILE=$FULLBIBNAME-$TIME
 mv $BIBFILE $BAKBIBFILE
 
+
 # Generate the new $BAKBIBFILE.
-cat $MACROS > $BIBFILE
+printf "%% bib file generated at "$TIME".\n" > $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%% The recommended format of the bib entry label is:\n" >> $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%%     <AuthorLastnames_YearLetter>\n" >> $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%%  For example, the key for an article by Yuan may be:\n" >> $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%%     Yuan_2000a\n%%\n%" >> $BIBFILE
+printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $BIBFILE
+printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $BIBFILE
+printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $BIBFILE
+
+grep -q -v '^\s*$' $MACROS  > /dev/null  # Check whether $MACROS is empty.
+if [[ $? -eq 0 ]] ; then
+    printf "%% String macros for abbreviations of names of serials.\n" >> $BIBFILE
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" >> $BIBFILE
+    cat $MACROS | sed -r '/^\s*$/d' | sort -u >> $BIBFILE
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n" >> $BIBFILE
+fi
 rm $MACROS
-echo "" >> $BIBFILE
-cat $BIBITEMS >> $BIBFILE
-rm $BIBITEMS
+
+cat $BIBENTRIES >> $BIBFILE
+rm $BIBENTRIES
+
 
 # Move $BAKBIBFILE to $BAKDIR if it is different from the current one. Otherwise, remove it.
-diff -q $BIBFILE $BAKBIBFILE > /dev/null
+echo "******** Difference between the trimmed bib and the original one ********" > $TRIMBIBLOG
+echo "" >> $TRIMBIBLOG
+# Remove the comments before comparing.
+diff <(grep -v "^\s*%" $BIBFILE) <(grep -v "^\s*%" $BAKBIBFILE) >> $TRIMBIBLOG
 if [[ $? -eq 1 ]]; then
+    # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
+    cp $BAKBIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
 	mv $BAKBIBFILE $BAKDIR
 else
 	rm $BAKBIBFILE
 fi
 
-# Keep at most 20 latest files under $BAKDIR.
-(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +21 | xargs -I {} rm -- {})
+
+# Keep at most 50 latest files under $BAKDIR.
+(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
 
 rm $BIBFILE.blg
+
+checkbib $BIBFILE
+
+echo "" >> $CHECKBIBLOG.bak
+echo "***************** checkbib.log after trimming ****************" >> $CHECKBIBLOG.bak
+cat $CHECKBIBLOG >> $CHECKBIBLOG.bak
+echo "" >> $CHECKBIBLOG.bak
+mv $CHECKBIBLOG.bak $CHECKBIBLOG
+
+cat $CHECKBIBLOG  | cat - $TRIMBIBLOG > tmp && mv tmp $TRIMBIBLOG
+rm $CHECKBIBLOG
+
+echo "Done. See $TRIMBIBLOG for $CHECKBIBLOG and the difference due to the trimming."
+echo ""
+echo "If the original bib file is different from the trimmed one, its backup can be found at"
+echo "$BAKDIR/$BAKBIBFILE"
+echo ""
+
+echo "" >> $TRIMBIBLOG
+echo "If the original bib file is different from the trimmed one, its backup can be found at" >> $TRIMBIBLOG
+echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
+
+exit 0

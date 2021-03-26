@@ -1,4 +1,4 @@
-" Vim settings for LaTeX
+" Vim settings for LaTeX. Source it in vimrc
 
 
 """"""""""""""""""""""""""""""""""""""""""""LaTeX-Suite"""""""""""""""""""""""""""""""""""""""""""""
@@ -132,13 +132,18 @@ let g:Tex_Env_col = g:Tex_Env_column
 " to the current aux. It calls the getbib script in ~/local/bin.
 nmap <leader>lb  <esc><leader>ll<esc> :! getbib "%:t:r"<cr><cr>
 
-"" Trim BibTeX files on save.
-"function TrimBibTeX()
-"    let save_cursor = getpos(".")
-"    " keeppatterns prevents the strange pattern from polluting the search history.
+" Trim BibTeX files on save.
+function TrimBibTeX()
+    " Save the cursor position.
+    let save_cursor = getpos(".")
+    " keeppatterns prevents the strange pattern from polluting the search history.
 "    silent! keeppatterns %s/\s*=\s*/\ =\ /g
-"    "silent! keeppatterns %s/^\s*//
-"    silent! let @/ = ""
-"    call setpos('.', save_cursor)
-"endfunction
-"autocmd BufWrite *.bib :call TrimBibTeX()
+    " Removes patterns like . "}, which may appear in the string macros. When it occurs, biber
+    " does not work correctly.
+    silent! keeppatterns %s/\.\ "}/\."}
+    " Remove the search highlighting.
+    silent! let @/ = ""
+    " Restore the cursor position.
+    call setpos('.', save_cursor)
+endfunction
+autocmd BufWrite *.bib :call TrimBibTeX()

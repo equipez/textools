@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Get the name of the bib file without path. If the input is empty, then use the latest bib
+# file under the current directory.
+if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
+	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
+else
+	BIBFILE=$1
+fi
+
+BIBFILE=${BIBFILE##*/}
+if [[ -z "$BIBFILE" ]]; then
+	echo "No bib file found."
+	exit -1
+fi
+
+WEBBROWSER="google-chrome-stable"
+
+# Get the directory where this script resides
+TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+BCPY="python $TEXTOOLSDIR/python/bibtex_check.py"
+
+$BCPY $BIBFILE > /dev/null
+
+$WEBBROWSER bibtex_check.html
+
+exit 0

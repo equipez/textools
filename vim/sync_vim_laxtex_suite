@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script copies some homemade scripts concerning Vim-LaTeX-Suite to $TEXTOOLS/Vim-LaTeX-Suite/
+# This script copies some homemade scripts concerning Vim-LaTeX suite to $TEXTOOLS/vim/
 
 LOCAL=$HOME/local/
 LOGDIR=$LOCAL/log/
@@ -16,6 +16,6 @@ printf "\n----------------------------------- $DATE ----------------------------
 
 set -o xtrace  # print the commands before executing them
 
-cp -r $VIM/ftplugin/latex-suite/templates $TEXTOOLS/Vim-LaTeX-Suite/
-cp -r $VIM/zscripts/*LaTeX* $TEXTOOLS/Vim-LaTeX-Suite/
+cp -r $VIM/ftplugin/latex-suite/templates $TEXTOOLS/vim/
+cp -r $VIM/zscripts/*LaTeX* $TEXTOOLS/vim/
 } >> $LOG 2>&1  # Redirect all output to $LOG

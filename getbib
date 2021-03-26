@@ -1,50 +1,136 @@
 #!/bin/bash
-# Usage: getbib [NAME_OF_TEX_FILE or NAME_OF_AUX_FILE]
-# This script exports a BibTeX file containing only the cited terms according to the current .aux
-# file. It is based on bibexport. $BAKDIR contains recent backups.
+# Usage: getbib [NAME_OF_AUX_FILE]
+# This script exports a bib file containing only the cited terms according to the current aux
+# file. $BAKDIR contains recent backups.
 
-# Get the name of the TeX file without path or extension. If the input is empty, then use the latest
+BIBLATEX=1
+
+GETBIBLOG="getbib.log"
+CHECKBIBLOG=checkbib.log
+
+# Get the name of the aux file without path or extension. If the input is empty, then use the latest
 # aux file under the current directory to decide the name.
 if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
-    TEXNAME=`find ./ -maxdepth 1 -type f -name "*.aux" -print0 | xargs -r -0 ls -1 -t | head -1`
+    AUXNAME=`find ./ -maxdepth 1 -type f -name "*.aux" -print0 | xargs -r -0 ls -1 -t | head -1`
 else
-    TEXNAME=$1
+    AUXNAME=$1
 fi
-TEXNAME=${TEXNAME##*/}
-TEXNAME=${TEXNAME%.*}
-if [[ -z "$TEXNAME" ]]; then
-    echo "No TeX or aux file found."
+AUXNAME=${AUXNAME##*/}
+AUXNAME=${AUXNAME%.*}
+if [[ -z "$AUXNAME" ]] || ! [[ -f $AUXNAME.aux ]]; then
+    echo "No aux file found in the current directory."
     exit -1
 fi
 
-# Name of the BibTeX file.
-BIBFILE=ref-$TEXNAME.bib
+# Name of the bib file.
+BIBFILE=$AUXNAME.bib
 
 # Directory to contain the backups.
-BAKDIR=$HOME/.vim/backup/
+BAKDIR=./backup/
 mkdir -p $BAKDIR
 
-# Make a backup of the current BibTeX file in the current directory.
+# Make a backup of the current bib file in the current directory.
 TIME=`date +%Y.%m.%d-%H.%M.%S`
 FULLBIBNAME=`realpath $BIBFILE`
 FULLBIBNAME=${FULLBIBNAME//\//%}
+BAKBIBFILE=$FULLBIBNAME-$TIME
 if [[ -f "$BIBFILE" ]]; then
-    BAKBIBFILE=$FULLBIBNAME-$TIME
     cp $BIBFILE $BAKBIBFILE
+else
+    touch $BAKBIBFILE
 fi
 
-# Export the current BibTeX file.
-bibexport --nosave -o $BIBFILE $TEXNAME
+# Export the cited entries.
+echo ""
+echo "Exporting bib entries ..."
+BIBENTRIES="bibentries"
+MACROS="macros"
+rm -f $BIBENTRIES $MACROS
+touch $BIBENTRIES
+touch $MACROS
+
+# Name of the aux file.
+AUXFILE=$AUXNAME.aux
+
+BIBDATAFILES=`grep bibdata $AUXFILE | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' | sort -u`
+CITEDBIBS=`grep bibcite $AUXFILE | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sort -u`
+
+for FILE in $BIBDATAFILES
+do
+    for BIB in $CITEDBIBS
+    do
+        BIBENTRY=`sed -n "/.*{$BIB/,/^\s*}/{p;/^\s*}/q}" $FILE`
+        echo "" >> $BIBENTRIES
+        echo "$BIBENTRY" >> $BIBENTRIES
+        MACRO=`echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \
+            | sed 's/.*journal\s*=\s*//' \
+            | sed 's/.*journaltitle\s*=\s*//' \
+            | sed 's/.*series\s*=\s*//' \
+            | sed s/,.*$// | sed 's/{.*}//'`
+        if ! [[ -z $MACRO ]]; then
+            echo "" >> $MACROS
+            grep "@string{\s*$MACRO" $FILE | sed 's/.*@string/@string/' >> $MACROS
+        fi
+    done
+done
+
+printf "%% bib file for $AUXNAME.tex generated at "$TIME".\n" > $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%% The recommended format of the bib entry label is:\n" >> $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%%     <AuthorLastnames_YearLetter>\n" >> $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%%  For example, the key for an article by Yuan may be:\n" >> $BIBFILE
+printf "%%\n" >> $BIBFILE
+printf "%%     Yuan_2000a\n%%\n" >> $BIBFILE
+printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $BIBFILE
+printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $BIBFILE
+printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $BIBFILE
+
+grep -q -v '^\s*$' $MACROS  > /dev/null  # Check whether $MACROS is empty.
+if [[ $? -eq 0 ]] ; then
+    printf "%% String macros for abbreviations of names of serials.\n" >> $BIBFILE
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" >> $BIBFILE
+
+    cat $MACROS | sed -r '/^\s*$/d' | sort -u >> $BIBFILE
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n" >> $BIBFILE
+fi
+rm $MACROS
+
+cat $BIBENTRIES >> $BIBFILE
+rm $BIBENTRIES
 
 # Move $BAKBIBFILE to $BAKDIR if it is different from the current one. Otherwise, remove it.
-if [[ -f "$BAKBIBFILE" ]]; then
-    diff -q $BIBFILE $BAKBIBFILE > /dev/null
-    if [[ $? -eq 1 ]]; then
-        mv $BAKBIBFILE $BAKDIR
-    else
-        rm $BAKBIBFILE
-    fi
+echo "" > $GETBIBLOG
+echo "******** Difference between the new bib and the original one ********" >> $GETBIBLOG
+echo "" >> $GETBIBLOG
+# Remove the comments before comparing.
+diff <(grep -v "^\s*%" $BIBFILE) <(grep -v "^\s*%" $BAKBIBFILE) >> $GETBIBLOG
+if [[ $? -eq 1 ]]; then
+    # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
+    cp $BAKBIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
+    mv $BAKBIBFILE $BAKDIR
+else
+    rm $BAKBIBFILE
 fi
 
-# Keep at most 20 latest files under $BAKDIR.
-(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +21 | xargs -I {} rm -- {})
+# Keep at most 50 latest files under $BAKDIR.
+(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
+
+checkbib $BIBFILE
+
+echo "*************************** checkbib.log ****************************" | cat - $CHECKBIBLOG > tmp && mv tmp $CHECKBIBLOG
+cat $GETBIBLOG  >> $CHECKBIBLOG
+mv $CHECKBIBLOG $GETBIBLOG
+
+echo "Done. See $GETBIBLOG for $CHECKBIBLOG and the difference between the new bib and the original one."
+echo ""
+echo "If the original bib file is different from the new one, its backup can be found at"
+echo "$BAKDIR/$BAKBIBFILE"
+echo ""
+
+echo "" >> $GETBIBLOG
+echo "If the original bib file is different from the new one, its backup can be found at" >> $GETBIBLOG
+echo "$BAKDIR/$BAKBIBFILE" >> $GETBIBLOG
+
+exit 0

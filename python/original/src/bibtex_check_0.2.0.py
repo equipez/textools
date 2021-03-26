@@ -8,67 +8,28 @@ __author__ = "Fabian Beck"
 __version__ = "0.2.0"
 __license__ = "MIT"
 
-
 ####################################################################
 # Properties (please change according to your needs)
 ####################################################################
 
-import sys
-from optparse import OptionParser
-
-# Parse options
-usage = (
-    sys.argv[0]
-    + " [-b|--bib=<input.bib>] [-a|--aux=<input.aux>] [-o|--output=<output.html>] [-l|--latex] [-h|--help]"
-)
-
-parser = OptionParser(usage)
-
-parser.add_option("-b", "--bib", dest="bibFile", help="Bib File", metavar="input.bib", default="")
-
-parser.add_option("-a", "--aux", dest="auxFile", help="Aux File", metavar="input.aux", default="")
-
-parser.add_option("-o", "--output", dest="htmlOutput", help="HTML Output File", metavar="output.html", default="bibtex_check.html")
-
-parser.add_option("-l", "--latex", dest="bibLaTeX", help="Check BibLaTeX instead of BibTeX", action="store_true", default=False)
-
-(options, args) = parser.parse_args()
-
 # files
-bibFile = options.bibFile
-auxFile = options.auxFile
-htmlOutput = options.htmlOutput
-bibLaTeX = options.bibLaTeX
+bibFile = "testme.bib"
+auxFile = "test.aux"                # use "" to deactivate restricting the check to the entries listed in the aux file
+htmlOutput = "bibtex_check.html"
 
 # links
-citeulikeUsername = ""  # if no username is profided, no CiteULike links appear
+citeulikeUsername = ""              # if no username is profided, no CiteULike links appear
 citeulikeHref = "http://www.citeulike.org/user/"+citeulikeUsername+"/article/"
-libgenHref = "http://libgen.rs/search.php?req="
-libgenArtHref = "http://libgen.rs/scimag/?q="
 scholarHref = "http://scholar.google.de/scholar?hl=en&q="
 googleHref = "https://www.google.de/search?q="
 dblpHref = "http://dblp.org/search/index.php#query="
-mathscinetHref = "https://mathscinet.ams.org/mathscinet/search/publdoc.html?co4=AND&pg4=AUCN&pg5=TI&r=1&s4=&s5="
 
 # fields that are required for a specific type of entry
-if bibLaTeX:
-    requiredFields = (("article", ("author", "title", "journaltitle", "date", "volume")),
-                ("book",("author","publisher","title","date", "location")),
-                ("report",("type","author","institution","title","date")),
-                ("inproceedings",("author","booktitle","pages","publisher","title","date")),
-                ("incollection",("author","booktitle","pages","publisher","title","date", "editor")),
-                ("inbook",("author","booktitle","pages","publisher","title","date")),
-                ("proceedings",("editor","publisher","title","date")),
-                ("thesis",("type","author","institution","title","date")),
-                ("electronic",("author","title","url","date")),
-                ("misc",("author","howpublished","title","date")),
-                )
-else:
-    requiredFields = (("article", ("author", "title", "journal", "year", "volume")),
-                ("book",("author","publisher","title","year","address")),
+requiredFields = (("inproceedings",("author","booktitle","pages","publisher","title","year")),
+                ("article",("author","journal","number","pages","title","volume","year")),
                 ("techreport",("author","institution","title","year")),
-                ("inproceedings",("author","booktitle","pages","publisher","title","year")),
-                ("incollection",("author","booktitle","pages","publisher","title","year", "editor")),
+                ("incollection",("author","booktitle","pages","publisher","title","year")),
+                ("book",("author","publisher","title","year")),
                 ("inbook",("author","booktitle","pages","publisher","title","year")),
                 ("proceedings",("editor","publisher","title","year")),
                 ("phdthesis",("author","school","title","year")),
@@ -105,10 +66,8 @@ currentArticleId = ""
 currentTitle = ""
 fields = []
 problems = []
-problem = []
 subproblems = []
 
-counterId = 0
 counterMissingFields = 0
 counterFlawedNames = 0
 counterWrongTypes = 0
@@ -119,41 +78,37 @@ removePunctuationMap = dict((ord(char), None) for char in string.punctuation)
 for line in fIn:
     line = line.strip("\n")
     if line.startswith("@"):
-        counterId += 1
-        if (counterId > 1) and (currentId in usedIds or not usedIds) and (currentType.lower() != "string"):
+        if currentId in usedIds or not usedIds:
             for requiredFieldsType in requiredFields:
                 if requiredFieldsType[0] == currentType:
                     for field in requiredFieldsType[1]:
                         if field not in fields:
                             subproblems.append("missing field '"+field+"'")
                             counterMissingFields += 1
-            #cleanedTitle = currentTitle.translate(removePunctuationMap)
-            cleanedTitle = currentTitle
-            problem = "\n\n<div id='"+currentId+"' class='problem severe"+str(len(subproblems))+"'>"
-            problem += "\n<h2>"+currentId+" ("+currentType+")</h2> "
-            problem += "\n<div class='links'>"
+        else:
+            subproblems = []
+        if currentId in usedIds or (currentId and not usedIds):
+            cleanedTitle = currentTitle.translate(removePunctuationMap)
+            problem = "<div id='"+currentId+"' class='problem severe"+str(len(subproblems))+"'>"
+            problem += "<h2>"+currentId+" ("+currentType+")</h2> "
+            problem += "<div class='links'>"
             if citeulikeUsername:
-                problem += "\n<a href='"+citeulikeHref+currentArticleId+"'>CiteULike</a>"
-            problem += "\n | <a href='"+libgenHref+cleanedTitle+"'>LibGen</a>"
-            problem += "\n | <a href='"+libgenArtHref+cleanedTitle+"'>LibGenArt</a>"
-            problem += "\n | <a href='"+scholarHref+cleanedTitle+"'>Scholar</a>"
-            problem += "\n | <a href='"+googleHref+cleanedTitle+"'>Google</a>"
-            problem += "\n | <a href='"+dblpHref+cleanedTitle+"'>DBLP</a>"
-            problem += "\n | <a href='"+mathscinetHref+cleanedTitle+"'>MathSciNet</a>"
-            problem += "\n</div>"
-            problem += "\n<div class='reference'>"+currentTitle
-            problem += "\n</div>"
-            problem += "\n<ul class='enumprob'>"
+                problem += "<a href='"+citeulikeHref+currentArticleId+"'>CiteULike</a>"
+            problem += " | <a href='"+scholarHref+cleanedTitle+"'>Scholar</a>"
+            problem += " | <a href='"+googleHref+cleanedTitle+"'>Google</a>"
+            problem += " | <a href='"+dblpHref+cleanedTitle+"'>DBLP</a>"
+            problem += "</div>"
+            problem += "<div class='reference'>"+currentTitle
+            problem += "</div>"
+            problem += "<ul>"
             for subproblem in subproblems:
-                problem += "\n<li>"+subproblem+"</li>"
-            problem += "\n</ul>"
-            problem += "\n<form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form>"
-            problem += "\n<div class='bibtex_toggle'>Current BibTeX Entry</div>"
-            problem += "\n<div class='bibtex'>"+completeEntry +"</div>"
-            problem += "\n</div>"
+                problem += "<li>"+subproblem+"</li>"
+            problem += "</ul>"
+            problem += "<form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form>"
+            problem += "<div class='bibtex_toggle'>Current BibTeX Entry</div>"
+            problem += "<div class='bibtex'>"+completeEntry +"</div>"
+            problem += "</div>"
             problems.append(problem)
-            problem = []
-
         fields = []
         subproblems = []
         currentId = line.split("{")[1].rstrip(",\n")
@@ -190,7 +145,7 @@ for line in fIn:
                     counterWrongTypes += 1
 
                 # check if abbreviations are used in journal titles
-                if currentType == "article" and (field == "journal" or field == "journaltitle"):
+                if currentType == "article" and field == "journal":
                     if "." in line:
                         subproblems.append("flawed name: abbreviated journal title '"+value+"'")
                         counterFlawedNames += 1
@@ -212,11 +167,7 @@ for line in fIn:
 
                 ####################################################################
 
-
 fIn.close()
-
-if problem:
-    problems.append(problem)
 
 html = open(htmlOutput, 'w')
 html.write("""<html>
@@ -334,9 +285,7 @@ body {
 }
 
 .problem h2 {
-    font-size: 11pt;
-    font-weight: normal;
-    font-family: monaco, monospace;
+    font-size: 12pt;
     padding: 0px;
     margin: 0px;
 }
@@ -357,18 +306,14 @@ body {
 
 .problem .reference {
     clear: both;
+    font-size: 9pt;
     margin-left: 20px;
-    font-size: 11pt;
-    font-weight:normal;
+    font-style:italic;
+    font-weight:bold;
 }
 
 .problem ul {
     clear: both;
-}
-
-.enumprob {
-    font-weight: light;
-    font-size: 10pt;
 }
 
 .problem .problem_control {
@@ -495,9 +440,9 @@ html.write("<li># wrong types: "+str(counterWrongTypes)+"</li>")
 html.write("<li># non-unique id: "+str(counterNonUniqueId)+"</li>")
 html.write("</ul></ul></div>")
 
-#problems.sort()
+problems.sort()
 for problem in problems:
-#    print('Linje: ' + problem + '\n')
+    print('Linje: ' + problem + '\n')
     html.write(problem)
 html.write("</body></html>")
 html.close()

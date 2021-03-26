@@ -18,7 +18,7 @@ WEBBROWSER="google-chrome-stable"
 
 # Get the directory where this script resides
 TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-BCPY="python $TEXTOOLSDIR/python/bibtex_check.py"
+BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -b"
 
 $BCPY $BIBFILE > /dev/null
 

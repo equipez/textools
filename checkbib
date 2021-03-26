@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BIBLATEX=1
+BIBLATEX=0
 
 # Get the name of the bib file without path. If the input is empty, then use the latest bib
 # file under the current directory.
@@ -19,9 +19,9 @@ fi
 # Get the directory where this script resides
 TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 if [[ $BIBLATEX == 1 ]] ; then
-    BCPY="python $TEXTOOLSDIR/python/biblatex_check.py"
+    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -l -b"
 else
-    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py"
+    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -b"
 fi
 
 # Log files

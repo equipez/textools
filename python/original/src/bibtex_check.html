@@ -1,0 +1,259 @@
+<html>
+<head>
+<title>BibTeX Check</title>
+<style>
+body {
+    font-family: Calibri, Arial, Sans;
+    padding: 10px;
+    width: 1030px;
+    margin: 10 auto;
+    border-top: 1px solid black;
+}
+
+#title {
+    width: 720px;
+
+    border-bottom: 1px solid black;
+}
+
+#title h1 {
+    margin: 10px 0px;
+}
+
+#title h1 a {
+    color: black;
+    text-decoration: none;
+}
+
+#control {
+    clear: both;
+}
+
+#search {
+    float: left;
+}
+
+#search input {
+    width: 300px;
+    font-size: 14pt;
+}
+
+#mode {
+    text-align: right;
+}
+
+#mode label:first-child {
+    font-weight: bold;
+}
+
+#mode input {
+    margin-left: 20px;
+}
+
+.info {
+    margin-top: 10px;
+    padding: 10px;
+    background: #FAFADD;
+    width: 250px;
+    float: right;
+    box-shadow: 1px 1px 1px 1px #ccc;
+    clear: both;
+}
+
+.info h2 {
+    font-size: 12pt;
+    padding: 0px;
+    margin: 0px;
+}
+
+.problem {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #FFBBAA;
+    counter-increment: problem;
+    width: 700px;
+    border: 1px solid #993333;
+    border-left: 5px solid #993333;
+    box-shadow: 1px 1px 1px 1px #ccc;
+    float: left;
+}
+
+.active {
+    box-shadow: 5px 5px 3px 3px #ccc;
+    position: relative;
+    top: -2px;
+}
+
+.severe0 {
+    background: #FAFAFA;
+    border: 1px solid black;
+    border-left: 5px solid black;
+}
+
+.severe1 {
+    background: #FFEEDD;
+}
+
+.severe2 {
+    background: #FFDDCC;
+}
+
+.severe3 {
+    background: #FFCCBB;
+}
+
+.problem_checked {
+    border: 1px solid #339933;
+    border-left: 5px solid #339933;
+}
+
+.problem h2:before {
+    content: counter(problem) ". "; color: gray;
+}
+
+.problem h2 {
+    font-size: 12pt;
+    padding: 0px;
+    margin: 0px;
+}
+
+.problem .links {
+    float: right;
+    position:relative;
+    top: -22px;
+}
+
+.problem .links a {
+    color: #3333CC;
+}
+
+.problem .links a:visited {
+    color: #666666;
+}
+
+.problem .reference {
+    clear: both;
+    font-size: 9pt;
+    margin-left: 20px;
+    font-style:italic;
+    font-weight:bold;
+}
+
+.problem ul {
+    clear: both;
+}
+
+.problem .problem_control {
+    float: right;
+    margin: 0px;
+    padding: 0px;
+}
+
+.problem .bibtex_toggle{
+    text-decoration: underline;
+    font-size: 9pt;
+    cursor: pointer;
+    padding-top: 5px;
+}
+
+.problem .bibtex {
+    margin-top: 5px;
+    font-family: Monospace;
+    font-size: 8pt;
+    display: none;
+    border: 1px solid black;
+    background-color: #FFFFFF;
+    padding: 5px;
+}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script>
+
+function isInProblemMode() {
+    return $('#mode_problems:checked').val() == 'problems'
+}
+
+function update() {
+    $('.problem').hide();
+    $('.problem[id*='+$('#search input').val()+']').show();
+    $('.problem .checked').each(function () {
+        if ($(this).attr('checked')) {
+            $(this).parents('.problem').addClass('problem_checked');
+        } else {
+            $(this).parents('.problem').removeClass('problem_checked');
+        }
+    });
+    if (isInProblemMode()) {
+        $('.severe0').hide();
+        $('.problem_checked').hide();
+    }
+}
+
+$(document).ready(function(){
+
+    $(".bibtex_toggle").click(function(event){
+        event.preventDefault();
+        $(this).next().slideToggle();
+    });
+
+    $('#search input').live('input', function() {
+        update();
+    });
+
+    $('#mode input').change(function() {
+        update();
+    });
+
+    $("#uncheck_button").click(function(){
+        $('.problem .checked').attr('checked',false);
+        localStorage.clear();
+        update();
+    });
+
+    $('.problem a').mousedown(function(event) {
+        $('.problem').removeClass('active');
+        $(this).parents('.problem').addClass('active');
+    });
+
+    $('.problem .checked').change(function(event) {
+        var problem = $(this).parents('.problem');
+        problem.toggleClass('problem_checked');
+        var checked = problem.hasClass('problem_checked');
+        localStorage.setItem(problem.attr('id'),checked);
+        if (checked && isInProblemMode()) {
+            problem.slideUp();
+        }
+    });
+
+    $('.problem .checked').each(function () {
+        $(this).attr('checked',localStorage.getItem($(this).parents('.problem').attr('id'))=='true');
+    });
+    update();
+});
+
+</script>
+</head>
+<body>
+<div id="title">
+<h1><a href='http://code.google.com/p/bibtex-check'>BibTeX Check</a></h1>
+<div id="control">
+<form id="search"><input placeholder="search entry ID ..."/></form>
+<form id="mode">
+<label>show entries:</label>
+<input type = "radio"
+                 name = "mode"
+                 id = "mode_problems"
+                 value = "problems"
+                 checked = "checked" />
+          <label for = "mode_problems">problems</label>
+          <input type = "radio"
+                 name = "mode"
+                 id = "mode_all"
+                 value = "all" />
+          <label for = "mode_all">all</label>
+<input type="button" value="uncheck all" id="uncheck_button"></button>
+</form>
+</div>
+</div>
+<div class='info'><h2>Info</h2><ul><li>bib file: testme.bib</li><li>aux file: test.aux</li><li># entries: 31</li><li># problems: 45</li><ul><li># missing fields: 45</li><li># flawed names: 0</li><li># wrong types: 0</li><li># non-unique id: 0</li></ul></ul></div><div id='Cybersecuritycultureinorganisations2017' class='problem severe0'><h2>Cybersecuritycultureinorganisations2017 (book)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Cyber security culture in organisations'>Scholar</a> | <a href='https://www.google.de/search?q=Cyber security culture in organisations'>Google</a> | <a href='http://dblp.org/search/index.php#query=Cyber security culture in organisations'>DBLP</a></div><div class='reference'>Cyber security culture in organisations</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@book{Cybersecuritycultureinorganisations2017,<br />abstract = {The concept of Cybersecurity Culture (CSC) refers to the knowledge, beliefs, perceptions, attitudes, assumptions, norms and values of people regarding cybersecurity and how they manifest themselves in people’s behaviour with information technologies. CSC encompasses familiar topics including cybersecurity awareness and information security frameworks but is broader in both scope and application, being concerned with making information security considerations an integral part of an employee’s job, habits and conduct, embedding them in their day-to-day actions. To assist in promoting both the understanding and uptake of CSC programmes within organisations, this report draws from multiple disciplines, including organisational sciences, psychology, law and cybersecurity. It is complemented by knowledge and experiences gathered from existing CSC programmes implemented within organisations, and contains good practices, methodological tools and step-by-step guidance for those seeking to commence or enhance their organisation’s own Cybersecurity Culture programme. There are multiple drivers behind the rise of CSC as a recognised need within organisations. It reflects the acceptance that how an organisation behaves is dependent on the shared beliefs, values and actions of its employees, and that this includes their attitudes towards cybersecurity. There is the recognition that cyber threat awareness raising campaigns are not, in themselves, affording sufficient protection against ever evolving cyber attacks. There is also the recognition that technical cyber security measures do not exist in a vacuum, and need to operate in harmony with other business processes to avoid that employees are placed in the untenable position of being forced to choose between ‘doing their job’ or ‘complying with security policies’. Finally, it is about responding to the view that humans represent the weakest link in cyber security chains, and replacing this with an environment where employees become robust human firewalls against cyber attacks. It is against this backdrop that ENISA has undertaken research into Cybersecurity Culture to provide this guidance, applicable to organisations regardless of structure, size or industry. This is achieved by presenting tools and practices designed to be contextualised to the needs and circumstances of individual organisations. While it has been targeted at those employed in security functions and/or tasked within increasing the cyber security resilience threshold of all employees, the language has been crafted to ensure all employees, regardless of role or seniority, can gain sufficient understanding of what is required to produce and kick-start their own CSC programme. The following resources have been included: Good practices identified from those organisations that have already implemented mature CSC programmes, and specifically categorised and tailored to different audiences within an organisation, from senior management to the information security team; - To facilitate the development and delivery of a Cybersecurity Culture programme, an eight-step Implementation Framework is presented alongside detailed guidance for each of the constituent steps. This Framework encompasses the entire lifecycle of an organisation’s Cybersecurity Culture programmes. - Methods to produce a CSC for an organisation, as well as guidance on suitable metrics for measuring the impact of CSC activities; and - Strategies for building a robust business case for the allocation of internal resources towards future Cybersecurity Culture activities. The study will identify good practices, methodological tools and step by step guidance for those seeking to commence or enhance their organizations own Cybersecurity Culture programme, including resources to produce a business case to secure funding for such a programme. The success of a CSC programme rests on a number of key elements, these elements are identified and described below.},<br />publisher = {ENISA},<br />author = {ENISA},<br />isbn = {9789292042455},<br />year = {2017},<br />title = {Cyber security culture in organisations},<br />language = {eng},<br />address = {Heraklion},<br />keywords = {Information Technology ; Digital Technology ; Data Protection ; Computer Crime ; Digital Literacy ; European Organisation ; Report},<br />organization = {European Union Agency for Network and Information Security},<br />url = {http://publications.europa.eu/publication/manifestation_identifier/PUB_TP0617472ENN},<br />}<br /></div></div><div id='ToolSupportedManagementofInformationSecurityCulture' class='problem severe0'><h2>ToolSupportedManagementofInformationSecurityCulture (book)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Tool Supported Management of Information Security Culture'>Scholar</a> | <a href='https://www.google.de/search?q=Tool Supported Management of Information Security Culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Tool Supported Management of Information Security Culture'>DBLP</a></div><div class='reference'>Tool Supported Management of Information Security Culture</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@book{ToolSupportedManagementofInformationSecurityCulture,<br />   author = {Schlienger, Thomas and Teufel, Stephanie and Sasaki, Ryoichi and Qing, Sihan and Okamoto, Eiji and Yoshiura, Hiroshi},<br />   title = {Tool Supported Management of Information Security Culture},<br />   publisher = {Boston, MA: Springer US},<br />   address = {Boston, MA},<br />   volume = {181},<br />   series = {IFIP International Federation for Information Processing},<br />   pages = {65-77},<br />   ISBN = {9780387256580,038725658X},<br />   DOI = {10.1007/0-387-25660-1_5},<br />   year = {2005},<br />   type = {Book}<br />}<br /></div></div><div id='about-google-scolar' class='problem severe0'><h2>about-google-scolar (online)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=About Google scolar'>Scholar</a> | <a href='https://www.google.de/search?q=About Google scolar'>Google</a> | <a href='http://dblp.org/search/index.php#query=About Google scolar'>DBLP</a></div><div class='reference'>About Google scolar</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@online{about-google-scolar,<br />    author = {Google},<br />    title = {About Google scolar},<br />    url = {https://scholar.google.com/intl/en/scholar/about.html},<br />    urldate = {2019-01-28}<br />}<br />%- Krav til egenskaper for måling av informasjonssikkerhet<br />%- Lover/regler som setter krav om informasjonssikkerhet?<br />%- Teori for måling<br />%- Hva er gode metrikker/egenskaper<br /></div></div><div id='alfawaz2010information' class='problem severe3'><h2>alfawaz2010information (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Information security culture  a behaviour compliance conceptual framework'>Scholar</a> | <a href='https://www.google.de/search?q=Information security culture  a behaviour compliance conceptual framework'>Google</a> | <a href='http://dblp.org/search/index.php#query=Information security culture  a behaviour compliance conceptual framework'>DBLP</a></div><div class='reference'>Information security culture - a behaviour compliance conceptual framework</div><ul><li>missing field 'journal'</li><li>missing field 'number'</li><li>missing field 'volume'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{alfawaz2010information,<br />  title={Information security culture - a behaviour compliance conceptual framework},<br />  author={Alfawaz, Salahuddin and Nelson, Karen and Mohannak, Kavoos},<br />  booktitle={Proceedings of the Eighth Australasian Conference on Information Security-Volume 105},<br />  pages={47--55},<br />  year={2010},<br />  organization={Australian Computer Society, Inc.},<br />  url={https://dl.acm.org/citation.cfm?id=1862275}<br />}<br /></div></div><div id='alhogail2015design' class='problem severe1'><h2>alhogail2015design (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Security and Privacy in the Age of Ubiquitous Computing IFIP TC11 20th International Information Security Conference May 30June 1 2005 Chiba Japan'>Scholar</a> | <a href='https://www.google.de/search?q=Security and Privacy in the Age of Ubiquitous Computing IFIP TC11 20th International Information Security Conference May 30June 1 2005 Chiba Japan'>Google</a> | <a href='http://dblp.org/search/index.php#query=Security and Privacy in the Age of Ubiquitous Computing IFIP TC11 20th International Information Security Conference May 30June 1 2005 Chiba Japan'>DBLP</a></div><div class='reference'>Security and Privacy in the Age of Ubiquitous Computing: IFIP TC11 20th International Information Security Conference, May 30-June 1, 2005, Chiba, Japan</div><ul><li>missing field 'number'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{alhogail2015design,<br />  title={Design and validation of information security culture framework},<br />  author={AlHogail, Areej},<br />  journal={Computers in Human Behavior},<br />  volume={49},<br />  pages={567--575},<br />  year={2015},<br />  publisher={Elsevier},<br />  url={https://www.sciencedirect.com/science/article/pii/S0747563215002447}<br />}<br /> @book{securityandprivacyintheageofubiquitouscomputing,<br />  title={Security and Privacy in the Age of Ubiquitous Computing: IFIP TC11 20th International Information Security Conference, May 30-June 1, 2005, Chiba, Japan},<br />  author={Sasaki, Ryoichi and Okamoto, Eiji and Yoshiura, Hiroshi},<br />  volume={181},<br />  pages={66},<br />  year={2010},<br />  publisher={Springer}<br />}<br /></div></div><div id='analyzinginformationsecurityculture' class='problem severe2'><h2>analyzinginformationsecurityculture (inproceedings)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Analyzing information security culture increased trust by an appropriate information security culture'>Scholar</a> | <a href='https://www.google.de/search?q=Analyzing information security culture increased trust by an appropriate information security culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Analyzing information security culture increased trust by an appropriate information security culture'>DBLP</a></div><div class='reference'>Analyzing information security culture: increased trust by an appropriate information security culture</div><ul><li>missing field 'publisher'</li><li>missing field 'year'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@inproceedings{analyzinginformationsecurityculture,<br />   author = {Schlienger, T. and Teufel, S.},<br />   title = {Analyzing information security culture: increased trust by an appropriate information security culture},<br />   booktitle = {14th International Workshop on Database and Expert Systems Applications, 2003. Proceedings.},<br />   pages = {405-409},<br />   ISBN = {1529-4188},<br />   DOI = {10.1109/DEXA.2003.1232055},<br />   url = {https://ieeexplore.ieee.org/ielx5/8719/27592/01232055.pdf?tp=&arnumber=1232055&isnumber=27592},<br />   type = {Conference Proceedings}<br />}<br />%<br />% Måling av informasjonssikkerhet<br /></div></div><div id='buildingasecculture' class='problem severe2'><h2>buildingasecculture (inproceedings)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Build a Security Culture'>Scholar</a> | <a href='https://www.google.de/search?q=Build a Security Culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Build a Security Culture'>DBLP</a></div><div class='reference'>Build a Security Culture</div><ul><li>missing field 'booktitle'</li><li>missing field 'publisher'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@inproceedings{buildingasecculture,<br />author = {Roer, Kai},<br />year = {2006},<br />month = {01},<br />pages = {Abstract, Volume 2},<br />title = {Build a Security Culture },<br />url = {https://www.isaca.org/Journal/archives/2016/volume-2/Pages/build-a-security-culture.aspx}<br />}<br /></div></div><div id='computersecuritydefMattBishop' class='problem severe0'><h2>computersecuritydefMattBishop (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=What is computer security'>Scholar</a> | <a href='https://www.google.de/search?q=What is computer security'>Google</a> | <a href='http://dblp.org/search/index.php#query=What is computer security'>DBLP</a></div><div class='reference'>What is computer security?</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{computersecuritydefMattBishop,<br />   author = {Bishop, M.},<br />   title = {What is computer security?},<br />   journal = {Security & Privacy, IEEE},<br />   volume = {99},<br />   number = {1},<br />   pages = {67-69},<br />   ISSN = {1540-7993},<br />   DOI = {10.1109/MSECP.2003.1176998},<br />   year = {2003},<br />   type = {Journal Article}<br />}<br /></div></div><div id='da2010framework' class='problem severe0'><h2>da2010framework (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=A framework and assessment instrument for information security culture'>Scholar</a> | <a href='https://www.google.de/search?q=A framework and assessment instrument for information security culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=A framework and assessment instrument for information security culture'>DBLP</a></div><div class='reference'>A framework and assessment instrument for information security culture</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{da2010framework,<br />  title={A framework and assessment instrument for information security culture},<br />  author={Da Veiga, Ad{\'e}le and Eloff, Jan Hp},<br />  journal={Computers \& Security},<br />  volume={29},<br />  number={2},<br />  pages={196--207},<br />  year={2010},<br />  publisher={Elsevier},<br />  url={https://www.sciencedirect.com/science/article/pii/S0167404809000923}<br />}<br />%En artikkel som forteller noe om hvordan man kan designe et rammeverk for informasjonssikkerhet<br />%Google scolar søk:<br />%       allintitle: culture security framework<br /></div></div><div id='datatilsynetpersonopplysninger' class='problem severe3'><h2>datatilsynetpersonopplysninger (misc)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Scholar</a> | <a href='https://www.google.de/search?q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Exploring the Relationship between Organizational Culture and Information Security Culture'>DBLP</a></div><div class='reference'>Exploring the Relationship between Organizational Culture and Information Security Culture</div><ul><li>missing field 'author'</li><li>missing field 'howpublished'</li><li>missing field 'title'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@misc{datatilsynetpersonopplysninger,<br />   volume = {2019},<br />   number = {01/28/2019},<br />   url = {https://www.datatilsynet.no/rettigheter-og-plikter/personopplysninger/<br />},<br />   year = {2018},<br />   type = {Web Page}<br />}<br /></div></div><div id='exploringtherelationshipbetweenorganizationalcultureandisc' class='problem severe1'><h2>exploringtherelationshipbetweenorganizationalcultureandisc (misc)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Scholar</a> | <a href='https://www.google.de/search?q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Exploring the Relationship between Organizational Culture and Information Security Culture'>DBLP</a></div><div class='reference'>Exploring the Relationship between Organizational Culture and Information Security Culture</div><ul><li>missing field 'howpublished'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@misc{exploringtherelationshipbetweenorganizationalcultureandisc,<br />abstract = {Managing Information Security is becoming more challenging in today’s business because people are both a cause of information security incidents as well as a key part of the protection from them. As the impact of organizational culture (OC) on employees is significant, many researchers have called for the creation of information security culture (ISC) in organizations to influence the actions and behaviour of employees towards better organizational information security. Although researchers have called for the creation of ISC to be embedded in organizations, nonetheless, literature suggests that little past research examining the relationship between the nature of OC and ISC. This paper seeks to explore the relationship between the nature of OC and ISC and argues that organizations that have a medium to high security risk profile need to embed the ISC to influence employee actions and behaviours in relation to information security practices. In addition, this paper also introduces a framework to assist organizations in determining the extent to which the desired ISC is embedded into OC....},<br />publisher = {Security Research Institute (SRI), Edith Cowan University},<br />year = {2009},<br />title = {Exploring the Relationship between Organizational Culture and Information Security Culture},<br />author = {Lim, Joo S. and Chang, Shanton and Maynard, Sean and Ahmad, Atif},<br />keywords = {Computer System Security},<br />}<br /></div></div><div id='gdprart32' class='problem severe3'><h2>gdprart32 (misc)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Scholar</a> | <a href='https://www.google.de/search?q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Exploring the Relationship between Organizational Culture and Information Security Culture'>DBLP</a></div><div class='reference'>Exploring the Relationship between Organizational Culture and Information Security Culture</div><ul><li>missing field 'author'</li><li>missing field 'howpublished'</li><li>missing field 'title'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@misc{gdprart32,<br />   volume = {2019},<br />   number = {01/26/2019},<br />   url = {https://gdpr-info.eu/art-32-gdpr/},<br />   year = {2018},<br />   type = {Web Page}<br />}<br /></div></div><div id='gdprprocessing' class='problem severe3'><h2>gdprprocessing (misc)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Scholar</a> | <a href='https://www.google.de/search?q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Exploring the Relationship between Organizational Culture and Information Security Culture'>DBLP</a></div><div class='reference'>Exploring the Relationship between Organizational Culture and Information Security Culture</div><ul><li>missing field 'author'</li><li>missing field 'howpublished'</li><li>missing field 'title'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@misc{gdprprocessing,<br />   volume = {2019},<br />   number = {01/28/2019},<br />   url = {https://gdpr-info.eu/art-4-gdpr/},<br />   year = {2018},<br />   type = {Web Page}<br />}<br /></div></div><div id='gdprregulation' class='problem severe3'><h2>gdprregulation (misc)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Scholar</a> | <a href='https://www.google.de/search?q=Exploring the Relationship between Organizational Culture and Information Security Culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Exploring the Relationship between Organizational Culture and Information Security Culture'>DBLP</a></div><div class='reference'>Exploring the Relationship between Organizational Culture and Information Security Culture</div><ul><li>missing field 'author'</li><li>missing field 'howpublished'</li><li>missing field 'title'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@misc{gdprregulation,<br />   volume = {2019},<br />   number = {01/28/2019},<br />   url = {https://www.gdpreu.org/the-regulation/},<br />   year = {2018},<br />   type = {Web Page}<br />}<br /></div></div><div id='godpraksisformålingavinformasjonssikkerhetsnivå' class='problem severe1'><h2>godpraksisformålingavinformasjonssikkerhetsnivå (mastersthesis)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=God praksis for måling av informasjonssikkerhetsnivå'>Scholar</a> | <a href='https://www.google.de/search?q=God praksis for måling av informasjonssikkerhetsnivå'>Google</a> | <a href='http://dblp.org/search/index.php#query=God praksis for måling av informasjonssikkerhetsnivå'>DBLP</a></div><div class='reference'>God praksis for måling av informasjonssikkerhetsnivå</div><ul><li>missing field 'school'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@mastersthesis{godpraksisformålingavinformasjonssikkerhetsnivå,<br />  title={God praksis for måling av informasjonssikkerhetsnivå},<br />  author={Bakås, Tone Hodd{\o}},<br />  publisher={Institutt for informatikk og medieteknikk Høgskolen i Gjøvik},<br />  year={2005}<br />}<br /></div></div><div id='google-scolar' class='problem severe0'><h2>google-scolar (online)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Google scolar'>Scholar</a> | <a href='https://www.google.de/search?q=Google scolar'>Google</a> | <a href='http://dblp.org/search/index.php#query=Google scolar'>DBLP</a></div><div class='reference'>Google scolar</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@online{google-scolar,<br />    author = {Google},<br />    title = {Google scolar},<br />    url = {https://scholar.google.no/},<br />    urldate = {2019-01-27}<br />}<br /></div></div><div id='harkins2013managing' class='problem severe0'><h2>harkins2013managing (book)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Managing risk and information security protect to enable'>Scholar</a> | <a href='https://www.google.de/search?q=Managing risk and information security protect to enable'>Google</a> | <a href='http://dblp.org/search/index.php#query=Managing risk and information security protect to enable'>DBLP</a></div><div class='reference'>Managing risk and information security: protect to enable</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@book{harkins2013managing,<br />  title={Managing risk and information security: protect to enable},<br />  author={Harkins, Malcolm},<br />  year={2012},<br />  publisher={Springer}<br />  type = {Book},<br />  pages={15--19},<br />  note = {<br />  - Nevner at det er uungåelig at data blir komprimitert, siden ingen beskyttelse er 100 prosent.<br />  - Subjektive meninger om risiko, der både psykologiske og økonomiske faktorer har rolle i personers individuelle oppførsel i forskjellige situasjoner.<br />  - Begrense feiltolkning av risiko ved å skape ett bredere risiko-bilde for alle involverte.<br />  }<br />}<br />% En artikkel, som sier litt om hvordan man skal lage en informasjonssikkerhetskutur<br />% Google scolar søk:<br />%        allintitle: culture security framework<br /></div></div><div id='heartsandminds' class='problem severe2'><h2>heartsandminds (inproceedings)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=The Hearts and Minds Project'>Scholar</a> | <a href='https://www.google.de/search?q=The Hearts and Minds Project'>Google</a> | <a href='http://dblp.org/search/index.php#query=The Hearts and Minds Project'>DBLP</a></div><div class='reference'>The Hearts and Minds Project</div><ul><li>missing field 'booktitle'</li><li>missing field 'publisher'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@inproceedings{heartsandminds,<br />author = {Hudson, Patrick},<br />year = {2004},<br />month = {01},<br />pages = {},<br />title = {The Hearts and Minds Project}<br />url = {https://www.researchgate.net/publication/281236607_The_Hearts_and_Minds_Project}<br />}<br /></div></div><div id='informasjonssikkerhetatferdholdningerogkultur' class='problem severe0'><h2>informasjonssikkerhetatferdholdningerogkultur (book)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Informasjonssikkerhet  atferd holdninger og kultur'>Scholar</a> | <a href='https://www.google.de/search?q=Informasjonssikkerhet  atferd holdninger og kultur'>Google</a> | <a href='http://dblp.org/search/index.php#query=Informasjonssikkerhet  atferd holdninger og kultur'>DBLP</a></div><div class='reference'>Informasjonssikkerhet : atferd, holdninger og kultur</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@book{informasjonssikkerhetatferdholdningerogkultur,<br />   author = {Nordby, Yngve},<br />   title = {Informasjonssikkerhet : atferd, holdninger og kultur},<br />   publisher = {NTNU, Institutt for produksjons- og kvalitetsteknikk},<br />   address = {Trondheim},<br />   volume = {200504},<br />   series = {ROSS (NTNU) (trykt utg.)},<br />   ISBN = {8277062222},<br />   year = {2005},<br />   type = {Book},<br />   note = {en tldr hva det dreier seg om}<br />}<br /></div></div><div id='informationsecurity-thethirdwave' class='problem severe0'><h2>informationsecurity-thethirdwave (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Information security The third wave'>Scholar</a> | <a href='https://www.google.de/search?q=Information security The third wave'>Google</a> | <a href='http://dblp.org/search/index.php#query=Information security The third wave'>DBLP</a></div><div class='reference'>Information security -The third wave?</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{informationsecurity-thethirdwave,<br />   author = {Von Solms, B.},<br />   title = {Information security -The third wave?},<br />   journal = {Computers and Security},<br />   volume = {19},<br />   number = {7},<br />   pages = {615-620},<br />   ISSN = {01674048},<br />   DOI = {10.1016/S0167-4048(00)07021-8},<br />   year = {2000},<br />   type = {Journal Article}<br />}<br /></div></div><div id='informationsecuritycultureMartins2002' class='problem severe0'><h2>informationsecuritycultureMartins2002 (incollection)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Information security culture'>Scholar</a> | <a href='https://www.google.de/search?q=Information security culture'>Google</a> | <a href='http://dblp.org/search/index.php#query=Information security culture'>DBLP</a></div><div class='reference'>Information security culture</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@incollection{informationsecuritycultureMartins2002,<br />  title={Information security culture},<br />  author={Martins, Ad{\'e}le and Elofe, Jan},<br />  booktitle={Security in the information society},<br />  pages={203--214},<br />  year={2002},<br />  publisher={Springer}<br />}<br /></div></div><div id='innsida-oppgaveskriving' class='problem severe0'><h2>innsida-oppgaveskriving (online)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Hvordan strukturere teksten Oppgavens struktur'>Scholar</a> | <a href='https://www.google.de/search?q=Hvordan strukturere teksten Oppgavens struktur'>Google</a> | <a href='http://dblp.org/search/index.php#query=Hvordan strukturere teksten Oppgavens struktur'>DBLP</a></div><div class='reference'>Hvordan strukturere teksten? Oppgavens struktur</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@online{innsida-oppgaveskriving,<br />    author = {NTNU senter for faglig kommunikasjon},<br />    title = {Hvordan strukturere teksten? Oppgavens struktur},<br />    url = {https://www.ntnu.no/sekom/oppgavens-struktur},<br />    urldate = {2019-01-27}<br />}<br /></div></div><div id='ntnu-oria' class='problem severe0'><h2>ntnu-oria (online)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Oria'>Scholar</a> | <a href='https://www.google.de/search?q=Oria'>Google</a> | <a href='http://dblp.org/search/index.php#query=Oria'>DBLP</a></div><div class='reference'>Oria</div><ul></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@online{ntnu-oria,<br />    author = {NTNU},<br />    title = {Oria},<br />    url = {https://bibsys-almaprimo.hosted.exlibrisgroup.com/primo-explore/search?sortby=rank&vid=NTNU_UB&lang=no_NO},<br />    urldate = {2019-01-27}<br />}<br /></div></div><div id='parsons2010human' class='problem severe4'><h2>parsons2010human (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Human factors and information security individual culture and security environment'>Scholar</a> | <a href='https://www.google.de/search?q=Human factors and information security individual culture and security environment'>Google</a> | <a href='http://dblp.org/search/index.php#query=Human factors and information security individual culture and security environment'>DBLP</a></div><div class='reference'>Human factors and information security: individual, culture and security environment</div><ul><li>missing field 'journal'</li><li>missing field 'number'</li><li>missing field 'pages'</li><li>missing field 'volume'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{parsons2010human<br />   author={Parsons, Kathryn and McCormac, Agata and Butavicius, Marcus and Ferguson, Lael},<br />   title={Human factors and information security: individual, culture and security environment},<br />   institution={DEFENCE SCIENCE AND TECHNOLOGY ORGANISATION EDINBURGH (AUSTRALIA) COMMAND~…}<br />   year={2010},<br />   type = {techreport},<br />   note = {en tldr hva det dreier seg om}<br />}<br />% Omhandler analyse av informasjonsikkerhet kultur<br />% L<br /></div></div><div id='partfiresocialandethicalaspectsofinformationsecurity' class='problem severe3'><h2>partfiresocialandethicalaspectsofinformationsecurity (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Information Security Culture Part Five Social and Ethical Aspects of Information Security'>Scholar</a> | <a href='https://www.google.de/search?q=Information Security Culture Part Five Social and Ethical Aspects of Information Security'>Google</a> | <a href='http://dblp.org/search/index.php#query=Information Security Culture Part Five Social and Ethical Aspects of Information Security'>DBLP</a></div><div class='reference'>Information Security Culture, Part Five: Social and Ethical Aspects of Information Security</div><ul><li>missing field 'journal'</li><li>missing field 'number'</li><li>missing field 'volume'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{partfiresocialandethicalaspectsofinformationsecurity,<br />  title={Information Security Culture, Part Five: Social and Ethical Aspects of Information Security},<br />  author={A. MARTINS, JAN ELOP},<br />  pages={208},<br />  year={Unknown},<br />  publisher={Unknown},<br />  url={https://link.springer.com/content/pdf/10.1007\%2F978-0-387-35586-3_16.pdf}<br />}<br />%Tror denne er mindre relevant, men jeg skrev den opp og kommer til å kikke i gjennom for å se om det er noe relevant der<br />%Google scolar søk:<br />%       allintitle: culture security framework<br /></div></div><div id='payne2001guide' class='problem severe2'><h2>payne2001guide (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=A guide to security metrics'>Scholar</a> | <a href='https://www.google.de/search?q=A guide to security metrics'>Google</a> | <a href='http://dblp.org/search/index.php#query=A guide to security metrics'>DBLP</a></div><div class='reference'>A guide to security metrics</div><ul><li>missing field 'number'</li><li>missing field 'pages'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{payne2001guide,<br />  title={A guide to security metrics},<br />  author={Payne, Shirley C},<br />  journal={SANS Security Essentials GSEC Practical Assignment Version},<br />  volume={1},<br />  year={2001}<br />}<br /></div></div><div id='politikkforinfosecntnu' class='problem severe4'><h2>politikkforinfosecntnu (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Politikk for informasjonssikkerhet'>Scholar</a> | <a href='https://www.google.de/search?q=Politikk for informasjonssikkerhet'>Google</a> | <a href='http://dblp.org/search/index.php#query=Politikk for informasjonssikkerhet'>DBLP</a></div><div class='reference'>Politikk for informasjonssikkerhet</div><ul><li>missing field 'journal'</li><li>missing field 'number'</li><li>missing field 'pages'</li><li>missing field 'volume'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{politikkforinfosecntnu,<br />   author = {NTNU},<br />   title = {Politikk for informasjonssikkerhet},<br />   url = {https://innsida.ntnu.no/wiki/-/wiki/Norsk/Politikk+for+informasjonssikkerhet},<br />   year = {2018},<br />   type = {Journal Article}<br />}<br /></div></div><div id='runeSsjelvan2015hfd' class='problem severe1'><h2>runeSsjelvan2015hfd (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Hindre for digitalisering'>Scholar</a> | <a href='https://www.google.de/search?q=Hindre for digitalisering'>Google</a> | <a href='http://dblp.org/search/index.php#query=Hindre for digitalisering'>DBLP</a></div><div class='reference'>Hindre for digitalisering</div><ul><li>missing field 'volume'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{runeSsjelvan2015hfd,<br />issn = {1501-0074},<br />abstract = {Norske bedrifter ser mangel på standardisering og underskudd på kompetanse som de viktigste hindrene for en digitalisering som mange av dem sårt trenger: I en KPMG-undersøkelse sier to av tre bedrifter at digitalisering allerede påvirker dem, mens bare hver fjerde bedrift har en bevisst strategi for hvordan utnytte digitale løsninger og verktøy for å styrke sin konkurranseevne. Hvilke hindre må din bedrift overkomme for å få til ytterligere digitalisering?},<br />journal = {Praktisk økonomi & finans},<br />pages = {187--194},<br />publisher = {Universitetsforlaget},<br />number = {03},<br />year = {2015},<br />title = {Hindre for digitalisering},<br />author = {Rune Skjelvan},<br />keywords = {Teknologi ; Digitalisering ; Omstilling ; Hindringer ; Ledelse ; Strategi ; Teknologi ; Digitalisering ; Omstilling ; Hindringer ; Ledelse ; Strategi ;},<br />url = {https://www.idunn.no/pof/2015/03/hindre_for_digitalisering},<br />}<br />%Google Scholar-søk:<br />%       information security AND culture<br /></div></div><div id='thenewusersguidepagereference' class='problem severe3'><h2>thenewusersguidepagereference (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=The new users guide How to raise information security awareness'>Scholar</a> | <a href='https://www.google.de/search?q=The new users guide How to raise information security awareness'>Google</a> | <a href='http://dblp.org/search/index.php#query=The new users guide How to raise information security awareness'>DBLP</a></div><div class='reference'>The new users' guide: How to raise information security awareness</div><ul><li>missing field 'journal'</li><li>missing field 'number'</li><li>missing field 'volume'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{thenewusersguidepagereference,<br />  title={The new users' guide: How to raise information security awareness},<br />  author={ENISA},<br />  pages={xx},<br />  year={2010},<br />  organization={ENISA},<br />  url={https://www.enisa.europa.eu}<br />}<br />% En artikkel som forteller noe om problemet rundt digitalisering og vekst av organisasjoner opp i mot informasjonssikerhet<br />% Se avsnitt "Informasjonssikkerhet undervurderes"<br />%PDF-versjon @ sharepoint https://studntnu.sharepoint.com/:b:/s/TeamSite/8827/Ef6P3u0c_sdKkPY8O8a_s28BMMjFv_1p2PxR3z1ihUvqkg?e=KyuUcL<br />%Oria søk(Norske fagbibliotek): "kultur" + "informasjonssikerhet"<br /></div></div><div id='towardsamorerepresentativedefinitionogcybersecurity' class='problem severe3'><h2>towardsamorerepresentativedefinitionogcybersecurity (article)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Towards a More Representative Definition of Cyber Security'>Scholar</a> | <a href='https://www.google.de/search?q=Towards a More Representative Definition of Cyber Security'>Google</a> | <a href='http://dblp.org/search/index.php#query=Towards a More Representative Definition of Cyber Security'>DBLP</a></div><div class='reference'>Towards a More Representative Definition of Cyber Security</div><ul><li>missing field 'number'</li><li>missing field 'pages'</li><li>missing field 'volume'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@article{towardsamorerepresentativedefinitionogcybersecurity,<br />issn = {The Journal of Digital Forensics, Security and Law},<br />journal = {The Journal of Digital Forensics, Security and Law},<br />year = {2017},<br />title = {Towards a More Representative Definition of Cyber Security},<br />author = {Schatz, Daniel and Bashroush, Rabih and Wall, Julie},<br />}<br /></div></div><div id='understandingtransistiontowardsinformationsecurity' class='problem severe1'><h2>understandingtransistiontowardsinformationsecurity (inproceedings)</h2> <div class='links'> | <a href='http://scholar.google.de/scholar?hl=en&q=Understanding Transition towards Information Security Culture Change'>Scholar</a> | <a href='https://www.google.de/search?q=Understanding Transition towards Information Security Culture Change'>Google</a> | <a href='http://dblp.org/search/index.php#query=Understanding Transition towards Information Security Culture Change'>DBLP</a></div><div class='reference'>Understanding Transition towards Information Security Culture Change</div><ul><li>missing field 'publisher'</li></ul><form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form><div class='bibtex_toggle'>Current BibTeX Entry</div><div class='bibtex'>@inproceedings{understandingtransistiontowardsinformationsecurity,<br />   author = {Ngo, Leanne and Zhou, Wanlei and Warren, Matthew},<br />   title = {Understanding Transition towards Information Security Culture Change},<br />   booktitle = {AISM},<br />   pages = {67-73},<br />   year = {2005},<br />   type = {Conference Proceedings}<br />}<br /></div></div></body></html>

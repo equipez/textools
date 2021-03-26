@@ -6,7 +6,7 @@
 # 3. Macros are sorted alphabetically.
 # 4. The file is indented.
 
-BIBLATEX=1
+BIBLATEX=0
 
 TRIMBIBLOG="trimbib.log"
 

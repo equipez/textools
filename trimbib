@@ -1,22 +1,40 @@
 #!/bin/bash
-# Usage: trimbib [NAME_OF_BIBTEX_FILE]
+# Usage: trimbib [-l|--latex] [NAME_OF_BIBTEX_FILE]
 # This script trims bib files using biber in the following way.
 # 1. Only one of the duplicated entries is kept. (But which one? I am not sure what is biber's rule.)
 # 2. Items are ordered by author, year, and the entry key.
 # 3. Macros are sorted alphabetically.
 # 4. The file is indented.
+# If -l|--latex is present, then a BibLaTeX file will be produced; otherwise, it generates a BibTeX file.
 
 BIBLATEX=0
+BIBFILE=""
 
-TRIMBIBLOG="trimbib.log"
+if [[ $# > 2 ]]; then
+    printf "Usage: trimbib [-l|--latex] [BIBFILE_NAME] \n"
+    exit -1
+fi
+
+while [[ -n "$1" ]]; do # Parsing the arguments
+	case "$1" in
+	-l|--latex)
+        BIBLATEX=1
+		;;
+	*)
+        if [[ -z "$BIBFILE" ]]; then
+            BIBFILE="$1"
+        fi
+        ;;
+	esac
+	shift
+done
 
 # Get the name of the bib file without path. If the input is empty, then use the latest bib
 # file under the current directory.
-if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
+if [[ -z "$BIBFILE" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
-else
-	BIBFILE=$1
 fi
+
 # If $BIBFILE is a link, we work on its target.
 BIBFILE=`readlink -f $BIBFILE`
 # Get the directory where $BIBFILE is located.
@@ -25,11 +43,20 @@ BIBDIR=$(dirname "${BIBFILE}")
 BIBFILE=${BIBFILE##*/}
 if [[ -z "$BIBFILE" ]]; then
 	echo "No bib file found."
-	exit -1
+	exit -2
 fi
 
+# Log files
+TRIMBIBLOG="trimbib.log"
 CHECKBIBLOG=checkbib.log
-checkbib $BIBFILE
+
+# Check the bib file before trimming.
+if [[ $BIBLATEX == 1 ]] ; then
+    CHCKBIB="checkbib -l"
+else
+    CHCKBIB="checkbib"
+fi
+$CHCKBIB $BIBFILE
 
 read -n1 -s -r -p \
     $'Continue to trim the bib file? [Y/n] \nRevise it before trimming if it contains major mistakes.\n' KEY
@@ -243,7 +270,8 @@ fi
 
 rm $BIBFILE.blg
 
-checkbib $BIBFILE
+# Check the bib file after trimming.
+$CHCKBIB $BIBFILE
 
 echo "" >> $CHECKBIBLOG.bak
 echo "***************** checkbib.log after trimming ****************" >> $CHECKBIBLOG.bak

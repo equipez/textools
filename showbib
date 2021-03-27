@@ -1,24 +1,51 @@
 #!/bin/bash
+# Usage: showbib [-l|--latex] [BIBFILE_NAME]
+# showbib shows a bib file. Problems, if exist, will be displayed. It calls ./python/bibtex_check.py.
+# If -l|--latex is present, then showbib interprets the file as a BibLaTeX file; otherwise, it takes
+# the file as a BibTeX file.
+
+WEBBROWSER="google-chrome --new-window  --start-maximized "  # The web browser for viewing html
+
+BIBLATEX=0
+BIBFILE=""
+
+if [[ $# > 2 ]]; then
+    printf "Usage: showbib [-l|--latex] [BIBFILE_NAME] \n"
+    exit -1
+fi
+
+while [[ -n "$1" ]]; do # Parsing the arguments
+	case "$1" in
+	-l|--latex)
+        BIBLATEX=1
+		;;
+	*)
+        if [[ -z "$BIBFILE" ]]; then
+            BIBFILE="$1"
+        fi
+        ;;
+	esac
+	shift
+done
 
 # Get the name of the bib file without path. If the input is empty, then use the latest bib
 # file under the current directory.
-if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
+if [[ -z "$BIBFILE" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
-else
-	BIBFILE=$1
 fi
-
 BIBFILE=${BIBFILE##*/}
 if [[ -z "$BIBFILE" ]]; then
 	echo "No bib file found."
-	exit -1
+	exit -2
 fi
-
-WEBBROWSER="google-chrome-stable"
 
 # Get the directory where this script resides
 TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -b"
+if [[ $BIBLATEX == 1 ]] ; then
+    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -l -b"
+else
+    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -b"
+fi
 
 $BCPY $BIBFILE > /dev/null
 

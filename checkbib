@@ -1,19 +1,40 @@
 #!/bin/bash
+# Usage: checkbib [-l|--latex] [BIBFILE_NAME]
+# checkbib does some basic checks on a bib file. It calls ./python/bibtex_check.py and biber.
+# If -l|--latex is present, then checkbib checks the file as a BibLaTeX file; otherwise, it checks
+# the file as a BibTeX file.
 
 BIBLATEX=0
+BIBFILE=""
+
+if [[ $# > 2 ]]; then
+    printf "Usage: checkbib [-l|--latex] [BIBFILE_NAME] \n"
+    exit -1
+fi
+
+while [[ -n "$1" ]]; do # Parsing the arguments
+	case "$1" in
+	-l|--latex)
+        BIBLATEX=1
+		;;
+	*)
+        if [[ -z "$BIBFILE" ]]; then
+            BIBFILE="$1"
+        fi
+        ;;
+	esac
+	shift
+done
 
 # Get the name of the bib file without path. If the input is empty, then use the latest bib
 # file under the current directory.
-if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
+if [[ -z "$BIBFILE" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
-else
-	BIBFILE=$1
 fi
-
 BIBFILE=${BIBFILE##*/}
 if [[ -z "$BIBFILE" ]]; then
 	echo "No bib file found."
-	exit -1
+	exit -2
 fi
 
 # Get the directory where this script resides
@@ -30,14 +51,18 @@ BCPYLOG="bcpy.log"
 BIBERLOG="biber.log"
 
 echo ""
-echo "Checking $BIBFILE ..."
+if [[ $BIBLATEX == 1 ]] ; then
+    echo "Checking $BIBFILE in BibLaTeX mode ..."
+    echo "Result of checking $BIBFILE in BibLaTeX mode" > $LOG
+else
+    echo "Checking $BIBFILE in BibTeX mode ..."
+    echo "Result of checking $BIBFILE in BibTeX mode" > $LOG
+fi
 echo ""
-echo "" > $LOG
+echo "" >> $LOG
 
 echo "===> Looking for non-ASCII characters ..."
 grep --color='auto' -P -n "[^\x00-\x7F]" $BIBFILE
-echo "Result of checking $BIBFILE" >> $LOG
-echo "" >> $LOG
 echo "===> Non-ASCII characters:" >> $LOG
 echo "" >> $LOG
 grep -P -n "[^\x00-\x7F]" $BIBFILE >> $LOG

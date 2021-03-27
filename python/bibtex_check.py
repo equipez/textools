@@ -113,11 +113,11 @@ for line in fIn:
             bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
             bibTag += "\n<h2>"+currentId+" ("+currentType+")</h2> "
             bibTag += "\n<div class='links'>"
-            bibTag += "\n | <a href='"+libgenHref+currentTitle+"'>LibGen</a>"
-            bibTag += "\n | <a href='"+libgenArtHref+currentTitle+"'>LibGenArt</a>"
-            bibTag += "\n | <a href='"+scholarHref+currentTitle+"'>Scholar</a>"
-            bibTag += "\n | <a href='"+googleHref+currentTitle+"'>Google</a>"
-            bibTag += "\n | <a href='"+mathscinetHref+currentTitle+"'>MathSciNet</a>"
+            bibTag += "\n | <a href='"+libgenHref+currentTitle+"' target='_blank'>LibGen</a>"
+            bibTag += "\n | <a href='"+libgenArtHref+currentTitle+"' target='_blank'>LibGenArt</a>"
+            bibTag += "\n | <a href='"+scholarHref+currentTitle+"' target='_blank'>Scholar</a>"
+            bibTag += "\n | <a href='"+googleHref+currentTitle+"' target='_blank'>Google</a>"
+            bibTag += "\n | <a href='"+mathscinetHref+currentTitle+"' target='_blank'>MathSciNet</a>"
             bibTag += "\n</div>"
             bibTag += "\n<div class='reference'>"+currentTitle
             bibTag += "\n</div>"
@@ -190,33 +190,34 @@ for line in fIn:
 
 fIn.close()
 
-for requiredFieldsType in requiredFields:
-    if requiredFieldsType[0] == currentType:
-        for field in requiredFieldsType[1]:
-            if field not in fields:
-                problems.append("missing field '"+field+"'")
-                counterMissingFields += 1
-bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
-bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
-bibTag += "\n<h2>"+currentId+" ("+currentType+")</h2> "
-bibTag += "\n<div class='links'>"
-bibTag += "\n | <a href='"+libgenHref+currentTitle+"'>LibGen</a>"
-bibTag += "\n | <a href='"+libgenArtHref+currentTitle+"'>LibGenArt</a>"
-bibTag += "\n | <a href='"+scholarHref+currentTitle+"'>Scholar</a>"
-bibTag += "\n | <a href='"+googleHref+currentTitle+"'>Google</a>"
-bibTag += "\n | <a href='"+mathscinetHref+currentTitle+"'>MathSciNet</a>"
-bibTag += "\n</div>"
-bibTag += "\n<div class='reference'>"+currentTitle
-bibTag += "\n</div>"
-bibTag += "\n<ul class='enumprob'>"
-for problem in problems:
-    bibTag += "\n<li>"+problem+"</li>"
-bibTag += "\n</ul>"
-bibTag += "\n<form class='bibTag_control'><label>checked</label><input type='checkbox' class='checked'/></form>"
-bibTag += "\n<div class='bibtex_toggle'>Current BibTeX Entry</div>"
-bibTag += "\n<div class='bibtex'>"+completeEntry +"</div>"
-bibTag += "\n</div>"
-bibTags.append(bibTag)
+if (currentId in usedIds or not usedIds) and (currentType.lower() != "string"):
+    for requiredFieldsType in requiredFields:
+        if requiredFieldsType[0] == currentType:
+            for field in requiredFieldsType[1]:
+                if field not in fields:
+                    problems.append("missing field '"+field+"'")
+                    counterMissingFields += 1
+    bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
+    bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
+    bibTag += "\n<h2>"+currentId+" ("+currentType+")</h2> "
+    bibTag += "\n<div class='links'>"
+    bibTag += "\n | <a href='"+libgenHref+currentTitle+"' target='_blank'>LibGen</a>"
+    bibTag += "\n | <a href='"+libgenArtHref+currentTitle+"' target='_blank'>LibGenArt</a>"
+    bibTag += "\n | <a href='"+scholarHref+currentTitle+"' target='_blank'>Scholar</a>"
+    bibTag += "\n | <a href='"+googleHref+currentTitle+"' target='_blank'>Google</a>"
+    bibTag += "\n | <a href='"+mathscinetHref+currentTitle+"' target='_blank'>MathSciNet</a>"
+    bibTag += "\n</div>"
+    bibTag += "\n<div class='reference'>"+currentTitle
+    bibTag += "\n</div>"
+    bibTag += "\n<ul class='enumprob'>"
+    for problem in problems:
+        bibTag += "\n<li>"+problem+"</li>"
+    bibTag += "\n</ul>"
+    bibTag += "\n<form class='bibTag_control'><label>checked</label><input type='checkbox' class='checked'/></form>"
+    bibTag += "\n<div class='bibtex_toggle'>Current BibTeX Entry</div>"
+    bibTag += "\n<div class='bibtex'>"+completeEntry +"</div>"
+    bibTag += "\n</div>"
+    bibTags.append(bibTag)
 
 html = open(htmlOutput, 'w')
 html.write("""<html>

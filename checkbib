@@ -58,7 +58,7 @@ CAPITAL_WORDS="Yuan Powell \
     Einstein Fenchel Moreau Young Minkowski Stiefel Grassmann Grassmannian Neumann Fischer Halmos \
     Turing Knuth Dirichlet Poisson DtN Steklov Courant Hausdorff Hoffman Taylor Nesterov Polyak \
     Lasso LASSO ADMM APG FISTA CPU FPU GPU Hadamard Weierstrass Liouville Abel Abelian Galois \
-    Hamilton Hamiltonian Atiyah Fourier Gronwall Bellman LaSalle Bihari \
+    Hamilton Hamiltonian Atiyah Fourier Gronwall Bellman LaSalle Bihari Monte Carlo \
     Ky Fan \
     Poincare Poincar.*\'e.* Poincar.*\'{e}.* \
     Frechet Fr.*\'e.*chet Fr.*\'{e}.*chet \

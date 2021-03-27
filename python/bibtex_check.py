@@ -2,7 +2,7 @@
 """
 bibtex_check checks bib files according to conventions and requirements in applied mathematics.
 Developed based on bibtex_check (v0.2.0) by Fabian Beck released under the MIT license. The
-original version by Fabian Beck is archived under ./original/.
+original version by Fabian Beck is archived in ./original/.
 """
 
 import sys
@@ -13,17 +13,11 @@ usage = (
     sys.argv[0]
     + " [-b|--bib=<input.bib>] [-a|--aux=<input.aux>] [-o|--output=<output.html>] [-l|--latex] [-h|--help]"
 )
-
 parser = OptionParser(usage)
-
 parser.add_option("-b", "--bib", dest="bibFile", help="Bib File", metavar="input.bib", default="")
-
 parser.add_option("-a", "--aux", dest="auxFile", help="Aux File", metavar="input.aux", default="")
-
 parser.add_option("-o", "--output", dest="htmlOutput", help="HTML Output File", metavar="output.html", default="bibtex_check.html")
-
 parser.add_option("-l", "--latex", dest="bibLaTeX", help="Check BibLaTeX instead of BibTeX", action="store_true", default=False)
-
 (options, args) = parser.parse_args()
 
 # files
@@ -33,13 +27,10 @@ htmlOutput = options.htmlOutput
 bibLaTeX = options.bibLaTeX
 
 # links
-citeulikeUsername = ""  # if no username is profided, no CiteULike links appear
-citeulikeHref = "http://www.citeulike.org/user/"+citeulikeUsername+"/article/"
 libgenHref = "http://libgen.rs/search.php?req="
 libgenArtHref = "http://libgen.rs/scimag/?q="
-scholarHref = "http://scholar.google.de/scholar?hl=en&q="
-googleHref = "https://www.google.de/search?q="
-dblpHref = "http://dblp.org/search/index.php#query="
+scholarHref = "http://scholar.google.com/scholar?hl=en&q="
+googleHref = "https://www.google.com/search?q="
 mathscinetHref = "https://mathscinet.ams.org/mathscinet/search/publdoc.html?co4=AND&pg4=AUCN&pg5=TI&r=1&s4=&s5="
 
 # fields that are required for a specific type of entry
@@ -96,11 +87,11 @@ currentType = ""
 currentArticleId = ""
 currentTitle = ""
 fields = []
+bibTags = []
+bibTag = []
 problems = []
-problem = []
-subproblems = []
 
-counterId = 0
+counterEntry = 0
 counterMissingFields = 0
 counterFlawedNames = 0
 counterWrongTypes = 0
@@ -111,46 +102,41 @@ removePunctuationMap = dict((ord(char), None) for char in string.punctuation)
 for line in fIn:
     line = line.strip("\n")
     if line.startswith("@"):
-        counterId += 1
-        if (counterId > 1) and (currentId in usedIds or not usedIds) and (currentType.lower() != "string"):
+        counterEntry += 1
+        if (counterEntry > 1) and (currentId in usedIds or not usedIds) and (currentType.lower() != "string"):
             for requiredFieldsType in requiredFields:
                 if requiredFieldsType[0] == currentType:
                     for field in requiredFieldsType[1]:
                         if field not in fields:
-                            subproblems.append("missing field '"+field+"'")
+                            problems.append("missing field '"+field+"'")
                             counterMissingFields += 1
-            #cleanedTitle = currentTitle.translate(removePunctuationMap)
-            cleanedTitle = currentTitle
-            problem = "\n\n<div id='"+currentId+"' class='problem severe"+str(len(subproblems))+"'>"
-            problem += "\n<h2>"+currentId+" ("+currentType+")</h2> "
-            problem += "\n<div class='links'>"
-            if citeulikeUsername:
-                problem += "\n<a href='"+citeulikeHref+currentArticleId+"'>CiteULike</a>"
-            problem += "\n | <a href='"+libgenHref+cleanedTitle+"'>LibGen</a>"
-            problem += "\n | <a href='"+libgenArtHref+cleanedTitle+"'>LibGenArt</a>"
-            problem += "\n | <a href='"+scholarHref+cleanedTitle+"'>Scholar</a>"
-            problem += "\n | <a href='"+googleHref+cleanedTitle+"'>Google</a>"
-            problem += "\n | <a href='"+dblpHref+cleanedTitle+"'>DBLP</a>"
-            problem += "\n | <a href='"+mathscinetHref+cleanedTitle+"'>MathSciNet</a>"
-            problem += "\n</div>"
-            problem += "\n<div class='reference'>"+currentTitle
-            problem += "\n</div>"
-            problem += "\n<ul class='enumprob'>"
-            for subproblem in subproblems:
-                problem += "\n<li>"+subproblem+"</li>"
-            problem += "\n</ul>"
-            problem += "\n<form class='problem_control'><label>checked</label><input type='checkbox' class='checked'/></form>"
-            problem += "\n<div class='bibtex_toggle'>Current BibTeX Entry</div>"
-            problem += "\n<div class='bibtex'>"+completeEntry +"</div>"
-            problem += "\n</div>"
-            problems.append(problem)
-            problem = []
+            bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
+            bibTag += "\n<h2>"+currentId+" ("+currentType+")</h2> "
+            bibTag += "\n<div class='links'>"
+            bibTag += "\n | <a href='"+libgenHref+currentTitle+"'>LibGen</a>"
+            bibTag += "\n | <a href='"+libgenArtHref+currentTitle+"'>LibGenArt</a>"
+            bibTag += "\n | <a href='"+scholarHref+currentTitle+"'>Scholar</a>"
+            bibTag += "\n | <a href='"+googleHref+currentTitle+"'>Google</a>"
+            bibTag += "\n | <a href='"+mathscinetHref+currentTitle+"'>MathSciNet</a>"
+            bibTag += "\n</div>"
+            bibTag += "\n<div class='reference'>"+currentTitle
+            bibTag += "\n</div>"
+            bibTag += "\n<ul class='enumprob'>"
+            for problem in problems:
+                bibTag += "\n<li>"+problem+"</li>"
+            bibTag += "\n</ul>"
+            bibTag += "\n<form class='bibTag_control'><label>checked</label><input type='checkbox' class='checked'/></form>"
+            bibTag += "\n<div class='bibtex_toggle'>Current BibTeX Entry</div>"
+            bibTag += "\n<div class='bibtex'>"+completeEntry +"</div>"
+            bibTag += "\n</div>"
+            bibTags.append(bibTag)
+            bibTag = []
 
         fields = []
-        subproblems = []
+        problems = []
         currentId = line.split("{")[1].rstrip(",\n")
         if currentId in ids:
-            subproblems.append("non-unique id: '"+currentId+"'")
+            problems.append("non-unique id: '"+currentId+"'")
             counterNonUniqueId += 1
         else:
             ids.append(currentId)
@@ -166,8 +152,6 @@ for line in fIn:
                 value = line.split("=")[1].strip("{} ,\n")
                 if field == "author":
                     currentAuthor = filter(lambda x: not (x in "\\\"{}"), value.split(" and ")[0])
-                if field == "citeulike-article-id":
-                    currentArticleId = value
                 if field == "title":
                     currentTitle = re.sub(r'\}|\{',r'',value)
 
@@ -178,19 +162,19 @@ for line in fIn:
 
                 # check if type 'proceedings' might be 'inproceedings'
                 if currentType == "proceedings" and field == "pages":
-                    subproblems.append("wrong type: maybe should be 'inproceedings' because entry has page numbers")
+                    problems.append("wrong type: maybe should be 'inproceedings' because entry has page numbers")
                     counterWrongTypes += 1
 
                 # check if abbreviations are used in journal titles
                 if currentType == "article" and (field == "journal" or field == "journaltitle"):
                     if "." in line:
-                        subproblems.append("flawed name: abbreviated journal title '"+value+"'")
+                        problems.append("flawed name: abbreviated journal title '"+value+"'")
                         counterFlawedNames += 1
 
                 # check booktitle format; expected format "ICBAB '13: Proceeding of the 13th International Conference on Bla and Blubb"
                 #if currentType == "inproceedings" and field == "booktitle":
                     #if ":" not in line or ("Proceedings" not in line and "Companion" not in line) or "." in line or " '" not in line or "workshop" in line or "conference" in line or "symposium" in line:
-                        #subproblems.append("flawed name: inconsistent formatting of booktitle '"+value+"'")
+                        #problems.append("flawed name: inconsistent formatting of booktitle '"+value+"'")
                         #counterFlawedNames += 1
 
                  # check if title is capitalized (heuristic)
@@ -198,17 +182,41 @@ for line in fIn:
                     #for word in currentTitle.split(" "):
                         #word = word.strip(":")
                         #if len(word) > 7 and word[0].islower() and not  "-" in word and not "_"  in word and not "[" in word:
-                            #subproblems.append("flawed name: non-capitalized title '"+currentTitle+"'")
+                            #problems.append("flawed name: non-capitalized title '"+currentTitle+"'")
                             #counterFlawedNames += 1
                             #break
 
                 ####################################################################
 
-
 fIn.close()
 
-if problem:
-    problems.append(problem)
+for requiredFieldsType in requiredFields:
+    if requiredFieldsType[0] == currentType:
+        for field in requiredFieldsType[1]:
+            if field not in fields:
+                problems.append("missing field '"+field+"'")
+                counterMissingFields += 1
+bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
+bibTag = "\n\n<div id='"+currentId+"' class='bibTag severe"+str(len(problems))+"'>"
+bibTag += "\n<h2>"+currentId+" ("+currentType+")</h2> "
+bibTag += "\n<div class='links'>"
+bibTag += "\n | <a href='"+libgenHref+currentTitle+"'>LibGen</a>"
+bibTag += "\n | <a href='"+libgenArtHref+currentTitle+"'>LibGenArt</a>"
+bibTag += "\n | <a href='"+scholarHref+currentTitle+"'>Scholar</a>"
+bibTag += "\n | <a href='"+googleHref+currentTitle+"'>Google</a>"
+bibTag += "\n | <a href='"+mathscinetHref+currentTitle+"'>MathSciNet</a>"
+bibTag += "\n</div>"
+bibTag += "\n<div class='reference'>"+currentTitle
+bibTag += "\n</div>"
+bibTag += "\n<ul class='enumprob'>"
+for problem in problems:
+    bibTag += "\n<li>"+problem+"</li>"
+bibTag += "\n</ul>"
+bibTag += "\n<form class='bibTag_control'><label>checked</label><input type='checkbox' class='checked'/></form>"
+bibTag += "\n<div class='bibtex_toggle'>Current BibTeX Entry</div>"
+bibTag += "\n<div class='bibtex'>"+completeEntry +"</div>"
+bibTag += "\n</div>"
+bibTags.append(bibTag)
 
 html = open(htmlOutput, 'w')
 html.write("""<html>
@@ -279,12 +287,12 @@ body {
     margin: 0px;
 }
 
-.problem {
+.bibTag {
     margin-top: 10px;
     margin-bottom: 10px;
     padding: 10px;
     background: #FFBBAA;
-    counter-increment: problem;
+    counter-increment: bibTag;
     width: 700px;
     border: 1px solid #993333;
     border-left: 5px solid #993333;
@@ -316,16 +324,16 @@ body {
     background: #FFCCBB;
 }
 
-.problem_checked {
+.bibTag_checked {
     border: 1px solid #339933;
     border-left: 5px solid #339933;
 }
 
-.problem h2:before {
-    content: counter(problem) ". "; color: gray;
+.bibTag h2:before {
+    content: counter(bibTag) ". "; color: gray;
 }
 
-.problem h2 {
+.bibTag h2 {
     font-size: 11pt;
     font-weight: normal;
     font-family: monaco, monospace;
@@ -333,28 +341,28 @@ body {
     margin: 0px;
 }
 
-.problem .links {
+.bibTag .links {
     float: right;
     position:relative;
     top: -22px;
 }
 
-.problem .links a {
+.bibTag .links a {
     color: #3333CC;
 }
 
-.problem .links a:visited {
+.bibTag .links a:visited {
     color: #666666;
 }
 
-.problem .reference {
+.bibTag .reference {
     clear: both;
     margin-left: 20px;
     font-size: 11pt;
     font-weight:normal;
 }
 
-.problem ul {
+.bibTag ul {
     clear: both;
 }
 
@@ -363,20 +371,20 @@ body {
     font-size: 10pt;
 }
 
-.problem .problem_control {
+.bibTag .bibTag_control {
     float: right;
     margin: 0px;
     padding: 0px;
 }
 
-.problem .bibtex_toggle{
+.bibTag .bibtex_toggle{
     text-decoration: underline;
     font-size: 9pt;
     cursor: pointer;
     padding-top: 5px;
 }
 
-.problem .bibtex {
+.bibTag .bibtex {
     margin-top: 5px;
     font-family: Monospace;
     font-size: 8pt;
@@ -390,22 +398,22 @@ body {
 <script>
 
 function isInProblemMode() {
-    return $('#mode_problems:checked').val() == 'problems'
+    return $('#mode_bibTags:checked').val() == 'bibTags'
 }
 
 function update() {
-    $('.problem').hide();
-    $('.problem[id*='+$('#search input').val()+']').show();
-    $('.problem .checked').each(function () {
+    $('.bibTag').hide();
+    $('.bibTag[id*='+$('#search input').val()+']').show();
+    $('.bibTag .checked').each(function () {
         if ($(this).attr('checked')) {
-            $(this).parents('.problem').addClass('problem_checked');
+            $(this).parents('.bibTag').addClass('bibTag_checked');
         } else {
-            $(this).parents('.problem').removeClass('problem_checked');
+            $(this).parents('.bibTag').removeClass('bibTag_checked');
         }
     });
     if (isInProblemMode()) {
         $('.severe0').hide();
-        $('.problem_checked').hide();
+        $('.bibTag_checked').hide();
     }
 }
 
@@ -425,28 +433,28 @@ $(document).ready(function(){
     });
 
     $("#uncheck_button").click(function(){
-        $('.problem .checked').attr('checked',false);
+        $('.bibTag .checked').attr('checked',false);
         localStorage.clear();
         update();
     });
 
-    $('.problem a').mousedown(function(event) {
-        $('.problem').removeClass('active');
-        $(this).parents('.problem').addClass('active');
+    $('.bibTag a').mousedown(function(event) {
+        $('.bibTag').removeClass('active');
+        $(this).parents('.bibTag').addClass('active');
     });
 
-    $('.problem .checked').change(function(event) {
-        var problem = $(this).parents('.problem');
-        problem.toggleClass('problem_checked');
-        var checked = problem.hasClass('problem_checked');
-        localStorage.setItem(problem.attr('id'),checked);
+    $('.bibTag .checked').change(function(event) {
+        var bibTag = $(this).parents('.bibTag');
+        bibTag.toggleClass('bibTag_checked');
+        var checked = bibTag.hasClass('bibTag_checked');
+        localStorage.setItem(bibTag.attr('id'),checked);
         if (checked && isInProblemMode()) {
-            problem.slideUp();
+            bibTag.slideUp();
         }
     });
 
-    $('.problem .checked').each(function () {
-        $(this).attr('checked',localStorage.getItem($(this).parents('.problem').attr('id'))=='true');
+    $('.bibTag .checked').each(function () {
+        $(this).attr('checked',localStorage.getItem($(this).parents('.bibTag').attr('id'))=='true');
     });
     update();
 });
@@ -455,17 +463,17 @@ $(document).ready(function(){
 </head>
 <body>
 <div id="title">
-<h1><a href='http://code.google.com/p/bibtex-check'>BibTeX Check</a></h1>
+<h1><a href='https://github.com/zaikunzhang/textools'>BibTeX Check</a></h1>
 <div id="control">
 <form id="search"><input placeholder="search entry ID ..."/></form>
 <form id="mode">
 <label>show entries:</label>
 <input type = "radio"
                  name = "mode"
-                 id = "mode_problems"
-                 value = "problems"
+                 id = "mode_bibTags"
+                 value = "bibTags"
                  checked = "checked" />
-          <label for = "mode_problems">problems</label>
+          <label for = "mode_bibTags">bibTags</label>
           <input type = "radio"
                  name = "mode"
                  id = "mode_all"
@@ -479,17 +487,17 @@ $(document).ready(function(){
 html.write("<div class='info'><h2>Info</h2><ul>")
 html.write("<li>bib file: "+bibFile+"</li>")
 html.write("<li>aux file: "+auxFile+"</li>")
-html.write("<li># entries: "+str(len(problems))+"</li>")
-html.write("<li># problems: "+str(counterMissingFields+counterFlawedNames+counterWrongTypes+counterNonUniqueId)+"</li><ul>")
+html.write("<li># entries: "+str(len(bibTags))+"</li>")
+html.write("<li># bibTags: "+str(counterMissingFields+counterFlawedNames+counterWrongTypes+counterNonUniqueId)+"</li><ul>")
 html.write("<li># missing fields: "+str(counterMissingFields)+"</li>")
 html.write("<li># flawed names: "+str(counterFlawedNames)+"</li>")
 html.write("<li># wrong types: "+str(counterWrongTypes)+"</li>")
 html.write("<li># non-unique id: "+str(counterNonUniqueId)+"</li>")
 html.write("</ul></ul></div>")
 
-#problems.sort()
-for problem in problems:
-#    print('Linje: ' + problem + '\n')
-    html.write(problem)
+#bibTags.sort()
+for bibTag in bibTags:
+    print('Linje: ' + bibTag + '\n')
+    html.write(bibTag)
 html.write("</body></html>")
 html.close()

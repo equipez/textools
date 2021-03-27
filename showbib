@@ -1,13 +1,14 @@
 #!/bin/bash
 # Usage: showbib [-l|--latex] [BIBFILE_NAME]
 # showbib shows a bib file. Problems, if exist, will be displayed. It calls ./python/bibtex_check.py.
-# If -l|--latex is present, then showbib interprets the file as a BibLaTeX file; otherwise, it takes
-# the file as a BibTeX file.
+# If -l|--latex is present, then showbib interprets the file as a BibLaTeX file; otherwise,
+# checkbib will try to decide the type of the input file and check it accordingly; if the type cannot
+# the decided, then checkbib interprets it as a BibTeX file.
 
 WEBBROWSER="google-chrome --new-window  --start-maximized "  # The web browser for viewing html
 
 BIBLATEX=0
-USER_SPECIFY_L=0
+USER_SPECIFY_LATEX=0
 BIBFILE=""
 
 if [[ $# > 2 ]]; then
@@ -19,7 +20,7 @@ while [[ -n "$1" ]]; do # Parsing the arguments
 	case "$1" in
 	-l|--latex)
         BIBLATEX=1
-        USER_SPECIFY_L=1
+        USER_SPECIFY_LATEX=1
 		;;
 	*)
         if [[ -z "$BIBFILE" ]]; then
@@ -45,7 +46,7 @@ fi
 if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" $BIBFILE ; then
     # This is likely a BibLaTeX file.
     BIBLATEX=1
-elif [[ $USER_SPECIFY_L != 1 ]]; then
+elif [[ $USER_SPECIFY_LATEX != 1 ]]; then
     # This seems not a BibLaTeX file and the user does not say so.
     BIBLATEX=0
 fi

@@ -1,16 +1,21 @@
 #!/bin/bash
-# Usage: trimbib [-l|--latex] [NAME_OF_BIBTEX_FILE]
+# Usage: trimbib [-l|--latex] [-t|--tex] [NAME_OF_BIBTEX_FILE]
 # This script trims bib files using biber in the following way.
 # 1. Only one of the duplicated entries is kept. (But which one? I am not sure what is biber's rule.)
 # 2. Items are ordered by author, year, and the entry key.
 # 3. Macros are sorted alphabetically.
 # 4. The file is indented.
-# If -l|--latex is present, then a BibLaTeX file will be produced; otherwise, it generates a BibTeX file.
+# If -l|--latex is present, then a BibLaTeX file will be produced;
+# If -t|--tex is present, then a BibTeX file will be produced;
+# if neither -l|--latex nor -t|--tex is present, then trimbib will try to decide the type of the
+# input file and generate a file of the same type; if the type cannot the decided, then a BibTeX
+# file will be generated.
 
-BIBLATEX=0
+USER_SPECIFY_LATEX=0
+USER_SPECIFY_TEX=0
 BIBFILE=""
 
-if [[ $# > 2 ]]; then
+if [[ $# > 3 ]]; then
     printf "Usage: trimbib [-l|--latex] [BIBFILE_NAME] \n"
     exit -1
 fi
@@ -18,8 +23,11 @@ fi
 while [[ -n "$1" ]]; do # Parsing the arguments
 	case "$1" in
 	-l|--latex)
-        BIBLATEX=1
+        USER_SPECIFY_LATEX=1
 		;;
+    -t|--tex)
+        USER_SPECIFY_TEX=1
+        ;;
 	*)
         if [[ -z "$BIBFILE" ]]; then
             BIBFILE="$1"
@@ -46,17 +54,37 @@ if [[ -z "$BIBFILE" ]]; then
 	exit -2
 fi
 
+if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" $BIBFILE ; then
+    USER_INPUT_LATEX=1
+else
+    USER_INPUT_LATEX=0
+fi
+
+if [[ $USER_SPECIFY_LATEX == 1 && $USER_SPECIFY_TEX == 1 ]] ; then
+    echo ""
+    echo "-l|--latex and -t|--t cannot be present simultaneously."
+    echo ""
+    exit -1
+elif [[ $USER_SPECIFY_LATEX == 1 ]] ; then
+    BIBLATEX=1
+elif [[ $USER_SPECIFY_LATEX != 1 ]] ; then
+    BIBLATEX=0
+elif [[ $USER_INPUT_LATEX == 1 ]] ; then
+    BIBLATEX=1
+else
+    BIBLATEX=0
+fi
+
 # Log files
 TRIMBIBLOG="trimbib.log"
 CHECKBIBLOG=checkbib.log
 
 # Check the bib file before trimming.
-if [[ $BIBLATEX == 1 ]] ; then
-    CHCKBIB="checkbib -l"
+if [[ $USER_INPUT_LATEX == 1 ]] ; then
+    checkbib -l $BIBFILE
 else
-    CHCKBIB="checkbib"
+    checkbib $BIBFILE
 fi
-$CHCKBIB $BIBFILE
 
 read -n1 -s -r -p \
     $'Continue to trim the bib file? [Y/n] \nRevise it before trimming if it contains major mistakes.\n' KEY
@@ -78,6 +106,25 @@ BAKDIR=./backup/
 
 # Change the directory to $BIBDIR.
 cd $BIBDIR
+
+# Backup the current $BIBFILE in $BAKBIBFILE.
+TIME=`date +%Y.%m.%d-%H.%M.%S`
+FULLBIBNAME=`realpath $BIBFILE`
+FULLBIBNAME=${FULLBIBNAME//\//%}
+BAKBIBFILE=$FULLBIBNAME-$TIME
+cp $BIBFILE $BAKBIBFILE
+
+TMPBIBFILE="BIBFILE.tmp"
+if [[ $BIBLATEX == 0 ]] ; then
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep -v "techreport\|phdthesis\|masterthesis" > $TMPBIBFILE
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep techreport | sed 's/^\s*@report/@techreport/' | sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep phdthesis | sed 's/^\s*@thesis/@phdthesis/' | sed 's/institution/school/' | sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep masterthesis | sed 's/^\s*@thesis/@masterthesis/' | sed 's/institution/school/' | sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
+    sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $TMPBIBFILE
+    sed -i 's/,\s*date\s*=\s*/,year=/' $TMPBIBFILE
+    sed -i 's/,\s*location\s*=\s*/,address=/' $TMPBIBFILE
+    mv $BIBFILE tmp && mv $TMPBIBFILE $BIBFILE && mv tmp $TMPBIBFILE
+fi
 
 # Print the macros in $BIBFILE to $MACROS
 echo ""
@@ -220,19 +267,16 @@ if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     echo ""
     echo "$BIBFILE is not a bib file or contains no bib entry. Abort."
     echo ""
+    if [[ -f $TMPBIBFILE ]] ; then
+        mv $TMPBIBFILE $BIBFILE
+    fi
     rm $MACROS $BIBENTRIES $CHECKBIBLOG.bak
     exit -3
 fi
 
-# Backup the current $BIBFILE in $BAKBIBFILE.
-TIME=`date +%Y.%m.%d-%H.%M.%S`
-FULLBIBNAME=`realpath $BIBFILE`
-FULLBIBNAME=${FULLBIBNAME//\//%}
-BAKBIBFILE=$FULLBIBNAME-$TIME
-mv $BIBFILE $BAKBIBFILE
+rm -f $TMPBIBFILE
 
-
-# Generate the new $BAKBIBFILE.
+# Generate the new $BIBFILE.
 printf "%% bib file generated at "$TIME".\n" > $BIBFILE
 printf "%%\n" >> $BIBFILE
 printf "%% The recommended format of the bib entry label is:\n" >> $BIBFILE
@@ -241,7 +285,7 @@ printf "%%     <AuthorLastnames_YearLetter>\n" >> $BIBFILE
 printf "%%\n" >> $BIBFILE
 printf "%%  For example, the key for an article by Yuan may be:\n" >> $BIBFILE
 printf "%%\n" >> $BIBFILE
-printf "%%     Yuan_2000a\n%%\n%" >> $BIBFILE
+printf "%%     Yuan_2000a\n%%\n" >> $BIBFILE
 printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $BIBFILE
 printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $BIBFILE
 printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $BIBFILE
@@ -277,7 +321,11 @@ fi
 
 
 # Check the bib file after trimming.
-$CHCKBIB $BIBFILE
+if [[ $BIBLATEX == 1 ]] ; then
+    checkbib -l $BIBFILE
+else
+    checkbib $BIBFILE
+fi
 
 echo "" >> $CHECKBIBLOG.bak
 echo "***************** checkbib.log after trimming ****************" >> $CHECKBIBLOG.bak

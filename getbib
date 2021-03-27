@@ -1,9 +1,12 @@
 #!/bin/bash
-# Usage: getbib [NAME_OF_AUX_FILE]
-# This script exports a bib file containing only the cited terms according to the current aux
+# Usage: getbib [AUXFILE_NAME]
+# getbib exports a bib file containing only the cited terms according to the current aux
 # file. $BAKDIR contains recent backups.
 
-BIBLATEX=1
+if [[ $# > 1 ]]; then
+    printf "Usage: getbib [AUXFILE_NAME] \n"
+    exit -1
+fi
 
 GETBIBLOG="getbib.log"
 CHECKBIBLOG=checkbib.log
@@ -19,7 +22,7 @@ AUXNAME=${AUXNAME##*/}
 AUXNAME=${AUXNAME%.*}
 if [[ -z "$AUXNAME" ]] || ! [[ -f $AUXNAME.aux ]]; then
     echo "No aux file found in the current directory."
-    exit -1
+    exit -2
 fi
 
 # Name of the bib file.
@@ -27,7 +30,6 @@ BIBFILE=$AUXNAME.bib
 
 # Directory to contain the backups.
 BAKDIR=./backup/
-mkdir -p $BAKDIR
 
 # Make a backup of the current bib file in the current directory.
 TIME=`date +%Y.%m.%d-%H.%M.%S`
@@ -97,6 +99,13 @@ if [[ $? -eq 0 ]] ; then
 fi
 rm $MACROS
 
+if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
+    echo ""
+    echo "$AUXFILE is not a valid aux file or contains no citation. Abort."
+    echo ""
+    rm $BIBENTRIES $BAKBIBFILE
+    exit -3
+fi
 cat $BIBENTRIES >> $BIBFILE
 rm $BIBENTRIES
 
@@ -109,13 +118,13 @@ diff <(grep -v "^\s*%" $BIBFILE) <(grep -v "^\s*%" $BAKBIBFILE) >> $GETBIBLOG
 if [[ $? -eq 1 ]]; then
     # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
     cp $BAKBIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
+    mkdir -p $BAKDIR
     mv $BAKBIBFILE $BAKDIR
+    # Keep at most 50 latest files under $BAKDIR.
+    (cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
 else
     rm $BAKBIBFILE
 fi
-
-# Keep at most 50 latest files under $BAKDIR.
-(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
 
 checkbib $BIBFILE
 

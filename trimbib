@@ -75,7 +75,6 @@ BIBENTRIES="bibentries"
 
 # Directory to contain the backups.
 BAKDIR=./backup/
-mkdir -p $BAKDIR
 
 # Change the directory to $BIBDIR.
 cd $BIBDIR
@@ -210,11 +209,20 @@ else
 fi
 
 rm biber.conf
+rm $BIBFILE.blg
 
 # Print the sorted bib entries into $BIBENTRIES.
+touch $BIBEROUT  # $BIBEROUT is not generated if biber encounters errors.
 gawk -v line=$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' $BIBEROUT) 'NR>line' $BIBEROUT >  $BIBENTRIES
 rm $BIBEROUT
 
+if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
+    echo ""
+    echo "$BIBFILE is not a bib file or contains no bib entry. Abort."
+    echo ""
+    rm $MACROS $BIBENTRIES $CHECKBIBLOG.bak
+    exit -3
+fi
 
 # Backup the current $BIBFILE in $BAKBIBFILE.
 TIME=`date +%Y.%m.%d-%H.%M.%S`
@@ -259,16 +267,14 @@ diff <(grep -v "^\s*%" $BIBFILE) <(grep -v "^\s*%" $BAKBIBFILE) >> $TRIMBIBLOG
 if [[ $? -eq 1 ]]; then
     # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
     cp $BAKBIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
+    mkdir -p $BAKDIR
 	mv $BAKBIBFILE $BAKDIR
+    # Keep at most 50 latest files under $BAKDIR.
+    (cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
 else
 	rm $BAKBIBFILE
 fi
 
-
-# Keep at most 50 latest files under $BAKDIR.
-(cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
-
-rm $BIBFILE.blg
 
 # Check the bib file after trimming.
 $CHCKBIB $BIBFILE

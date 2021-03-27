@@ -7,6 +7,7 @@
 WEBBROWSER="google-chrome --new-window  --start-maximized "  # The web browser for viewing html
 
 BIBLATEX=0
+USER_SPECIFY_L=0
 BIBFILE=""
 
 if [[ $# > 2 ]]; then
@@ -18,6 +19,7 @@ while [[ -n "$1" ]]; do # Parsing the arguments
 	case "$1" in
 	-l|--latex)
         BIBLATEX=1
+        USER_SPECIFY_L=1
 		;;
 	*)
         if [[ -z "$BIBFILE" ]]; then
@@ -37,6 +39,15 @@ BIBFILE=${BIBFILE##*/}
 if [[ -z "$BIBFILE" ]]; then
 	echo "No bib file found."
 	exit -2
+fi
+
+# Decide whether this is a BibLaTeX file or a BibTeX file.
+if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" $BIBFILE ; then
+    # This is likely a BibLaTeX file.
+    BIBLATEX=1
+elif [[ $USER_SPECIFY_L != 1 ]]; then
+    # This seems not a BibLaTeX file and the user does not say so.
+    BIBLATEX=0
 fi
 
 # Get the directory where this script resides

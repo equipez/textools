@@ -270,7 +270,7 @@ if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     if [[ -f $TMPBIBFILE ]] ; then
         mv $TMPBIBFILE $BIBFILE
     fi
-    rm $MACROS $BIBENTRIES $CHECKBIBLOG.bak
+    rm $MACROS $BIBENTRIES $CHECKBIBLOG.bak $BAKBIBFILE
     exit -3
 fi
 

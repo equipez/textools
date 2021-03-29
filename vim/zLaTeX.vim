@@ -101,9 +101,11 @@ let g:Tex_Env_gts = Tex_Env_gathers
 " split
 let g:Tex_Env_esplit = "\\begin{equation}\<CR>\\label{eq:<++>}\<CR>\\begin{split}\<CR><++> &\\;=\\; <++> \\\\\<CR><++> &\\;=\\; <++>\<CR>\\end{split}\<CR>\\end{equation}\<CR><++>"
 let g:Tex_Env_esp = g:Tex_Env_esplit
+let g:Tex_Env_esq = g:Tex_Env_esplit
 " split star (s for star)
 let g:Tex_Env_esplits = "\\begin{equation}\<CR>%\\label{eq:}\<CR>\\nonumber\<CR>\\begin{split}\<CR><++> &\\;=\\; <++> \\\\\<CR><++> &\\;=\\; <++>\<CR>\\end{split}\<CR>\\end{equation}\<CR><++>"
 let g:Tex_Env_esps = g:Tex_Env_esplits
+let g:Tex_Env_esqs = g:Tex_Env_esplits
 " cases
 let g:Tex_Env_ecases = "\\begin{equation}\<CR>\\label{eq:<++>}\<CR>\\begin{cases}\<CR><++> & <++> \\\\\<CR><++> & <++>\<CR>\\end{cases}\<CR>\\end{equation}\<CR><++>"
 let g:Tex_Env_ecs = g:Tex_Env_ecases

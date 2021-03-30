@@ -32,7 +32,6 @@ libgenArtHref = "http://libgen.rs/scimag/?q="
 scholarHref = "http://scholar.google.com/scholar?hl=en&q="
 googleHref = "https://www.google.com/search?q="
 mathscinetHref = "https://mathscinet.ams.org/mathscinet/search/publdoc.html?co4=AND&pg4=AUCN&pg5=TI&r=1&s4=&s5="
-literatureHref = "~/Bureau/bibliographie/literature/"
 
 # fields that are required for a specific type of entry
 if bibLaTeX:
@@ -120,8 +119,7 @@ for line in fIn:
             bibTag += "\n | <a href='"+googleHref+currentTitle+"' target='_blank'>Google</a>"
             bibTag += "\n | <a href='"+mathscinetHref+currentTitle+"' target='_blank'>MathSciNet</a>"
             bibTag += "\n</div>"
-            #bibTag += "\n<div class='reference'>"+cucurrentTitle
-            bibTag += "\n<div class='reference'><a href='"literatureHref+currentId+currentTitle
+            bibTag += "\n<div class='reference'>"+currentTitle
             bibTag += "\n</div>"
             bibTag += "\n<ul class='enumprob'>"
             for problem in problems:

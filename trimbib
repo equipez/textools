@@ -13,7 +13,10 @@
 
 USER_SPECIFY_LATEX=0
 USER_SPECIFY_TEX=0
+USER_SPECIFY_OUTPUT=0
 BIBFILE=""
+OUTPUTFILE=""
+CURRENTDIR=$PWD
 
 if [[ $# -gt 5 ]]; then
     printf "Usage: trimbib [-l|--latex] [-t|--tex] [-o|--output NAME_OF_OUTPUT_FILE] [BIBFILE_NAME] \n"
@@ -86,6 +89,10 @@ fi
 # If no output file is specified, set OUTPUTFILE to $BIBFILE.
 if [[ -z "$OUTPUTFILE" ]]; then
     OUTPUTFILE=$BIBFILE
+else
+    USER_SPECIFY_OUTPUT=1
+    OUTPUTDIR="$(dirname "${OUTPUTFILE}")"
+    OUTPUTFILE="$(basename "${OUTPUTFILE}")"
 fi
 
 # Log files
@@ -121,8 +128,8 @@ BAKDIR=./backup/
 cd $BIBDIR
 
 # Backup the current $BIBFILE in $BAKBIBFILE.
+TIME=`date +%Y.%m.%d-%H.%M.%S`
 if [[ "$OUTPUTFILE" == "$BIBFILE" ]]; then
-    TIME=`date +%Y.%m.%d-%H.%M.%S`
     FULLBIBNAME=`realpath $BIBFILE`
     FULLBIBNAME=${FULLBIBNAME//\//%}
     BAKBIBFILE=$FULLBIBNAME-$TIME
@@ -132,29 +139,29 @@ else
 fi
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
-TMPBIBFILE="BIBFILE.tmp"
+TMPBIBFILE="$BIBFILE-$TIME.tmp"
 if [[ $BIBLATEX == 0 ]] ; then
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^%/d' $OUTPUTFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep -v "techreport\|phdthesis\|masterthesis" > $TMPBIBFILE
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^%/d' $OUTPUTFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep techreport | sed 's/^\s*@report/@techreport/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^%/d' $OUTPUTFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep phdthesis | sed 's/^\s*@thesis/@phdthesis/' | sed 's/institution/school/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^%/d' $OUTPUTFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep masterthesis | sed 's/^\s*@thesis/@masterthesis/' | sed 's/institution/school/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
     sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $TMPBIBFILE
     sed -i 's/,\s*date\s*=\s*/,year=/' $TMPBIBFILE
     sed -i 's/,\s*location\s*=\s*/,address=/' $TMPBIBFILE
-    mv $BIBFILE tmp && mv $TMPBIBFILE $BIBFILE && mv tmp $TMPBIBFILE
+    mv $OUTPUTFILE tmp && mv $TMPBIBFILE $OUTPUTFILE && mv tmp $TMPBIBFILE
 fi
 
-# Print the macros in $BIBFILE to $MACROS
+# Print the macros in $OUTPUTFILE to $MACROS
 echo ""
 echo "Sorting the macros ..."
-grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" $BIBFILE |sed 's/.*@/@/' \
+grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" $OUTPUTFILE |sed 's/.*@/@/' \
     | sed 's/@String/@string/' | sed 's/@STRING/@string/' \
     | sed 's/\.\s*"\s*}/\."}/' \
     | sed 's/\s*=\s*/\ =\ /' \
@@ -271,13 +278,13 @@ if [[ $BIBLATEX == 1 ]] ; then
     biber --output-file $BIBEROUT \
         --tool --configfile=biber.conf \
         --output-safechars --output-safecharsset=full \
-        --output_indent=4 $BIBFILE
+        --output_indent=4 $OUTPUTFILE
 else
     biber --output-file $BIBEROUT \
         --tool --configfile=biber.conf \
         --output-safechars --output-safecharsset=full \
         --output_indent=4 \
-        --output-field-replace=location:address,journaltitle:journal,date:year $BIBFILE
+        --output-field-replace=location:address,journaltitle:journal,date:year $OUTPUTFILE
 fi
 
 rm biber.conf
@@ -292,48 +299,47 @@ if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     echo ""
     echo "$BIBFILE is not a bib file or contains no bib entry. Abort."
     echo ""
-    if [[ -f $TMPBIBFILE ]] ; then
-        mv $TMPBIBFILE $BIBFILE
-    fi
+    mv $TMPBIBFILE $BIBFILE
     rm $MACROS $BIBENTRIES $CHECKBIBLOG.bak $BAKBIBFILE
     exit -3
 fi
 
-rm -f $TMPBIBFILE
+rm $TMPBIBFILE
 
-# Generate the new $BIBFILE.
-printf "%% bib file generated at "$TIME".\n" > $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%% The recommended format of the bib entry label is:\n" >> $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%%     <AuthorLastnames_YearLetter>\n" >> $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%%  For example, the key for an article by Yuan may be:\n" >> $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%%     Yuan_2000a\n%%\n" >> $BIBFILE
-printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $BIBFILE
-printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $BIBFILE
-printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $BIBFILE
+# Generate the new $OUTPUTFILE.
+printf "%% bib file generated at "$TIME".\n" > $OUTPUTFILE
+printf "%%\n" >> $OUTPUTFILE
+printf "%% The recommended format of the bib entry label is:\n" >> $OUTPUTFILE
+printf "%%\n" >> $OUTPUTFILE
+printf "%%     <AuthorLastnames_YearLetter>\n" >> $OUTPUTFILE
+printf "%%\n" >> $OUTPUTFILE
+printf "%%  For example, the key for an article by Yuan may be:\n" >> $OUTPUTFILE
+printf "%%\n" >> $OUTPUTFILE
+printf "%%     Yuan_2000a\n%%\n" >> $OUTPUTFILE
+printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $OUTPUTFILE
+printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $OUTPUTFILE
+printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $OUTPUTFILE
 
 grep -q -v '^\s*$' $MACROS  > /dev/null  # Check whether $MACROS is empty.
 if [[ $? -eq 0 ]] ; then
-    printf "%% String macros for abbreviations of names of serials.\n" >> $BIBFILE
-    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" >> $BIBFILE
-    cat $MACROS | sed -r '/^\s*$/d' | sort -u >> $BIBFILE
-    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n" >> $BIBFILE
+    printf "%% String macros for abbreviations of names of serials.\n" >> $OUTPUTFILE
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" >> $OUTPUTFILE
+    cat $MACROS | sed -r '/^\s*$/d' | sort -u >> $OUTPUTFILE
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n" >> $OUTPUTFILE
 fi
 rm $MACROS
 
-cat $BIBENTRIES >> $BIBFILE
+cat $BIBENTRIES >> $OUTPUTFILE
 rm $BIBENTRIES
 
 
-# Move $BAKBIBFILE to $BAKDIR if it is different from the current one. Otherwise, remove it.
+# Move $BAKBIBFILE to $BAKDIR if $OUTPUTFILE==$BIBFILE and the trimmed file is different from the
+# original one. Otherwise, remove $BAKBIBFILE.
 echo "******** Difference between the trimmed bib and the original one ********" > $TRIMBIBLOG
 echo "" >> $TRIMBIBLOG
 # Remove the comments before comparing.
-diff <(grep -v "^\s*%" $BIBFILE) <(grep -v "^\s*%" $BAKBIBFILE) >> $TRIMBIBLOG
-if [[ $? -eq 1 ]]; then
+diff <(grep -v "^\s*%" $OUTPUTFILE) <(grep -v "^\s*%" $BAKBIBFILE) >> $TRIMBIBLOG
+if [[ $? -eq 1 && "$OUTPUTFILE" == "$BIBFILE" ]]; then
     # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
     cp $BAKBIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
     mkdir -p $BAKDIR
@@ -347,9 +353,9 @@ fi
 
 # Check the bib file after trimming.
 if [[ $BIBLATEX == 1 ]] ; then
-    checkbib -l $BIBFILE
+    checkbib -l $OUTPUTFILE
 else
-    checkbib $BIBFILE
+    checkbib $OUTPUTFILE
 fi
 
 echo "" >> $CHECKBIBLOG.bak
@@ -370,5 +376,8 @@ echo ""
 echo "" >> $TRIMBIBLOG
 echo "If the original bib file is different from the trimmed one, its backup can be found at" >> $TRIMBIBLOG
 echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
+
+mv $TRIMBIBLOG $CURRENTDIR
+mv $OUTPUTFILE $OUTPUTDIR
 
 exit 0

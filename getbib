@@ -105,7 +105,7 @@ if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     echo ""
     echo "$AUXFILE is not an aux file containing citations or it refers to invalid bib files. Abort."
     echo ""
-    rm $BIBENTRIES
+    rm $BIBENTRIES $BIBMACROS
     exit -3
 fi
 
@@ -140,8 +140,8 @@ rm $BIBENTRIES
 FULLBIBNAME=${OUTPUTFILE//\//%}
 BAKBIBFILE=$FULLBIBNAME-$TIME
 BIBDIFFERENT=0
+echo "" > $GETBIBLOG
 if [[ -f "$OUTPUTFILE" ]]; then
-    echo "" > $GETBIBLOG
     echo "******** Difference between the new bib and the original one ********" >> $GETBIBLOG
     echo "" >> $GETBIBLOG
     # Remove the comments before comparing.
@@ -162,7 +162,14 @@ mv $OUTPUTBIB $OUTPUTFILE
 
 
 # Check $OUTPUTFILE.
-checkbib $OUTPUTFILE
+# Decide whether this is a BibLaTeX file or a BibTeX file.
+if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" $OUTPUTFILE ; then
+    # This is likely a BibLaTeX file.
+    checkbib -l $OUTPUTFILE
+else
+    # This is likely a BibTeX file.
+    checkbib $OUTPUTFILE
+fi
 
 echo "*************************** checkbib.log ****************************" | cat - $CHECKBIBLOG > tmp && mv tmp $CHECKBIBLOG
 cat $GETBIBLOG  >> $CHECKBIBLOG
@@ -175,9 +182,9 @@ if [[ $BIBDIFFERENT -eq 1 ]]; then
     echo "A copy of the original bib file is saved at"
     echo "$BAKDIR/$BAKBIBFILE"
 
-    echo "" >> $TRIMBIBLOG
-    echo "A copy of the original bib file is saved at" >> $TRIMBIBLOG
-    echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
+    echo "" >> $GETBIBLOG
+    echo "A copy of the original bib file is saved at" >> $GETBIBLOG
+    echo "$BAKDIR/$BAKBIBFILE" >> $GETBIBLOG
 fi
 
 echo ""

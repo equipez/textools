@@ -114,12 +114,20 @@ FULLBIBNAME=${FULLBIBNAME//\//%}
 BAKBIBFILE=$FULLBIBNAME-$TIME
 cp $BIBFILE $BAKBIBFILE
 
+# Pre-process the bib file if 
 TMPBIBFILE="BIBFILE.tmp"
 if [[ $BIBLATEX == 0 ]] ; then
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep -v "techreport\|phdthesis\|masterthesis" > $TMPBIBFILE
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep techreport | sed 's/^\s*@report/@techreport/' | sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep phdthesis | sed 's/^\s*@thesis/@phdthesis/' | sed 's/institution/school/' | sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
-    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | grep masterthesis | sed 's/^\s*@thesis/@masterthesis/' | sed 's/institution/school/' | sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+        grep -v "techreport\|phdthesis\|masterthesis" > $TMPBIBFILE
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+        grep techreport | sed 's/^\s*@report/@techreport/' | \
+        sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+        grep phdthesis | sed 's/^\s*@thesis/@phdthesis/' | sed 's/institution/school/' | \
+        sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
+    sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+        grep masterthesis | sed 's/^\s*@thesis/@masterthesis/' | sed 's/institution/school/' | \
+        sed 's/type\s*=\s*{.*}\s*,//' >> $TMPBIBFILE
     sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $TMPBIBFILE
     sed -i 's/,\s*date\s*=\s*/,year=/' $TMPBIBFILE
     sed -i 's/,\s*location\s*=\s*/,address=/' $TMPBIBFILE

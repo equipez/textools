@@ -96,11 +96,10 @@ fi
 # If no output file is specified, set OUTPUTFILE to $BIBFILE.
 if [[ -z "$OUTPUTFILE" ]]; then
     OUTPUTFILE=$BIBFILE
-else
-    # Get the full path of $OUTPUTFILE. Note that we do not resolve the link if $OUTPUTFILE exists
-    # and is a symlink.
-    OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
 fi
+# Get the full path of $OUTPUTFILE. Note that we do not resolve the link if $OUTPUTFILE exists
+# and is a symlink.
+OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
 
 # Check the bib file before trimming.
 if [[ $USER_INPUT_LATEX -eq 1 ]] ; then

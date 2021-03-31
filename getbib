@@ -57,31 +57,37 @@ elif [[ ! -f "AUXFILE" ]]; then
     exit -2
 fi
 
-# Name of the bib file.
-BIBFILE=$AUXNAME.bib
-
-# Make a backup of the current bib file in the current directory.
-TIME=`date +%Y.%m.%d-%H.%M.%S`
-FULLBIBNAME=`realpath $BIBFILE`
-FULLBIBNAME=${FULLBIBNAME//\//%}
-BAKBIBFILE=$FULLBIBNAME-$TIME
-if [[ -f "$BIBFILE" ]]; then
-    cp $BIBFILE $BAKBIBFILE
-else
-    touch $BAKBIBFILE
+# If no output file is specified, set OUTPUTFILE to $AUXNAME.bib.
+if [[ -z "$OUTPUTFILE" ]]; then
+    OUTPUTFILE="$AUXNAME".bib
 fi
+# Get the full path of $OUTPUTFILE. Note that we do not resolve the link if $OUTPUTFILE exists
+# and is a symlink.
+OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
+
+
+# Temporary files.
+TIME=`date +%Y.%m.%d-%H.%M.%S`
+OUTPUTBIB="outputbib-$TIME.bib"
+BIBMACROS="bibmacros-$TIME"
+BIBENTRIES="bibentries-$TIME"
+
+## If $OUTPUTFILE exists, then make a backup under BAKDIR.
+#FULLBIBNAME=`realpath $BIBFILE`
+#FULLBIBNAME=${FULLBIBNAME//\//%}
+#BAKBIBFILE=$FULLBIBNAME-$TIME
+#if [[ -f "$BIBFILE" ]]; then
+#    cp $BIBFILE $BAKBIBFILE
+#else
+#    touch $BAKBIBFILE
+#fi
 
 # Export the cited entries.
 echo ""
 echo "Exporting bib entries ..."
-BIBENTRIES="bibentries"
-MACROS="macros"
-rm -f $BIBENTRIES $MACROS
+rm -f $BIBENTRIES $BIBMACROS
 touch $BIBENTRIES
-touch $MACROS
-
-# Name of the aux file.
-AUXFILE=$AUXNAME.aux
+touch $BIBMACROS
 
 BIBDATAFILES=`grep bibdata $AUXFILE | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' | sort -u`
 CITEDBIBS=`grep bibcite $AUXFILE | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sort -u`
@@ -99,46 +105,47 @@ do
             | sed 's/.*series\s*=\s*//' \
             | sed s/,.*$// | sed 's/{.*}//'`
         if ! [[ -z $MACRO ]]; then
-            echo "" >> $MACROS
-            grep "@string{\s*$MACRO" $FILE | sed 's/.*@string/@string/' >> $MACROS
+            echo "" >> $BIBMACROS
+            grep "@string{\s*$MACRO" $FILE | sed 's/.*@string/@string/' >> $BIBMACROS
         fi
     done
 done
 
-printf "%% bib file for $AUXNAME.tex generated at "$TIME".\n" > $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%% The recommended format of the bib entry label is:\n" >> $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%%     <AuthorLastnames_YearLetter>\n" >> $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%%  For example, the key for an article by Yuan may be:\n" >> $BIBFILE
-printf "%%\n" >> $BIBFILE
-printf "%%     Yuan_2000a\n%%\n" >> $BIBFILE
-printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $BIBFILE
-printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $BIBFILE
-printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $BIBFILE
+printf "%% bib file for $AUXNAME.tex generated at "$TIME".\n" > $OUTPUTBIB
+printf "%%\n" >> $OUTPUTBIB
+printf "%% The recommended format of the bib entry label is:\n" >> $OUTPUTBIB
+printf "%%\n" >> $OUTPUTBIB
+printf "%%     <AuthorLastnames_YearLetter>\n" >> $OUTPUTBIB
+printf "%%\n" >> $OUTPUTBIB
+printf "%%  For example, the key for an article by Yuan may be:\n" >> $OUTPUTBIB
+printf "%%\n" >> $OUTPUTBIB
+printf "%%     Yuan_2000a\n%%\n" >> $OUTPUTBIB
+printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $OUTPUTBIB
+printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $OUTPUTBIB
+printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $OUTPUTBIB
 
-grep -q -v '^\s*$' $MACROS  > /dev/null  # Check whether $MACROS is empty.
+grep -q -v '^\s*$' $BIBMACROS  > /dev/null  # Check whether $BIBMACROS is empty.
 if [[ $? -eq 0 ]] ; then
-    printf "%% String macros for abbreviations of names of serials.\n" >> $BIBFILE
-    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" >> $BIBFILE
+    printf "%% String macros for abbreviations of names of serials.\n" >> $OUTPUTBIB
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" >> $OUTPUTBIB
 
-    cat $MACROS | sed -r '/^\s*$/d' | sort -u >> $BIBFILE
-    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n" >> $BIBFILE
+    cat $BIBMACROS | sed -r '/^\s*$/d' | sort -u >> $OUTPUTBIB
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n" >> $OUTPUTBIB
 fi
-rm $MACROS
+rm $BIBMACROS
 
 if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     echo ""
     echo "$AUXFILE is not a valid aux file or contains no citation. Abort."
     echo ""
-    rm $BIBENTRIES $BAKBIBFILE
+    rm $BIBENTRIES $OUTPUTBIB
     exit -3
 fi
-cat $BIBENTRIES >> $BIBFILE
+cat $BIBENTRIES >> $OUTPUTBIB
 rm $BIBENTRIES
 
-# Move $BAKBIBFILE to $BAKDIR if it is different from the current one. Otherwise, remove it.
+# Make a backup of $BIBFILE under $BAKDIR if $OUTPUTFILE == $BIBFILE and the trimmed file is
+# different from the original one.
 echo "" > $GETBIBLOG
 echo "******** Difference between the new bib and the original one ********" >> $GETBIBLOG
 echo "" >> $GETBIBLOG

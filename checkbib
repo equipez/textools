@@ -53,7 +53,8 @@ fi
 
 # Get the directory where this script resides
 TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-BCPYOUTPUT="$BIBFILE.bibtex_check.html"
+
+BCPYOUTPUT="bibtex_check.html"
 if [[ $BIBLATEX -eq 1 ]] ; then
     BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -o $BCPYOUTPUT -l -b"
 else
@@ -120,7 +121,7 @@ echo "" >> $LOG
 echo "===> Message from $BCPY:" >> $LOG
 cat $BCPYLOG >> $LOG
 rm $BCPYLOG
-rm bibtex_check.html
+rm $BCPYOUTPUT
 
 echo ""
 echo "===> Running biber --tool -V $BIBFILE ..."

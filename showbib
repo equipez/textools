@@ -11,12 +11,13 @@ BIBLATEX=0
 USER_SPECIFY_LATEX=0
 BIBFILE=""
 
-if [[ $# > 2 ]]; then
+if [[ $# -gt 2 ]]; then
     printf "Usage: showbib [-l|--latex] [BIBFILE_NAME] \n"
     exit -1
 fi
 
-while [[ -n "$1" ]]; do # Parsing the arguments
+# Parse the arguments
+while [[ -n "$1" ]]; do
 	case "$1" in
 	-l|--latex)
         BIBLATEX=1
@@ -61,7 +62,7 @@ fi
 
 # Get the directory where this script resides
 TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-if [[ $BIBLATEX == 1 ]] ; then
+if [[ $BIBLATEX -eq 1 ]] ; then
     BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -l -b"
 else
     BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -b"

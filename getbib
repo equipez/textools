@@ -1,15 +1,41 @@
 #!/bin/bash
-# Usage: getbib [AUXFILE_NAME]
+# Usage: getbib [AUXFILE_NAME] [-o|--output OUTPUTFILE_NAME]
 # getbib exports a bib file containing only the cited terms according to the current aux
 # file. $BAKDIR contains recent backups.
 
-if [[ $# > 1 ]]; then
-    printf "Usage: getbib [AUXFILE_NAME] \n"
+AUXFILE=""
+OUTPUTFILE=""
+
+# Log files
+GETBIBLOG="getbib.log"
+CHECKBIBLOG=checkbib.log
+
+# Directory to contain the backups.
+BAKDIR=./backup/
+
+
+if [[ $# -gt 3 ]]; then
+    printf "Usage: getbib [AUXFILE_NAME] [-o|--output OUTPUTFILE_NAME]\n"
     exit -1
 fi
 
-GETBIBLOG="getbib.log"
-CHECKBIBLOG=checkbib.log
+# Parse the arguments
+while [[ -n "$1" ]]; do
+	case "$1" in
+    -o|--output)
+        if [[ $# -gt 1 ]]; then
+            OUTPUTFILE="$2"
+            shift
+        fi
+        ;;
+	*)
+        if [[ -z "$AUXFILE" ]]; then
+            AUXFILE="$1"
+        fi
+        ;;
+	esac
+	shift
+done
 
 # Get the name of the aux file with full path.
 # If the input is empty, then use the latest aux file under the current directory.
@@ -33,9 +59,6 @@ fi
 
 # Name of the bib file.
 BIBFILE=$AUXNAME.bib
-
-# Directory to contain the backups.
-BAKDIR=./backup/
 
 # Make a backup of the current bib file in the current directory.
 TIME=`date +%Y.%m.%d-%H.%M.%S`

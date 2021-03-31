@@ -7,12 +7,19 @@
 BIBLATEX=0
 BIBFILE=""
 
-if [[ $# > 2 ]]; then
+# Log files
+LOG=checkbib.log
+BCPYLOG="bcpy.log"
+BIBERLOG="biber.log"
+
+
+if [[ $# -gt 2 ]]; then
     printf "Usage: checkbib [-l|--latex] [BIBFILE_NAME] \n"
     exit -1
 fi
 
-while [[ -n "$1" ]]; do # Parsing the arguments
+# Parse the arguments
+while [[ -n "$1" ]]; do
 	case "$1" in
 	-l|--latex)
         BIBLATEX=1
@@ -46,19 +53,16 @@ fi
 
 # Get the directory where this script resides
 TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-if [[ $BIBLATEX == 1 ]] ; then
-    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -l -b"
+BCPYOUTPUT="$BIBFILE.bibtex_check.html"
+if [[ $BIBLATEX -eq 1 ]] ; then
+    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -o $BCPYOUTPUT -l -b"
 else
-    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -b"
+    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -o $BCPYOUTPUT -b"
 fi
 
-# Log files
-LOG=checkbib.log
-BCPYLOG="bcpy.log"
-BIBERLOG="biber.log"
 
 echo ""
-if [[ $BIBLATEX == 1 ]] ; then
+if [[ $BIBLATEX -eq 1 ]] ; then
     echo "Checking $BIBFILE in BibLaTeX mode ..."
     echo "Result of checking $BIBFILE in BibLaTeX mode" > $LOG
 else

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: trimbib [-l|--latex] [-t|--tex] [-o|--output NAME_OF_OUTPUT_FILE] [NAME_OF_BIBTEX_FILE]
+# Usage: trimbib [-l|--latex] [-t|--tex] [NAME_OF_BIBTEX_FILE] [-o|--output NAME_OF_OUTPUT_FILE]
 # This script trims bib files using biber in the following way.
 # 1. Only one of the duplicated entries is kept. (But which one? I am not sure what is biber's rule.)
 # 2. Items are ordered by author, year, and the entry key.
@@ -16,16 +16,21 @@ USER_SPECIFY_TEX=0
 BIBFILE=""
 OUTPUTFILE=""
 
+# Log files
+TRIMBIBLOG="trimbib.log"
+CHECKBIBLOG="checkbib.log"
+
 # Directory to contain the backups.
 BAKDIR=./backup/
 
 
 if [[ $# -gt 4 ]]; then
-    printf "Usage: trimbib [-l|--latex] [-t|--tex] [-o|--output NAME_OF_OUTPUT_FILE] [BIBFILE_NAME] \n"
+    printf "Usage: trimbib [-l|--latex] [-t|--tex] [BIBFILE_NAME] [-o|--output NAME_OF_OUTPUT_FILE]\n"
     exit -1
 fi
 
-while [[ -n "$1" ]]; do # Parsing the arguments
+# Parse the arguments
+while [[ -n "$1" ]]; do
 	case "$1" in
 	-l|--latex)
         USER_SPECIFY_LATEX=1
@@ -37,8 +42,6 @@ while [[ -n "$1" ]]; do # Parsing the arguments
         if [[ $# -gt 1 ]]; then
             OUTPUTFILE="$2"
             shift
-        else
-            OUTPUTFILE=""
         fi
         ;;
 	*)
@@ -98,10 +101,6 @@ else
     # and is a symlink.
     OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
 fi
-
-# Log files
-TRIMBIBLOG="trimbib.log"
-CHECKBIBLOG="checkbib.log"
 
 # Check the bib file before trimming.
 if [[ $USER_INPUT_LATEX -eq 1 ]] ; then

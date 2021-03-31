@@ -133,14 +133,11 @@ cd $BIBDIR
 
 # Backup the current $BIBFILE in $BAKBIBFILE.
 TIME=`date +%Y.%m.%d-%H.%M.%S`
-if [[ "$OUTPUTFILE" == "$BIBFILE" ]]; then
-    FULLBIBNAME=`realpath $BIBFILE`
-    FULLBIBNAME=${FULLBIBNAME//\//%}
-    BAKBIBFILE=$FULLBIBNAME-$TIME
-    cp $BIBFILE $BAKBIBFILE
-else
-    cp $BIBFILE $OUTPUTFILE
-fi
+FULLBIBNAME=`realpath $BIBFILE`
+FULLBIBNAME=${FULLBIBNAME//\//%}
+BAKBIBFILE=$FULLBIBNAME-$TIME
+cp $BIBFILE $BAKBIBFILE
+cp $BIBFILE $OUTPUTFILE
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 TMPBIBFILE="$BIBFILE-$TIME.tmp"
@@ -294,10 +291,15 @@ fi
 rm biber.conf
 rm $OUTPUTFILE.blg
 
+echo 1
 # Print the sorted bib entries into $BIBENTRIES.
 touch $BIBEROUT  # $BIBEROUT is not generated if biber encounters errors.
+cat $BIBEROUT
 gawk -v line=$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' $BIBEROUT) 'NR>line' $BIBEROUT >  $BIBENTRIES
 rm $BIBEROUT
+cat $BIBENTRIES
+
+echo 2
 
 if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     echo ""
@@ -307,6 +309,8 @@ if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     rm $MACROS $BIBENTRIES $CHECKBIBLOG.bak $BAKBIBFILE
     exit -3
 fi
+
+echo 3
 
 rm $TMPBIBFILE
 
@@ -353,7 +357,7 @@ if [[ $? -eq 1 && "$OUTPUTFILE" == "$BIBFILE" ]]; then
 else
 	rm $BAKBIBFILE
 fi
-
+echo 4
 
 # Check the bib file after trimming.
 if [[ $BIBLATEX == 1 ]] ; then

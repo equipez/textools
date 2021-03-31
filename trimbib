@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: trimbib [-l|--latex] [-t|--tex] [NAME_OF_BIBTEX_FILE]
+# Usage: trimbib [-l|--latex] [-t|--tex] [-o|--output NAME_OF_OUTPUT_FILE] [NAME_OF_BIBTEX_FILE]
 # This script trims bib files using biber in the following way.
 # 1. Only one of the duplicated entries is kept. (But which one? I am not sure what is biber's rule.)
 # 2. Items are ordered by author, year, and the entry key.
@@ -15,8 +15,8 @@ USER_SPECIFY_LATEX=0
 USER_SPECIFY_TEX=0
 BIBFILE=""
 
-if [[ $# > 3 ]]; then
-    printf "Usage: trimbib [-l|--latex] [BIBFILE_NAME] \n"
+if [[ $# -gt 5 ]]; then
+    printf "Usage: trimbib [-l|--latex] [-t|--tex] [-o|--output NAME_OF_OUTPUT_FILE] [BIBFILE_NAME] \n"
     exit -1
 fi
 
@@ -27,6 +27,14 @@ while [[ -n "$1" ]]; do # Parsing the arguments
 		;;
     -t|--tex)
         USER_SPECIFY_TEX=1
+        ;;
+    -o|--output)
+        if [[ $# -gt 1 ]]; then
+            OUTPUTFILE="$2"
+            shift
+        else
+            OUTPUTFILE=""
+        fi
         ;;
 	*)
         if [[ -z "$BIBFILE" ]]; then
@@ -75,6 +83,11 @@ else
     BIBLATEX=0
 fi
 
+# If no output file is specified, set OUTPUTFILE to $BIBFILE.
+if [[ -z "$OUTPUTFILE" ]]; then
+    OUTPUTFILE=$BIBFILE
+fi
+
 # Log files
 TRIMBIBLOG="trimbib.log"
 CHECKBIBLOG=checkbib.log
@@ -108,13 +121,17 @@ BAKDIR=./backup/
 cd $BIBDIR
 
 # Backup the current $BIBFILE in $BAKBIBFILE.
-TIME=`date +%Y.%m.%d-%H.%M.%S`
-FULLBIBNAME=`realpath $BIBFILE`
-FULLBIBNAME=${FULLBIBNAME//\//%}
-BAKBIBFILE=$FULLBIBNAME-$TIME
-cp $BIBFILE $BAKBIBFILE
+if [[ "$OUTPUTFILE" == "$BIBFILE" ]]; then
+    TIME=`date +%Y.%m.%d-%H.%M.%S`
+    FULLBIBNAME=`realpath $BIBFILE`
+    FULLBIBNAME=${FULLBIBNAME//\//%}
+    BAKBIBFILE=$FULLBIBNAME-$TIME
+    cp $BIBFILE $BAKBIBFILE
+else
+    cp $BIBFILE $OUTPUTFILE
+fi
 
-# Pre-process the bib file if 
+# Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 TMPBIBFILE="BIBFILE.tmp"
 if [[ $BIBLATEX == 0 ]] ; then
     sed '/^%/d' $BIBFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \

@@ -88,11 +88,14 @@ fi
 
 # If no output file is specified, set OUTPUTFILE to $BIBFILE.
 if [[ -z "$OUTPUTFILE" ]]; then
+    OUTPUTDIR=$BIBDIR
     OUTPUTFILE=$BIBFILE
 else
     USER_SPECIFY_OUTPUT=1
     OUTPUTDIR="$(dirname "${OUTPUTFILE}")"
-    if [[]]
+    if [[-z "OUTPUTDIR"]]; then
+        OUTPUTDIR="./"
+    fi
     OUTPUTFILE="$(basename "${OUTPUTFILE}")"
 fi
 
@@ -289,7 +292,7 @@ else
 fi
 
 rm biber.conf
-rm $BIBFILE.blg
+rm $OUTPUTFILE.blg
 
 # Print the sorted bib entries into $BIBENTRIES.
 touch $BIBEROUT  # $BIBEROUT is not generated if biber encounters errors.

@@ -94,7 +94,7 @@ fi
 if [[ -z "$OUTPUTFILE" ]]; then
     OUTPUTFILE=$BIBFILE
 else
-    OUTPUTFILE=`readlink -f $OUTPUTFILE`
+    OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
 fi
 
 # Log files

@@ -58,7 +58,14 @@ if [[ -z "$BIBFILE" ]]; then
 fi
 BIBFILE=`readlink -f $BIBFILE`
 if [[ -z "${BIBFILE##*/}" ]]; then
+    echo ""
 	echo "No bib file found."
+    echo ""
+	exit -2
+elif [[ ! -f "$BIBFILE" ]]; then
+    echo ""
+    echo "$BIBFILE does not exist."
+    echo ""
 	exit -2
 fi
 
@@ -88,12 +95,6 @@ if [[ -z "$OUTPUTFILE" ]]; then
     OUTPUTFILE=$BIBFILE
 else
     OUTPUTFILE=`readlink -f $OUTPUTFILE`
-    if [[ ! -d "$(dirname "${OUTPUTFILE}")" ]]; then
-        echo ""
-        echo ""$(dirname "${OUTPUTFILE}")" does not exist."
-        echo ""
-        exit -2
-    fi
 fi
 
 # Log files
@@ -142,11 +143,11 @@ if [[ $BIBLATEX -eq 0 ]] ; then
         sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
     sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $OUTPUTBIB
     sed -i 's/,\s*date\s*=\s*/,year=/' $OUTPUTBIB
-    sed -i 's/,\s*location\s*=\s*/,address=/' $TMPBIBFILE
+    sed -i 's/,\s*location\s*=\s*/,address=/' $OUTPUTBIB
     mv $OUTPUTBIB $INPUTBIB
 fi
 
-# Print the macros in $OUTPUTFILE to $BIBMACROS
+# Print the macros in $INPUTBIB to $BIBMACROS
 echo ""
 echo "Sorting the macros ..."
 grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" $INPUTBIB |sed 's/.*@/@/' \

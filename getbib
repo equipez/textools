@@ -11,17 +11,23 @@ fi
 GETBIBLOG="getbib.log"
 CHECKBIBLOG=checkbib.log
 
-# Get the name of the aux file without path or extension. If the input is empty, then use the latest
-# aux file under the current directory to decide the name.
+# Get the name of the aux file with full path.
+# If the input is empty, then use the latest aux file under the current directory.
 if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
-    AUXNAME=`find ./ -maxdepth 1 -type f -name "*.aux" -print0 | xargs -r -0 ls -1 -t | head -1`
-else
-    AUXNAME=$1
+    AUXFILE=`find ./ -maxdepth 1 -type f -name "*.aux" -print0 | xargs -r -0 ls -1 -t | head -1`
 fi
-AUXNAME=${AUXNAME##*/}
+AUXFILE=`readlink -f $AUXFILE`
+AUXNAME=${AUXFILE##*/}
 AUXNAME=${AUXNAME%.*}
-if [[ -z "$AUXNAME" ]] || ! [[ -f $AUXNAME.aux ]]; then
+if [[ -z "$AUXNAME" ]]; then
+    echo ""
     echo "No aux file found in the current directory."
+    echo ""
+    exit -2
+elif [[ ! -f "AUXFILE" ]]; then
+    echo ""
+    echo "$AUXFILE does not exist."
+    echo ""
     exit -2
 fi
 

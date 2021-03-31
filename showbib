@@ -31,14 +31,22 @@ while [[ -n "$1" ]]; do # Parsing the arguments
 	shift
 done
 
-# Get the name of the bib file without path. If the input is empty, then use the latest bib
-# file under the current directory.
+
+# Get the name of the bib file with full path.
+# If the input is empty, then use the latest bib file under the current directory.
 if [[ -z "$BIBFILE" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
 fi
-BIBFILE=${BIBFILE##*/}
-if [[ -z "$BIBFILE" ]]; then
+BIBFILE=`readlink -f $BIBFILE`
+if [[ -z "${BIBFILE##*/}" ]]; then
+    echo ""
 	echo "No bib file found."
+    echo ""
+	exit -2
+elif [[ ! -f "$BIBFILE" ]]; then
+    echo ""
+    echo "$BIBFILE does not exist."
+    echo ""
 	exit -2
 fi
 

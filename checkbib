@@ -33,7 +33,14 @@ if [[ -z "$BIBFILE" ]]; then
 fi
 BIBFILE=`readlink -f $BIBFILE`
 if [[ -z "${BIBFILE##*/}" ]]; then
+    echo ""
 	echo "No bib file found."
+    echo ""
+	exit -2
+elif [[ ! -f "$BIBFILE" ]]; then
+    echo ""
+    echo "$BIBFILE does not exist."
+    echo ""
 	exit -2
 fi
 

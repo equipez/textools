@@ -20,7 +20,7 @@ OUTPUTFILE=""
 BAKDIR=./backup/
 
 
-if [[ $# -gt 5 ]]; then
+if [[ $# -gt 4 ]]; then
     printf "Usage: trimbib [-l|--latex] [-t|--tex] [-o|--output NAME_OF_OUTPUT_FILE] [BIBFILE_NAME] \n"
     exit -1
 fi
@@ -50,15 +50,13 @@ while [[ -n "$1" ]]; do # Parsing the arguments
 	shift
 done
 
-# Get the name of the bib file without path. If the input is empty, then use the latest bib
-# file under the current directory.
+# Get the name of the bib file with full path.
+# If $BIBFILE is a link, we work on its target.
+# If the input is empty, then use the latest bib file under the current directory.
 if [[ -z "$BIBFILE" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
 fi
-
-# If $BIBFILE is a link, we work on its target.
 BIBFILE=`readlink -f $BIBFILE`
-# Get the directory where $BIBFILE is located.
 if [[ -z "${BIBFILE##*/}" ]]; then
 	echo "No bib file found."
 	exit -2

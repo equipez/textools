@@ -18,6 +18,10 @@ BIBFILE=""
 OUTPUTFILE=""
 CURRENTDIR=$PWD
 
+# Directory to contain the backups.
+BAKDIR=./backup/
+
+
 if [[ $# -gt 5 ]]; then
     printf "Usage: trimbib [-l|--latex] [-t|--tex] [-o|--output NAME_OF_OUTPUT_FILE] [BIBFILE_NAME] \n"
     exit -1
@@ -122,23 +126,22 @@ mv $CHECKBIBLOG $CHECKBIBLOG.bak
 
 # Temporary files.
 TIME=`date +%Y.%m.%d-%H.%M.%S`
-TMPBIBFILE="$BIBFILE-$TIME.tmp"
-
+INPUTBIB="inputbib-$TIME.bib"
+OUTPUTBIB="outputbib-$TIME.bib"
 MACROS="macros"
 BIBEROUT="biberout"
 BIBENTRIES="bibentries"
 
-# Directory to contain the backups.
-BAKDIR=./backup/
-
 # Change the directory to $BIBDIR.
 cd $BIBDIR
 
+cp $BIBFILE $INPUTBIB
+
 # Backup the current $BIBFILE in $BAKBIBFILE.
-FULLBIBNAME=`realpath $BIBFILE`
-FULLBIBNAME=${FULLBIBNAME//\//%}
-BAKBIBFILE=$FULLBIBNAME-$TIME
-cp $BIBFILE $BAKBIBFILE
+#FULLBIBNAME=`realpath $BIBFILE`
+#FULLBIBNAME=${FULLBIBNAME//\//%}
+#BAKBIBFILE=$FULLBIBNAME-$TIME
+#cp $BIBFILE $BAKBIBFILE
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 if [[ $BIBLATEX == 0 ]] ; then

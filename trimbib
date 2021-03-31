@@ -51,7 +51,7 @@ while [[ -n "$1" ]]; do # Parsing the arguments
 done
 
 # Get the name of the bib file with full path.
-# If $BIBFILE is a link, we work on its target.
+# If $BIBFILE is a symlink, we work on its target.
 # If the input is empty, then use the latest bib file under the current directory.
 if [[ -z "$BIBFILE" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
@@ -94,6 +94,8 @@ fi
 if [[ -z "$OUTPUTFILE" ]]; then
     OUTPUTFILE=$BIBFILE
 else
+    # Get the full path of $OUTPUTFILE. Note that we do not resolve the link if $OUTPUTFILE exists
+    # and is a symlink.
     OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
 fi
 

@@ -92,6 +92,7 @@ if [[ -z "$OUTPUTFILE" ]]; then
 else
     USER_SPECIFY_OUTPUT=1
     OUTPUTDIR="$(dirname "${OUTPUTFILE}")"
+    if [[]]
     OUTPUTFILE="$(basename "${OUTPUTFILE}")"
 fi
 
@@ -377,7 +378,11 @@ echo "" >> $TRIMBIBLOG
 echo "If the original bib file is different from the trimmed one, its backup can be found at" >> $TRIMBIBLOG
 echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
 
-mv $TRIMBIBLOG $CURRENTDIR
-mv $OUTPUTFILE $OUTPUTDIR
+if [[ "$PWD" != "$CURRENTDIR" ]]; then
+    mv $TRIMBIBLOG $CURRENTDIR
+fi
+if [[ "$PWD" != "$OUTPUTDIR"  ]]; then
+    mv $OUTPUTFILE $OUTPUTDIR
+fi
 
 exit 0

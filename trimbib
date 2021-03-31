@@ -121,6 +121,9 @@ echo "**************** checkbib.log before trimming ****************" | cat - $C
 mv $CHECKBIBLOG $CHECKBIBLOG.bak
 
 # Temporary files.
+TIME=`date +%Y.%m.%d-%H.%M.%S`
+TMPBIBFILE="$BIBFILE-$TIME.tmp"
+
 MACROS="macros"
 BIBEROUT="biberout"
 BIBENTRIES="bibentries"
@@ -132,15 +135,12 @@ BAKDIR=./backup/
 cd $BIBDIR
 
 # Backup the current $BIBFILE in $BAKBIBFILE.
-TIME=`date +%Y.%m.%d-%H.%M.%S`
 FULLBIBNAME=`realpath $BIBFILE`
 FULLBIBNAME=${FULLBIBNAME//\//%}
 BAKBIBFILE=$FULLBIBNAME-$TIME
 cp $BIBFILE $BAKBIBFILE
-cp $BIBFILE $OUTPUTFILE
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
-TMPBIBFILE="$BIBFILE-$TIME.tmp"
 if [[ $BIBLATEX == 0 ]] ; then
     sed '/^%/d' $OUTPUTFILE | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep -v "techreport\|phdthesis\|masterthesis" > $TMPBIBFILE

@@ -50,7 +50,7 @@ if [[ -z "$AUXNAME" ]]; then
     echo "No aux file found in the current directory."
     echo ""
     exit -2
-elif [[ ! -f "AUXFILE" ]]; then
+elif [[ ! -f "$AUXFILE" ]]; then
     echo ""
     echo "$AUXFILE does not exist."
     echo ""
@@ -72,22 +72,12 @@ OUTPUTBIB="outputbib-$TIME.bib"
 BIBMACROS="bibmacros-$TIME"
 BIBENTRIES="bibentries-$TIME"
 
-## If $OUTPUTFILE exists, then make a backup under BAKDIR.
-#FULLBIBNAME=`realpath $BIBFILE`
-#FULLBIBNAME=${FULLBIBNAME//\//%}
-#BAKBIBFILE=$FULLBIBNAME-$TIME
-#if [[ -f "$BIBFILE" ]]; then
-#    cp $BIBFILE $BAKBIBFILE
-#else
-#    touch $BAKBIBFILE
-#fi
 
 # Export the cited entries.
 echo ""
 echo "Exporting bib entries ..."
 rm -f $BIBENTRIES $BIBMACROS
-touch $BIBENTRIES
-touch $BIBMACROS
+touch $BIBENTRIES $BIBMACROS
 
 BIBDATAFILES=`grep bibdata $AUXFILE | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' | sort -u`
 CITEDBIBS=`grep bibcite $AUXFILE | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sort -u`
@@ -111,7 +101,15 @@ do
     done
 done
 
-printf "%% bib file for $AUXNAME.tex generated at "$TIME".\n" > $OUTPUTBIB
+if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
+    echo ""
+    echo "$AUXFILE is not an aux file containing citations or it refers to invalid bib files. Abort."
+    echo ""
+    rm $BIBENTRIES
+    exit -3
+fi
+
+printf "%% bib file generated according to $AUXNAME.aux at "$TIME".\n" > $OUTPUTBIB
 printf "%%\n" >> $OUTPUTBIB
 printf "%% The recommended format of the bib entry label is:\n" >> $OUTPUTBIB
 printf "%%\n" >> $OUTPUTBIB
@@ -134,48 +132,54 @@ if [[ $? -eq 0 ]] ; then
 fi
 rm $BIBMACROS
 
-if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
-    echo ""
-    echo "$AUXFILE is not a valid aux file or contains no citation. Abort."
-    echo ""
-    rm $BIBENTRIES $OUTPUTBIB
-    exit -3
-fi
 cat $BIBENTRIES >> $OUTPUTBIB
 rm $BIBENTRIES
 
-# Make a backup of $BIBFILE under $BAKDIR if $OUTPUTFILE == $BIBFILE and the trimmed file is
-# different from the original one.
-echo "" > $GETBIBLOG
-echo "******** Difference between the new bib and the original one ********" >> $GETBIBLOG
-echo "" >> $GETBIBLOG
-# Remove the comments before comparing.
-diff <(grep -v "^\s*%" $BIBFILE) <(grep -v "^\s*%" $BAKBIBFILE) >> $GETBIBLOG
-if [[ $? -eq 1 ]]; then
-    # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
-    cp $BAKBIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
-    mkdir -p $BAKDIR
-    mv $BAKBIBFILE $BAKDIR
-    # Keep at most 50 latest files under $BAKDIR.
-    (cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
-else
-    rm $BAKBIBFILE
+
+# Make a backup of $OUTPUTFILE under $BAKDIR if $OUTPUTFILE exists.
+FULLBIBNAME=${OUTPUTFILE//\//%}
+BAKBIBFILE=$FULLBIBNAME-$TIME
+BIBDIFFERENT=0
+if [[ -f "$OUTPUTFILE" ]]; then
+    echo "" > $GETBIBLOG
+    echo "******** Difference between the new bib and the original one ********" >> $GETBIBLOG
+    echo "" >> $GETBIBLOG
+    # Remove the comments before comparing.
+    diff <(grep -v "^\s*%" $OUTPUTBIB) <(grep -v "^\s*%" $OUTPUTFILE) >> $GETBIBLOG
+    if [[ $? -eq 1 ]]; then
+        BIBDIFFERENT=1
+        # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
+        mkdir -p $BAKDIR
+        cp $OUTPUTFILE $BAKDIR/$FULLBIBNAME-latest_backup
+    	mv $OUTPUTFILE $BAKDIR/$BAKBIBFILE
+        # Keep at most 50 latest files under $BAKDIR.
+        (cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
+    fi
 fi
 
-checkbib $BIBFILE
+# Write the output to $OUTPUTFILE
+mv $OUTPUTBIB $OUTPUTFILE
+
+
+# Check $OUTPUTFILE.
+checkbib $OUTPUTFILE
 
 echo "*************************** checkbib.log ****************************" | cat - $CHECKBIBLOG > tmp && mv tmp $CHECKBIBLOG
 cat $GETBIBLOG  >> $CHECKBIBLOG
 mv $CHECKBIBLOG $GETBIBLOG
 
 echo "Done. See $GETBIBLOG for $CHECKBIBLOG and the difference between the new bib and the original one."
-echo ""
-echo "If the original bib file is different from the new one, its backup can be found at"
-echo "$BAKDIR/$BAKBIBFILE"
-echo ""
 
-echo "" >> $GETBIBLOG
-echo "If the original bib file is different from the new one, its backup can be found at" >> $GETBIBLOG
-echo "$BAKDIR/$BAKBIBFILE" >> $GETBIBLOG
+if [[ $BIBDIFFERENT -eq 1 ]]; then
+    echo ""
+    echo "A copy of the original bib file is saved at"
+    echo "$BAKDIR/$BAKBIBFILE"
+
+    echo "" >> $TRIMBIBLOG
+    echo "A copy of the original bib file is saved at" >> $TRIMBIBLOG
+    echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
+fi
+
+echo ""
 
 exit 0

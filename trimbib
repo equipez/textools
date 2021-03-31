@@ -13,10 +13,8 @@
 
 USER_SPECIFY_LATEX=0
 USER_SPECIFY_TEX=0
-USER_SPECIFY_OUTPUT=0
 BIBFILE=""
 OUTPUTFILE=""
-CURRENTDIR=$PWD
 
 # Directory to contain the backups.
 BAKDIR=./backup/
@@ -89,20 +87,14 @@ fi
 
 # If no output file is specified, set OUTPUTFILE to $BIBFILE.
 if [[ -z "$OUTPUTFILE" ]]; then
-    OUTPUTDIR=$BIBDIR
     OUTPUTFILE=$BIBFILE
 else
-    USER_SPECIFY_OUTPUT=1
-    OUTPUTDIR="$(dirname "${OUTPUTFILE}")"
-    if [[-z "OUTPUTDIR"]]; then
-        OUTPUTDIR="./"
-    fi
-    OUTPUTFILE="$(basename "${OUTPUTFILE}")"
+    OUTPUTFILE=`readlink -f $OUTPUTFILE`
 fi
 
 # Log files
 TRIMBIBLOG="trimbib.log"
-CHECKBIBLOG=checkbib.log
+CHECKBIBLOG="checkbib.log"
 
 # Check the bib file before trimming.
 if [[ $USER_INPUT_LATEX -eq 1 ]] ; then
@@ -118,7 +110,7 @@ if ! [[ "$KEY" = 'Y' || "$KEY" = 'y' || "$KEY" = "" ]]; then
     exit 1
 fi
 
-echo "**************** checkbib.log before trimming ****************" | cat - $CHECKBIBLOG > tmp && mv tmp $CHECKBIBLOG
+echo "**************** checkbib.log before trimming ****************" | cat - $CHECKBIBLOG > "tmp-$TIME" && mv "tmp-$TIME" $CHECKBIBLOG
 mv $CHECKBIBLOG $CHECKBIBLOG.bak
 
 # Temporary files.
@@ -129,16 +121,7 @@ BIBMACROS="bibmacros-$TIME"
 BIBEROUT="biberout-$TIME"
 BIBENTRIES="bibentries-$TIME"
 
-# Change the directory to $BIBDIR.
-cd $BIBDIR
-
 cp $BIBFILE $INPUTBIB
-
-# Backup the current $BIBFILE in $BAKBIBFILE.
-#FULLBIBNAME=`realpath $BIBFILE`
-#FULLBIBNAME=${FULLBIBNAME//\//%}
-#BAKBIBFILE=$FULLBIBNAME-$TIME
-#cp $BIBFILE $BAKBIBFILE
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 if [[ $BIBLATEX -eq 0 ]] ; then
@@ -169,9 +152,9 @@ grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" $INPUTBIB |sed 's/.*@/@/' \
     > $BIBMACROS
 
 
-# Print the bib entries by biber
+# Trim the bib entries by biber
 echo ""
-echo "Invoking biber to sort the bib entries ..."
+echo "Invoking biber to trim the bib entries ..."
 echo ""
 
 # Configuration of biber.
@@ -292,7 +275,8 @@ rm biber.conf
 rm $INPUTBIB
 rm $INPUTBIB.blg
 
-# Print the sorted bib entries into $BIBENTRIES.
+
+# Print the trimmed bib entries into $BIBENTRIES.
 touch $BIBEROUT  # $BIBEROUT is not generated if biber encounters errors.
 gawk -v line=$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' $BIBEROUT) 'NR>line' $BIBEROUT >  $BIBENTRIES
 
@@ -335,23 +319,24 @@ rm $BIBENTRIES
 
 # Make a backup of $BIBFILE under $BAKDIR if $OUTPUTFILE == $BIBFILE and the trimmed file is
 # different from the original one.
+FULLBIBNAME=${BIBFILE//\//%}
+BAKBIBFILE=$FULLBIBNAME-$TIME
 echo "******** Difference between the trimmed bib and the original one ********" > $TRIMBIBLOG
 echo "" >> $TRIMBIBLOG
 # Remove the comments before comparing.
 diff <(grep -v "^\s*%" $OUTPUTBIB) <(grep -v "^\s*%" $BIBFILE) >> $TRIMBIBLOG
 if [[ $? -eq 1 && "$OUTPUTFILE" == "$BIBFILE" ]]; then
     # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
-    FULLBIBNAME=`realpath $BIBFILE`
-    FULLBIBNAME=${FULLBIBNAME//\//%}
-    BAKBIBFILE=$FULLBIBNAME-$TIME
     mkdir -p $BAKDIR
-    cp $BAKBIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
-	mv $BAKBIBFILE $BAKDIR
+    cp $BIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
+	mv $BIBFILE $BAKDIR/$BAKBIBFILE
     # Keep at most 50 latest files under $BAKDIR.
     (cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
-else
-	rm $BAKBIBFILE
 fi
+
+
+# Write the output to $OUTPUTFILE
+mv $OUTPUTBIB $OUTPUTFILE
 
 
 # Check the bib file after trimming.
@@ -367,7 +352,7 @@ cat $CHECKBIBLOG >> $CHECKBIBLOG.bak
 echo "" >> $CHECKBIBLOG.bak
 mv $CHECKBIBLOG.bak $CHECKBIBLOG
 
-cat $CHECKBIBLOG  | cat - $TRIMBIBLOG > tmp && mv tmp $TRIMBIBLOG
+cat $CHECKBIBLOG  | cat - $TRIMBIBLOG > "tmp-$TIME" && mv "tmp-$TIME" $TRIMBIBLOG
 rm $CHECKBIBLOG
 
 echo "Done. See $TRIMBIBLOG for $CHECKBIBLOG and the difference due to the trimming."
@@ -380,11 +365,5 @@ echo "" >> $TRIMBIBLOG
 echo "If the original bib file is different from the trimmed one, its backup can be found at" >> $TRIMBIBLOG
 echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
 
-if [[ "$PWD" != "$CURRENTDIR" ]]; then
-    mv $TRIMBIBLOG $CURRENTDIR
-fi
-if [[ "$PWD" != "$OUTPUTDIR"  ]]; then
-    mv $OUTPUTFILE $OUTPUTDIR
-fi
 
 exit 0

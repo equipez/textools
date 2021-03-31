@@ -321,12 +321,14 @@ rm $BIBENTRIES
 # different from the original one.
 FULLBIBNAME=${BIBFILE//\//%}
 BAKBIBFILE=$FULLBIBNAME-$TIME
+BIBDIFFERENT=0
 echo "******** Difference between the trimmed bib and the original one ********" > $TRIMBIBLOG
 echo "" >> $TRIMBIBLOG
 # Remove the comments before comparing.
 diff <(grep -v "^\s*%" $OUTPUTBIB) <(grep -v "^\s*%" $BIBFILE) >> $TRIMBIBLOG
 if [[ $? -eq 1 && "$OUTPUTFILE" == "$BIBFILE" ]]; then
     # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
+    BIBDIFFERENT=1
     mkdir -p $BAKDIR
     cp $BIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
 	mv $BIBFILE $BAKDIR/$BAKBIBFILE
@@ -356,14 +358,17 @@ cat $CHECKBIBLOG  | cat - $TRIMBIBLOG > "tmp-$TIME" && mv "tmp-$TIME" $TRIMBIBLO
 rm $CHECKBIBLOG
 
 echo "Done. See $TRIMBIBLOG for $CHECKBIBLOG and the difference due to the trimming."
-echo ""
-echo "If the original bib file is different from the trimmed one, its backup can be found at"
-echo "$BAKDIR/$BAKBIBFILE"
-echo ""
 
-echo "" >> $TRIMBIBLOG
-echo "If the original bib file is different from the trimmed one, its backup can be found at" >> $TRIMBIBLOG
-echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
+if [[ $BIBDIFFERENT -eq 1 ]]; then
+    echo ""
+    echo "A copy of the original bib file is saved at"
+    echo "$BAKDIR/$BAKBIBFILE"
 
+    echo "" >> $TRIMBIBLOG
+    echo "A copy of the original bib file is saved at" >> $TRIMBIBLOG
+    echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
+fi
+
+echo ""
 
 exit 0

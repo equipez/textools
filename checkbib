@@ -116,7 +116,8 @@ echo "===> Running biber --tool -V $BIBFILE ..."
 echo ""
 biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > $BIBERLOG 2>&1
 rm $BIBFILE.blg
-rm -f ${BIBFILE%.*}_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
+BIBNAME=$(echo `basename $BIBFILE` | awk -F"." '{print $1}')
+rm -f "$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
 cat $BIBERLOG
 echo "" >> $LOG
 echo "--------------------------------------------------" >> $LOG

@@ -31,6 +31,7 @@ done
 if [[ -z "$BIBFILE" ]]; then
 	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
 fi
+BIBFILE=`readlink -f $BIBFILE`
 if [[ -z "${BIBFILE##*/}" ]]; then
 	echo "No bib file found."
 	exit -2
@@ -115,8 +116,9 @@ echo "===> Running biber --tool -V $BIBFILE ..."
 echo ""
 biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > $BIBERLOG 2>&1
 rm $BIBFILE.blg
-BIBNAME=$(echo `basename $BIBFILE` | awk -F"." '{print $1}')
-rm -f "$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
+BIBDIR="$(dirname "${BIBFILE}")"
+BIBNAME="$(echo `basename $BIBFILE` | awk -F"." '{print $1}')"
+rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
 cat $BIBERLOG
 echo "" >> $LOG
 echo "--------------------------------------------------" >> $LOG

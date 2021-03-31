@@ -88,6 +88,12 @@ if [[ -z "$OUTPUTFILE" ]]; then
     OUTPUTFILE=$BIBFILE
 else
     OUTPUTFILE=`readlink -f $OUTPUTFILE`
+    if [[ ! -d "$(dirname "${OUTPUTFILE}")" ]]; then
+        echo ""
+        echo ""$(dirname "${OUTPUTFILE}")" does not exist."
+        echo ""
+        exit -2
+    fi
 fi
 
 # Log files

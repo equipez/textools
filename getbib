@@ -84,28 +84,28 @@ rm -f $BIBENTRIES $BIBMACROS
 touch $BIBENTRIES $BIBMACROS
 
 BIBDATAFILES=`grep bibdata $AUXFILE | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' | sed 's/,/\ /'`
-CITEDBIBS=`grep bibcite $AUXFILE | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sed 's/\ /\n/' | sort -u`
-echo $BIBDATAFILES
-echo $CITEDBIBS
+CITEDBIBS=`grep bibcite $AUXFILE | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sort -u`
 
 CITEDBIBS_REDUCED="$CITEDBIBS"
 for FILE in "$BIBDATAFILES"
 do
     CITEDBIBS="$CITEDBIBS_REDUCED"
-    for BIB in "$CITEDBIBS"
+    for BIB in $CITEDBIBS
     do
-        CITEDBIBS_REDUCED=`echo "$CITEDBIBS_REDUCED" | sed '/^\s*"$BIB"\s*$/d'`
-        BIBENTRY=`sed -n "/.*{$BIB/,/^\s*}/{p;/^\s*}/q}" $FILE`
-        echo "" >> $BIBENTRIES
-        echo "$BIBENTRY" >> $BIBENTRIES
-        BIBMACRO=`echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \
-            | sed 's/.*journal\s*=\s*//' \
-            | sed 's/.*journaltitle\s*=\s*//' \
-            | sed 's/.*series\s*=\s*//' \
-            | sed s/,.*$// | sed 's/{.*}//'`
-        if ! [[ -z $BIBMACRO ]]; then
-            echo "" >> $BIBMACROS
-            grep "@string{\s*$BIBMACRO" $FILE | sed 's/.*@string/@string/' >> $BIBMACROS
+        if grep -q "@.*{\s*$BIB\s*," $FILE ; then
+            CITEDBIBS_REDUCED=`echo "$CITEDBIBS_REDUCED" | sed "/^\s*$BIB\s*$/d"`
+            BIBENTRY=`sed -n "/@.*{\s*$BIB/,/^\s*}/{p;/^\s*}/q}" $FILE`
+            echo "" >> $BIBENTRIES
+            echo "$BIBENTRY" >> $BIBENTRIES
+            BIBMACRO=`echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \
+                | sed 's/.*journal\s*=\s*//' \
+                | sed 's/.*journaltitle\s*=\s*//' \
+                | sed 's/.*series\s*=\s*//' \
+                | sed s/,.*$// | sed 's/{.*}//'`
+            if ! [[ -z $BIBMACRO ]]; then
+                echo "" >> $BIBMACROS
+                grep "@string{\s*$BIBMACRO" $FILE | sed 's/.*@string/@string/' >> $BIBMACROS
+            fi
         fi
     done
 done

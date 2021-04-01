@@ -126,8 +126,7 @@ printf "%% It is advised to use the abbreviations of names of serials in Math. R
 printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $OUTPUTBIB
 printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $OUTPUTBIB
 
-grep -q -v '^\s*$' $BIBMACROS  > /dev/null  # Check whether $BIBMACROS is empty.
-if [[ $? -eq 0 ]] ; then
+if grep -q '[^[:space:]]' $BIBMACROS ; then
     printf "%% String macros for abbreviations of names of serials.\n" >> $OUTPUTBIB
     printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" >> $OUTPUTBIB
 
@@ -166,7 +165,7 @@ mv $OUTPUTBIB $OUTPUTFILE
 
 
 # Check $OUTPUTFILE.
-# Decide whether this is a BibLaTeX file or a BibTeX file.
+# First, decide whether this is a BibLaTeX file or a BibTeX file.
 if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" $OUTPUTFILE ; then
     # This is likely a BibLaTeX file.
     checkbib -l $OUTPUTFILE

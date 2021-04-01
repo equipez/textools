@@ -44,6 +44,7 @@ if [[ $# -eq 0 ]] ||  [[ -z "$1" ]]; then
 fi
 AUXFILE=`readlink -f $AUXFILE`
 AUXNAME=${AUXFILE##*/}
+# AUXNAME is the name of the aux file without path or extension.
 AUXNAME=${AUXNAME%.*}
 if [[ -z "$AUXNAME" ]]; then
     echo ""
@@ -67,6 +68,9 @@ OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
 
 
 # Temporary files.
+# We work on OUTPUTBIB and copy it to OUTPUTFILE in the very end. This is necessary, because
+# OUTPUTFILE may be identical to $AUXNAME.bib; we do not want to destroy $AUXNAME.bib until the very
+# end, because the script may be interrupted in the middle.
 TIME=`date +%Y.%m.%d-%H.%M.%S`
 OUTPUTBIB="outputbib-$TIME.bib"
 BIBMACROS="bibmacros-$TIME"
@@ -89,14 +93,14 @@ do
         BIBENTRY=`sed -n "/.*{$BIB/,/^\s*}/{p;/^\s*}/q}" $FILE`
         echo "" >> $BIBENTRIES
         echo "$BIBENTRY" >> $BIBENTRIES
-        MACRO=`echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \
+        BIBMACRO=`echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \
             | sed 's/.*journal\s*=\s*//' \
             | sed 's/.*journaltitle\s*=\s*//' \
             | sed 's/.*series\s*=\s*//' \
             | sed s/,.*$// | sed 's/{.*}//'`
-        if ! [[ -z $MACRO ]]; then
+        if ! [[ -z $BIBMACRO ]]; then
             echo "" >> $BIBMACROS
-            grep "@string{\s*$MACRO" $FILE | sed 's/.*@string/@string/' >> $BIBMACROS
+            grep "@string{\s*$BIBMACRO" $FILE | sed 's/.*@string/@string/' >> $BIBMACROS
         fi
     done
 done

@@ -83,13 +83,18 @@ echo "Exporting bib entries ..."
 rm -f $BIBENTRIES $BIBMACROS
 touch $BIBENTRIES $BIBMACROS
 
-BIBDATAFILES=`grep bibdata $AUXFILE | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' | sort -u`
-CITEDBIBS=`grep bibcite $AUXFILE | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sort -u`
+BIBDATAFILES=`grep bibdata $AUXFILE | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' | sed 's/,/\ /'`
+CITEDBIBS=`grep bibcite $AUXFILE | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sed 's/\ /\n/' | sort -u`
+echo $BIBDATAFILES
+echo $CITEDBIBS
 
-for FILE in $BIBDATAFILES
+CITEDBIBS_REDUCED="$CITEDBIBS"
+for FILE in "$BIBDATAFILES"
 do
-    for BIB in $CITEDBIBS
+    CITEDBIBS="$CITEDBIBS_REDUCED"
+    for BIB in "$CITEDBIBS"
     do
+        CITEDBIBS_REDUCED=`echo "$CITEDBIBS_REDUCED" | sed '/^\s*"$BIB"\s*$/d'`
         BIBENTRY=`sed -n "/.*{$BIB/,/^\s*}/{p;/^\s*}/q}" $FILE`
         echo "" >> $BIBENTRIES
         echo "$BIBENTRY" >> $BIBENTRIES

@@ -322,23 +322,25 @@ cat $BIBENTRIES >> $OUTPUTBIB
 rm $BIBENTRIES
 
 
-# Make a backup of $BIBFILE under $BAKDIR if $OUTPUTFILE == $BIBFILE and the trimmed file is
-# different from the original one.
-FULLBIBNAME=${BIBFILE//\//%}
+# Make a backup of $OUTPUTFILE under $BAKDIR if it exists and the trimmed file is different from
+# the original $OUTPUTFILE.
+FULLBIBNAME=${OUTPUTFILE//\//%}
 BAKBIBFILE=$FULLBIBNAME-$TIME
 BIBDIFFERENT=0
-echo "******** Difference between the trimmed bib and the original one ********" > $TRIMBIBLOG
-echo "" >> $TRIMBIBLOG
-# Remove the comments before comparing.
-diff <(grep -v "^\s*%" $OUTPUTBIB) <(grep -v "^\s*%" $BIBFILE) >> $TRIMBIBLOG
-if [[ $? -eq 1 && "$OUTPUTFILE" == "$BIBFILE" ]]; then
-    BIBDIFFERENT=1
-    # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
-    mkdir -p $BAKDIR
-    cp $BIBFILE $BAKDIR/$FULLBIBNAME-latest_backup
-	mv $BIBFILE $BAKDIR/$BAKBIBFILE
-    # Keep at most 50 latest files under $BAKDIR.
-    (cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
+if [[ -f "$OUTPUTFILE" ]]; then
+    echo "****** Difference between the trimmed bib and the original $OUTPUTFILE ******" > $TRIMBIBLOG
+    echo "" >> $TRIMBIBLOG
+    # Remove the comments before comparing.
+    diff <(grep -v "^\s*%" $OUTPUTBIB) <(grep -v "^\s*%" $OUTPUTFILE) >> $TRIMBIBLOG
+    if [[ $? -eq 1 ]]; then
+        BIBDIFFERENT=1
+        # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
+        mkdir -p $BAKDIR
+        cp $OUTPUTFILE $BAKDIR/$FULLBIBNAME-latest_backup
+    	mv $OUTPUTFILE $BAKDIR/$BAKBIBFILE
+        # Keep at most 50 latest files under $BAKDIR.
+        (cd $BAKDIR && ls -tp | grep -v '/$' | grep $FULLBIBNAME | tail -n +51 | xargs -I {} rm -- {})
+    fi
 fi
 
 # Write the output to $OUTPUTFILE

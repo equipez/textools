@@ -98,15 +98,15 @@ CAPITAL_WORDS="Yuan Powell \
     Lasso LASSO ADMM APG FISTA CPU FPU GPU Hadamard Weierstrass Liouville Abel Abelian Galois \
     Hamilton Hamiltonian Atiyah Fourier Gronwall Bellman LaSalle Bihari Monte Carlo \
     Ky Fan \
-    Poincare Poincar.*\'e.* Poincar.*\'{e}.* \
-    Frechet Fr.*\'e.*chet Fr.*\'{e}.*chet \
-    Fejer Fej.*\'e.*r Fej.*\'{e}.*r \
-    Holder H.*\"o.*lder H.*\"{o}.*lder \
-    KL K-L Kurdyka Lojasiewicz \L.*ojasiewicz {\L.*}.*ojasiewicz"
+    Poincare Poincar.*\\\\'e.* Poincar.*\\\\'{e}.* \
+    Frechet Fr.*\\\\'e.*chet Fr.*\\\\'{e}.*chet \
+    Fejer Fej.*\\\\'e.*r Fej.*\\\\'{e}.*r Fejerian Fej.*\\\\'e.*rian Fej.*\\\\'{e}.*rian \
+    Holder H.*\\\\\"o.*lder H.*\\\\\"{o}.*lder Holderian H.*\\\\\"o.*lderian H.*\\\\\"{o}.*lderian \
+    KL K-L Kurdyka Lojasiewicz \\\\L.*ojasiewicz {\\\\L.*}.*ojasiewicz"
 for WORD in $CAPITAL_WORDS
 do
-    grep -n "title" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' $WORD
-    grep -n "title" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' $WORD >> $LOG
+    grep -n "title\s*=" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD"
+    grep -n "title\s*=" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD" >> $LOG
 done
 
 echo ""

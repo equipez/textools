@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Usage: checkbib [-l|--latex] [BIBFILE_NAME]
 # checkbib does some basic checks on a bib file. It calls ./python/bibtex_check.py and biber.
 # If -l|--latex is present, then checkbib checks the file as a BibLaTeX file; otherwise, it checks

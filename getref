@@ -55,8 +55,9 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         fi
     done
 elif ! [[ -z "$REFTITLE" ]]; then
-    
+    REFTITLE_CLEANED=$()
 else
+    printf "\nNo bib entry id or reference title received.\n\n"
 fi
 
 REFTITLE="$BIBENTRYID"-"$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')"

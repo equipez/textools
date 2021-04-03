@@ -55,7 +55,8 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         fi
     done
 elif ! [[ -z "$REFTITLE" ]]; then
-    REFTITLE_CLEANED=$()
+    REFTITLE=$(
+)
 else
     printf "\nNo bib entry id or reference title received.\n\n"
 fi

@@ -50,8 +50,13 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
             )
+        if ! [[ -z "$REFTITLE" ]]; then
+            break
+        fi
     done
 elif ! [[ -z "$REFTITLE" ]]; then
-
+    
+else
 fi
-            echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g'
+
+REFTITLE="$BIBENTRYID"-"$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')"

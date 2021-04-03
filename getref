@@ -37,8 +37,21 @@ fi
 LINEBREAKER="######LINE_BREAK######"
 if ! [[ -z "$BIBENTRYID" ]]; then
     for FILE in "$BIBFILES"; do
-        sed '/^\s*%/d' $FILE | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 | grep "{\s*$BIBENTRYID\s*," | head -1 | sed 's/.*\s+title\s*=\s*{//' | sed "s/},\s*$LINEBREAKER.*//"
+        REFTITLE=$(sed '/^\s*%/d' $FILE \
+            | sed 's/%.*$//' \
+            | awk -v ORS="$LINEBREAKER" 1 \
+            | grep "{\s*$BIBENTRYID\s*," | head -1 \
+            | sed "s/^.*$LINEBREAKER\s*title\s*=\s*{//" \
+            | sed "s/},\s*$LINEBREAKER.*$//" \
+            | sed 's/\$//g' \
+            | sed 's/\\//g' \
+            | sed 's/{//g' \
+            | sed 's/}//g' \
+            | sed 's/^\s*//' \
+            | sed 's/\s*$//' \
+            )
     done
 elif ! [[ -z "$REFTITLE" ]]; then
 
 fi
+            echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g'

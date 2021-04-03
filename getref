@@ -34,9 +34,10 @@ else
 fi
 
 # Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
+LINEBREAKER="######LINE_BREAK######"
 if ! [[ -z "$BIBENTRYID" ]]; then
     for FILE in "$BIBFILES"; do
-        sed '/^\s*%/d' $FILE | sed 's/%.*$//' | awk -v ORS="" 1 | grep "{\s*$BIBENTRYID\s*," | head -1 | sed 's/.*\s+title\s*=\s*{//' | sed '},\s+'
+        sed '/^\s*%/d' $FILE | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 | grep "{\s*$BIBENTRYID\s*," | head -1 | sed 's/.*\s+title\s*=\s*{//' | sed "s/},\s*$LINEBREAKER.*//"
     done
 elif ! [[ -z "$REFTITLE" ]]; then
 

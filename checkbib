@@ -131,9 +131,10 @@ biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_num
 rm $BIBFILE.blg
 BIBDIR="$(dirname "${BIBFILE}")"
 BIBNAME="$(echo `basename $BIBFILE` | awk -F"." '{print $1}')"
-echo $PWD
-echo "$BIBDIR"/"$BIBNAME"_bibertool.bib
 rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
+# biber 2.16 (as of 2021-04-03) produces ~/_bibertool.bib if it is invoked by
+# "biber --tool -V FILE_WITH_FULL_PATH" and there exists a dot (.) in the full path of the directory
+# containing the file.
 rm -f ~/_bibertool.bib
 cat $BIBERLOG
 echo "" >> $LOG

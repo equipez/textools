@@ -1,0 +1,4 @@
+#!/bin/bash
+# Usage: getbib BIB_ENTRY_ID|REFERENCE_TITLE [BIB_FILE_NAME]
+# getref tries downloading a reference according to the given bib entry id or title and name it as 
+# BIB_ENTRY_ID-REFERENCE_TITLE or REFERENCE_TITLE 

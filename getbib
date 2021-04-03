@@ -179,7 +179,7 @@ else
     checkbib $OUTPUTFILE
 fi
 
-echo "*************************** checkbib.log ****************************" | cat - $CHECKBIBLOG > tmp && mv tmp $CHECKBIBLOG
+echo "*************************** checkbib.log ****************************" | cat - $CHECKBIBLOG > tmp-$TIME && mv tmp-$TIME $CHECKBIBLOG
 cat $GETBIBLOG  >> $CHECKBIBLOG
 mv $CHECKBIBLOG $GETBIBLOG
 

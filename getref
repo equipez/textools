@@ -33,8 +33,10 @@ else
     BIBFILES=`ls -t *.bib`
 fi
 
+echo "$BIBFILES"
+
 # Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
-LINEBREAKER="######LINE_BREAK######"
+LINEBREAKER="======LINE_BREAK++++++"
 if ! [[ -z "$BIBENTRYID" ]]; then
     for FILE in "$BIBFILES"; do
         REFTITLE=$(sed '/^\s*%/d' $FILE \
@@ -50,15 +52,29 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
             )
+        echo $FILE
+        echo $REFTITLE
         if ! [[ -z "$REFTITLE" ]]; then
             break
         fi
     done
+    if [[ -z "$REFTITLE" ]]; then
+        printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
+        exit -2
+    fi
 elif ! [[ -z "$REFTITLE" ]]; then
-    REFTITLE=$(
-)
+    REFTITLE=$(sed 's/\$//g' $REFTITLE \
+        | sed 's/\\//g' \
+        | sed 's/{//g' \
+        | sed 's/}//g' \
+        | sed 's/^\s*//' \
+        | sed 's/\s*$//' \
+        )
 else
     printf "\nNo bib entry id or reference title received.\n\n"
 fi
 
-REFTITLE="$BIBENTRYID"-"$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')"
+echo $REFTITLE
+
+REFFILENAME="$BIBENTRYID"-"$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')"
+echo $REFFILENAME

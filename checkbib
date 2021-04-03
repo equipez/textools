@@ -131,7 +131,10 @@ biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_num
 rm $BIBFILE.blg
 BIBDIR="$(dirname "${BIBFILE}")"
 BIBNAME="$(echo `basename $BIBFILE` | awk -F"." '{print $1}')"
+echo $PWD
+echo "$BIBDIR"/"$BIBNAME"_bibertool.bib
 rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
+rm -f ~/_bibertool.bib
 cat $BIBERLOG
 echo "" >> $LOG
 echo "--------------------------------------------------" >> $LOG

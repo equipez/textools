@@ -130,15 +130,15 @@ cp $BIBFILE $INPUTBIB
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 if [[ $BIBLATEX -eq 0 ]] ; then
-    sed '/^%/d' $INPUTBIB | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep -v "techreport\|phdthesis\|masterthesis" > $OUTPUTBIB
-    sed '/^%/d' $INPUTBIB | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep techreport | sed 's/^\s*@report/@techreport/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
-    sed '/^%/d' $INPUTBIB | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep phdthesis | sed 's/^\s*@thesis/@phdthesis/' | sed 's/institution/school/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
-    sed '/^%/d' $INPUTBIB | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
         grep masterthesis | sed 's/^\s*@thesis/@masterthesis/' | sed 's/institution/school/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
     sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $OUTPUTBIB

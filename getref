@@ -36,7 +36,7 @@ fi
 # Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
 if ! [[ -z "$BIBENTRYID" ]]; then
     for FILE in "$BIBFILES"; do
-        cat $FILE | sed 's/^\s*%//'
+        sed '/^\s*%/d' $FILE | sed 's/%.*$//' | awk -v ORS="" 1 | grep "{\s*$BIBENTRYID\s*," | head -1 | sed 's/.*\s+title\s*=\s*{//' | sed '},\s+'
     done
 elif ! [[ -z "$REFTITLE" ]]; then
 

@@ -1,4 +1,25 @@
 #!/bin/bash
 # Usage: getbib BIB_ENTRY_ID|REFERENCE_TITLE [BIB_FILE_NAME]
-# getref tries downloading a reference according to the given bib entry id or title and name it as 
-# BIB_ENTRY_ID-REFERENCE_TITLE or REFERENCE_TITLE 
+# getref tries downloading a reference according to the given bib entry id or title and name it as
+# $BIB_ENTRY_ID-$REFERENCE_TITLE or $REFERENCE_TITLE according to the availability of $BIB_ENTRY_ID.
+# According to $BIB_FILE_NAME, we decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
+
+BIBENTRYID=""
+REFTITLE=""
+BIBFILE=""
+
+# Parse the arguments
+if [[ $# -eq 1 ]]; then
+    BIBENTRYID=$1
+elif [[ $# -eq 2 ]]; then
+    BIBENTRYID=$1
+    BIBFILE=$2
+else
+    printf "Usage: getbib BIB_ENTRY_ID|REFERENCE_TITLE [BIB_FILE_NAME]\n"
+    exit -1
+fi
+
+if grep '[^a-zA-Z0-9_]' "$BIB_ENTRY_ID"; then
+    REFTITLE="$BIB_ENTRY_ID"
+    BIB_ENTRY_ID=""
+fi

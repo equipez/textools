@@ -41,9 +41,9 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         REFTITLE=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
-            | sed "s/$LINEBREAKER\s*@/\n@/g" \
+            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
             | grep "{\s*$BIBENTRYID\s*," | head -1 \
-            | sed "s/^.*$LINEBREAKER\s*title\s*=\s*{//" \
+            | sed -r "s/^.*\s+title\s*=\s*{//" \
             | sed "s/},\s*$LINEBREAKER.*$//" \
             | sed 's/\$//g' \
             | sed 's/\\//g' \
@@ -60,6 +60,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
         exit -2
     fi
+    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
 elif ! [[ -z "$REFTITLE" ]]; then
     REFTITLE=$(sed 's/\$//g' $REFTITLE \
         | sed 's/\\//g' \
@@ -68,11 +69,32 @@ elif ! [[ -z "$REFTITLE" ]]; then
         | sed 's/^\s*//' \
         | sed 's/\s*$//' \
         )
-     
+    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
+    for FILE in $BIBFILES; do
+        REFTITLE=$(sed '/^\s*%/d' $FILE \
+            | sed 's/%.*$//' \
+            | awk -v ORS="$LINEBREAKER" 1 \
+            | sed "s/$LINEBREAKER\s*@/\n@/g" \
+            | sed -r 's/[^a-zA-Z0-9]+/_/g' \
+            | grep -i "{\s*$REFTITLE_UNDERSCORED\s*," | head -1 \
+            | sed "s/^.*$LINEBREAKER\s*title\s*=\s*{//" \
+            | sed "s/},\s*$LINEBREAKER.*$//" \
+            | sed 's/\$//g' \
+            | sed 's/\\//g' \
+            | sed 's/{//g' \
+            | sed 's/}//g' \
+            | sed 's/^\s*//' \
+            | sed 's/\s*$//' \
+            )
+        if ! [[ -z "$REFTITLE" ]]; then
+            break
+        fi
+    done
+
 else
     printf "\nNo bib entry id or reference title received.\n\n"
 fi
 
 
-REFFILENAME="$BIBENTRYID"-"$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')"
+REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
 echo $REFFILENAME

@@ -149,6 +149,9 @@ else
 fi
 
 if ! [[ -z "$REFFILE" ]]; then
+    if  ! [[ -z "$BIBENTRYID" ]]; then
+        exit -4
+    fi
     REFFILE=$(readlink -f $REFFILE)
     FILETYPE="${REFFILE##*.}"
     mv "$REFFILE" "$REFDIR"/"$BIBENTRYID"-"$REFTITLE_UNDERSCORED"."$FILETYPE"

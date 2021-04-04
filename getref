@@ -43,7 +43,6 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
             | grep "^@.*{\s*$BIBENTRYID\s*," | head -1 \
-            | sed -r "s/^.*\s+title\s*=\s*{//" \
             | sed "s/},\s*$LINEBREAKER.*}\s*$LINEBREAKER$//" \
             | sed 's/\$//g' \
             | sed 's/\\//g' \
@@ -75,21 +74,23 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            #| grep "^@.*{\s*$BIBENTRYID\s*," | head -1 \
-            | grep -i "\s*+title\s*=\s*{\s*$REFTITLE_UNDERSCORED"
-            | sed -r "s/^.*\s+title\s*=\s*{//" \
-            | sed "s/},\s*$LINEBREAKER.*}\s*$LINEBREAKER$//" \
-            | sed 's/\$//g' \
-            | sed 's/\\//g' \
-            | sed 's/{//g' \
-            | sed 's/}//g' \
+            | sed "s/{\s*/{/g" \
+            | sed "s/\s*}/}/g" \
+            | sed "s/\s*=\s*/=/g" \
+            | sed -r 's/[^a-zA-Z0-9={}]+/_/g' \
+            | grep -i -r "\s*+title={$REFTITLE_UNDERSCORED}" | head -1 \
+            | sed "s/^@[^{]*{//" \
+            | sed "s/,\s*$LINEBREAKER.*}\s*$LINEBREAKER$//" \
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
             )
-        if ! [[ -z "$REFTITLE" ]]; then
+        if ! [[ -z "$BIBENTRYID" ]]; then
             break
         fi
     done
+    if [[ -z "$BIBENTRYID" ]]; then
+        printf "\nThe title does not exist in the bib files(s).\n\n"
+    fi
 
 else
     printf "\nNo bib entry id or reference title received.\n\n"

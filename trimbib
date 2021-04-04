@@ -130,7 +130,7 @@ BIBENTRIES="bibentries-$TIME"
 cp $BIBFILE $INPUTBIB
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
-LINEBREAKER="======LINE_BREAK++++++"
+LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 if [[ $BIBLATEX -eq 0 ]] ; then
     sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 \
         | sed "s/$LINEBREAKER\s*@/\n@/g" | sed "s/$LINEBREAKER//g" > $TMPBIB

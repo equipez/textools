@@ -257,3 +257,12 @@ if [[ $FILETYPE == "unknown" ]]; then
     printf "$REFFILE\n\n"
 fi
 $READER $REFFILE
+
+UNIVERSALBIB=$REFDIR/ref.bib
+TOGETREF=$REFFILE/togetref.bib
+GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
+cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $TOGETREF
+for REF in $GOTREF; do
+    sed -i '/^\s*@.*{REF.*$/d' $TOGETREF
+done
+sed "s/$LINEBREAKER/\n/g" $TOGETREF

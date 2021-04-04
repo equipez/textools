@@ -7,6 +7,9 @@
 BIBENTRYID=""
 REFTITLE=""
 BIBFILE=""
+BIBTYPE=""
+LIBGEN="http://libgen.rs/search.php?req="
+LIBGENART="http://libgen.rs/scimag/?q="
 
 # Parse the arguments
 if [[ $# -eq 1 ]]; then
@@ -19,18 +22,13 @@ else
     exit -1
 fi
 
-echo $REFTITLE
-echo $BIBENTRYID
-
 # Decide whether the $BIBENTRYID recorded above is indeed $REFTITLE.
-if echo "$BIBENTRYID" | grep '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
+if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
     || ! echo "$BIBENTRYID" | grep -q '[A-Z]' || ! echo "$BIBENTRYID" | grep -q '[0-9]'; then
     REFTITLE="$BIBENTRYID"
     BIBENTRYID=""
 fi
 
-echo $REFTITLE
-echo $BIBENTRYID
 
 # Decide bib files to check
 if ! [[ -z $BIBFILE ]]; then
@@ -41,7 +39,7 @@ fi
 
 
 # Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
-LINEBREAKER="THISISASTRANGELINEBREAKERSTARTING$(date +%s)THISISASTRANGELINEBREAKERENDING"
+LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 if ! [[ -z "$BIBENTRYID" ]]; then
     for FILE in $BIBFILES; do
         REFTITLE=$(sed '/^\s*%/d' $FILE \
@@ -81,19 +79,6 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            | sed "s/{\s*/{/g" \
-            | sed "s/\s*}/}/g" \
-            | sed "s/{//g" \
-            | sed "s/}//g" \
-            | sed -r "s/@article|@book|@.*report|@.*thesis|@incollection|@inproceedings|@inbook|@proceedings|@misc|@unpublished/@@/I" \
-            | sed "s/\s*=\s*/=/g" \
-            | sed -r 's/[^a-zA-Z0-9={}]+/_/g' \
-        )
-        echo $BIBENTRYID
-        BIBENTRYID=$(sed '/^\s*%/d' $FILE \
-            | sed 's/%.*$//' \
-            | awk -v ORS="$LINEBREAKER" 1 \
-            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
             | sed -r "s/^@article|^@book|^@booklet|^@.*report|^@.*thesis|^@incollection|^@inproceedings|^@inbook|^@proceedings|^@misc|^@unpublished/@@/I" \
             | sed "s/{\s*/{/g" \
             | sed "s/\s*}/}/g" \
@@ -101,26 +86,31 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/}//g" \
             | sed "s/\s*=\s*/=/g" \
             | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
-            | grep "_title={$REFTITLE_UNDERSCORED}" | head -1 \
+            | grep "_title=$REFTITLE_UNDERSCORED_$LINEBREAKER\|_title=$REFTITLE_UNDERSCORED$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
             )
         if ! [[ -z "$BIBENTRYID" ]]; then
+        BIBTYPE=$(sed '/^\s*%/d' $FILE \
+            | sed 's/%.*$//' \
+            | awk -v ORS="$LINEBREAKER" 1 \
+            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
+            | grep ""
+            | sed 's/^\s*//' \
+            | sed 's/\s*$//' \
+            )
             break
         fi
     done
-    echo $BIBENTRYID
     if [[ -z "$BIBENTRYID" ]]; then
         printf "\nThe title does not exist in the bib files(s).\n\n"
     fi
-
 else
     printf "\nNo bib entry id or reference title received.\n\n"
 fi
 
-
 REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
 
-echo $REFILENAME
+wget 

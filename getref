@@ -44,7 +44,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
             | grep "{\s*$BIBENTRYID\s*," | head -1 \
             | sed -r "s/^.*\s+title\s*=\s*{//" \
-            | sed "s/},\s*$LINEBREAKER.*$//" \
+            | sed "s/},?\s*$LINEBREAKER.*$//" \
             | sed 's/\$//g' \
             | sed 's/\\//g' \
             | sed 's/{//g' \

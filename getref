@@ -35,6 +35,7 @@ if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -
     REFTITLE="$BIBENTRYID"
     BIBENTRYID=""
 fi
+REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' | sed 's/\\//g')
 REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g')
 
 

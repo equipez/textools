@@ -130,24 +130,28 @@ else
     exit -3
 fi
 
-TRYEXISTS=$(ls "$REFDIR"/"$BIBENTRYID"* | grep -q  'pdf\|djvu\|ps\|dvi' | head -1)
-echo $TRYEXISTS
-if ! [[ -z $TRYEXISTS ]]; then
-    $READER
-    exit 0
-fi
+#REFEXISTS=$(ls "$REFDIR""$BIBENTRYID"*| grep -i 'pdf\|djvu\|ps\|dvi' | head -1)
+#if ! [[ -z "$REFEXISTS" ]]; then
+#    printf "\nThe reference exists:\n"
+#    printf "$REFEXISTS\n\n"
+#    $READER $REFEXISTS
+#    exit 0
+#fi
 
+REFTITLE_UNDERSCORED=$(echo $REFTITLE_UNDERSCORED | sed 's/_$//')
 REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
 
 BIBTYPE=$(echo "$BIBTYPE" | tr '[:upper:]' '[:lower:]')
 
-REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' \
+REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' \
     | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/\~//g' \
     | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' \
     | sed 's/\\//g' \
 )
 if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "proceedings" ]]; then
-    wget "$LIBGEN$REFTITLE" -O $TMPHTML
+    TMPURL="$LIBGENART$REFTITLE"
+    wget "TMPURL" -O $TMPHTML
+    TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" | sed '')
 else
     TMPURL="$LIBGENART$REFTITLE"
     printf "\nChecking $TMPURL ...\n\n"

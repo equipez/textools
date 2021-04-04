@@ -8,9 +8,14 @@ BIBENTRYID=""
 REFTITLE=""
 BIBFILE=""
 BIBTYPE=""
+
+REFDIR="$HOME/Bureau/bibliographie/literature/"
+READER="evince"
+
 LIBGEN="http://libgen.rs/search.php?req="
 LIBGENART="http://libgen.rs/scimag/?q="
 TMPHTML="$(date +%s)getref.html"
+
 
 # Parse the arguments
 if [[ $# -eq 1 ]]; then
@@ -29,6 +34,7 @@ if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -
     REFTITLE="$BIBENTRYID"
     BIBENTRYID=""
 fi
+REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g')
 
 
 # Decide bib files to check
@@ -135,10 +141,27 @@ else
     printf "\nChecking $TMPURL ...\n\n"
     wget -q "$TMPURL" -O $TMPHTML
     TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | sed 's/">Sci-Hub<.*$//' | sed 's/^.*href="//')
-    rm $TMPHTML
     printf "\nChecking $TMPURL ...\n\n"
     wget -q "$TMPURL" -O $TMPHTML
     TMPURL=$(cat $TMPHTML | grep "save<" | sed "s/^.*href='//" | sed "s/'\".*$//")
+    rm $TMPHTML
     printf "\nChecking $TMPURL ...\n\n"
     wget -q "$TMPURL" -O $REFFILENAME
 fi
+FILETYPE=$(file $REFFILENAME | tr '[:upper:]' '[:lower:]')
+if echo "$FILETYPE" | grep -q "pdf"; then
+    FILETYPE="pdf"
+elif echo "$FILETYPE" | grep -q "djvu"; then
+    FILETYPE="djvu"
+elif echo "$FILETYPE" | grep -q "postscript"; then
+    FILETYPE="ps"
+elif echo "$FILETYPE" | grep -q "dvi"; then
+    FILETYPE="dvi"
+else
+    printf "\nUnkown file type:\n"
+    printf "$(file $REFFILENAME)\n\n"
+    FILETYPE=""
+fi
+mv $REFFILENAME $REFDIR/$REFFILENAME.$FILETYPE
+REFFILENAME=$REFDIR/$REFFILENAME.$FILETYPE
+$READER $REFFILENAME

@@ -16,6 +16,7 @@ LIBGEN="http://libgen.rs/search.php?req="
 LIBGENART="http://libgen.rs/scimag/?q="
 TMPHTML="$(date +%s)getref.html"
 
+SUCCESS=1
 
 # Parse the arguments
 if [[ $# -eq 1 ]]; then
@@ -124,10 +125,11 @@ elif ! [[ -z "$REFTITLE" ]]; then
         fi
     done
     if [[ -z "$BIBENTRYID" ]]; then
-        printf "\nThe title does not exist in the bib files(s).\n\n"
+        printf "\nThe title does not exist in the bib files(s).\n"
     fi
 else
     printf "\nNo bib entry id or reference title received.\n\n"
+    exit -3
 fi
 
 REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
@@ -141,14 +143,30 @@ else
     printf "\nChecking $TMPURL ...\n\n"
     wget -q "$TMPURL" -O $TMPHTML
     TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | sed 's/">Sci-Hub<.*$//' | sed 's/^.*href="//')
-    printf "\nChecking $TMPURL ...\n\n"
-    wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep "save<" | sed "s/^.*href='//" | sed "s/'\".*$//")
-    rm $TMPHTML
-    printf "\nChecking $TMPURL ...\n\n"
-    wget -q "$TMPURL" -O $REFFILENAME
+    if [[ -z "$TMPURL" ]]; then
+        SUCCESS=0
+    else
+        printf "\nChecking $TMPURL ...\n\n"
+        wget -q "$TMPURL" -O $TMPHTML
+        TMPURL=$(cat $TMPHTML | grep "save<" | sed "s/^.*href='//" | sed "s/'\".*$//")
+        if [[ -z "$TMPURL" ]]; then
+            SUCCESS=0
+        else
+            printf "\nChecking $TMPURL ...\n\n"
+            wget -q "$TMPURL" -O $REFFILENAME
+        fi
+    fi
 fi
+rm $TMPHTML
+
+if [[ $SUCCESS -eq 0 ]]; then
+    printf "Failed to get \n\n      $REFTITLE\n\nDownload it manually and name it to\n\n"
+    printf "      $REFFILENAME\n\n"
+    exit -4
+fi
+
 FILETYPE=$(file $REFFILENAME | tr '[:upper:]' '[:lower:]')
+
 if echo "$FILETYPE" | grep -q "pdf"; then
     FILETYPE="pdf"
 elif echo "$FILETYPE" | grep -q "djvu"; then
@@ -157,11 +175,18 @@ elif echo "$FILETYPE" | grep -q "postscript"; then
     FILETYPE="ps"
 elif echo "$FILETYPE" | grep -q "dvi"; then
     FILETYPE="dvi"
+elif echo "$FILETYPE" | grep -q "empty"; then
+    FILETYPE="empty"
 else
     printf "\nUnkown file type:\n"
     printf "$(file $REFFILENAME)\n\n"
-    FILETYPE=""
+    FILETYPE="unknown"
 fi
+
 mv $REFFILENAME $REFDIR/$REFFILENAME.$FILETYPE
 REFFILENAME=$REFDIR/$REFFILENAME.$FILETYPE
+if [[ $FILETYPE == "unknown" ]]; then
+    printf "The reference has an unknown file type. Check it manually and then rename\n\n"
+    printf "$REFFILENAME\n\n"
+fi
 $READER $REFFILENAME

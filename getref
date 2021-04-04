@@ -68,7 +68,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     fi
     REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
 elif ! [[ -z "$REFTITLE" ]]; then
-    REFTITLE=$(sed 's/\$//g' $REFTITLE \
+    REFTITLE=$(echo "$REFTITLE" | sed 's/\$//g' \
         | sed 's/\\//g' \
         | sed 's/{//g' \
         | sed 's/}//g' \

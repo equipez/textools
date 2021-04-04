@@ -149,8 +149,9 @@ else
 fi
 
 if ! [[ -z "$REFFILE" ]]; then
-    if  ! [[ -z "$BIBENTRYID" ]]; then
-        exit -4
+    if  [[ -z "$BIBENTRYID" ]] || [[ -z "$REFTITLE" ]]; then
+        printf "\nNo bib entry id received or the reference does not exist in the bib file(s).\n\n"
+        exit -3
     fi
     REFFILE=$(readlink -f $REFFILE)
     FILETYPE="${REFFILE##*.}"

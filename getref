@@ -35,9 +35,6 @@ if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -
     REFTITLE="$BIBENTRYID"
     BIBENTRYID=""
 fi
-REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' | sed 's/\\//g')
-REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g')
-
 
 # Decide bib files to check
 if ! [[ -z $BIBFILE ]]; then
@@ -64,7 +61,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/}//g' \
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
-            )
+        )
         if ! [[ -z "$REFTITLE" ]]; then
             BIBTYPE=$(sed '/^\s*%/d' $FILE \
                 | sed 's/%.*$//' \
@@ -75,7 +72,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
                 | sed "s/{.*$//" \
                 | sed 's/^\s*//' \
                 | sed 's/\s*$//' \
-                )
+            )
             break
         fi
     done
@@ -84,6 +81,12 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         exit -2
     fi
     REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
+    REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' \
+        | sed "s/\'//" | sed 's/"//g' | sed 's/\\`//g' | sed 's/\\^//g' | sed 's/\\~//g' \
+        | sed 's/\\c//g' | sed 's/\\H//g' | sed 's/\\k//g' | sed 's/\\u//g' | sed 's/\\=//g' \
+        | sed 's/\\b//g' | sed 's/\\r//g' | sed 's/\\d//g' | sed 's/\\v//g' | sed 's/\\L/L/g' \
+        | sed 's/\\l/l/g' | sed 's/\\O/O/g' | sed 's/\\o/o/g' | sed 's/\\i/i/g' | sed 's/\\//g' \
+    )
 elif ! [[ -z "$REFTITLE" ]]; then
     REFTITLE=$(echo "$REFTITLE" | sed 's/\$//g' \
         | sed 's/\\//g' \
@@ -91,8 +94,13 @@ elif ! [[ -z "$REFTITLE" ]]; then
         | sed 's/}//g' \
         | sed 's/^\s*//' \
         | sed 's/\s*$//' \
-        )
+    )
     REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
+    REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' \
+        | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/\~//g' \
+        | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' \
+        | sed 's/\\//g' \
+    )
     for FILE in $BIBFILES; do
         BIBENTRYID=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
@@ -110,7 +118,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/_$LINEBREAKER.*$//" \
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
-            )
+        )
         if ! [[ -z "$BIBENTRYID" ]]; then
             BIBTYPE=$(sed '/^\s*%/d' $FILE \
                 | sed 's/%.*$//' \
@@ -121,7 +129,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
                 | sed "s/{.*$//" \
                 | sed 's/^\s*//' \
                 | sed 's/\s*$//' \
-                )
+            )
             break
         fi
     done

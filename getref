@@ -42,9 +42,9 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            | grep "{\s*$BIBENTRYID\s*," | head -1 \
+            | grep "^@.*{\s*$BIBENTRYID\s*," | head -1 \
             | sed -r "s/^.*\s+title\s*=\s*{//" \
-            | sed "s/},\s*$LINEBREAKER.*$//" \
+            | sed "s/},\s*$LINEBREAKER.*}\s*$LINEBREAKER$//" \
             | sed 's/\$//g' \
             | sed 's/\\//g' \
             | sed 's/{//g' \
@@ -71,14 +71,14 @@ elif ! [[ -z "$REFTITLE" ]]; then
         )
     REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
     for FILE in $BIBFILES; do
-        REFTITLE=$(sed '/^\s*%/d' $FILE \
+        BIBENTRYID=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
-            | sed "s/$LINEBREAKER\s*@/\n@/g" \
-            | sed -r 's/[^a-zA-Z0-9]+/_/g' \
-            | grep -i "{\s*$REFTITLE_UNDERSCORED\s*," | head -1 \
-            | sed "s/^.*$LINEBREAKER\s*title\s*=\s*{//" \
-            | sed "s/},\s*$LINEBREAKER.*$//" \
+            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
+            #| grep "^@.*{\s*$BIBENTRYID\s*," | head -1 \
+            | grep -i "\s*+title\s*=\s*{\s*$REFTITLE_UNDERSCORED"
+            | sed -r "s/^.*\s+title\s*=\s*{//" \
+            | sed "s/},\s*$LINEBREAKER.*}\s*$LINEBREAKER$//" \
             | sed 's/\$//g' \
             | sed 's/\\//g' \
             | sed 's/{//g' \

@@ -149,20 +149,39 @@ REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed '
     | sed 's/\\//g' \
 )
 if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "proceedings" ]]; then
-    TMPURL="$LIBGENART$REFTITLE"
-    wget "TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" | sed '')
-else
-    TMPURL="$LIBGENART$REFTITLE"
+    TMPURL="$LIBGEN$REFTITLE"
     printf "\nChecking $TMPURL ...\n\n"
     wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | sed 's/">Sci-Hub<.*$//' | sed 's/^.*href="//')
+    TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" \
+        | sed "s/ title='Gen.lib.rus.ec'.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
+    wget -q "$TMPURL" -O $TMPHTML
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
         printf "\nChecking $TMPURL ...\n\n"
         wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep "save<" | sed "s/^.*href='//" | sed "s/'\".*$//")
+        TMPURL=$(cat $TMPHTML | grep ">GET<" \
+            | sed "s/>GET<.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
+        if [[ -z "$TMPURL" ]]; then
+            SUCCESS=0
+        else
+            printf \nChecking "$TMPURL" ...\n\n
+            wget -q "$TMPURL" -O $REFFILENAME
+        fi
+    fi
+else
+    TMPURL="$LIBGENART$REFTITLE"
+    printf "\nChecking $TMPURL ...\n\n"
+    wget -q "$TMPURL" -O $TMPHTML
+    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" \
+        | sed 's/>Sci-Hub<.*$//' | sed 's/^.*href=//' | sed 's/"//g' | sed "s/'//g")
+    if [[ -z "$TMPURL" ]]; then
+        SUCCESS=0
+    else
+        printf "\nChecking $TMPURL ...\n\n"
+        wget -q "$TMPURL" -O $TMPHTML
+        TMPURL=$(cat $TMPHTML | grep "save<" \
+            | sed "s/^.*href=//" | sed "s/\".*$//" | sed 's/"//g' | sed "s/'//g")
         if [[ -z "$TMPURL" ]]; then
             SUCCESS=0
         else
@@ -171,6 +190,7 @@ else
         fi
     fi
 fi
+
 rm $TMPHTML
 
 if [[ $SUCCESS -eq 0 ]]; then

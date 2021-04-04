@@ -19,12 +19,18 @@ else
     exit -1
 fi
 
+echo $REFTITLE
+echo $BIBENTRYID
+
 # Decide whether the $BIBENTRYID recorded above is indeed $REFTITLE.
 if echo "$BIBENTRYID" | grep '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
     || ! echo "$BIBENTRYID" | grep -q '[A-Z]' || ! echo "$BIBENTRYID" | grep -q '[0-9]'; then
     REFTITLE="$BIBENTRYID"
     BIBENTRYID=""
 fi
+
+echo $REFTITLE
+echo $BIBENTRYID
 
 # Decide bib files to check
 if ! [[ -z $BIBFILE ]]; then
@@ -43,7 +49,8 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
             | grep "^@.*{\s*$BIBENTRYID\s*," | head -1 \
-            | sed "s/},\s*$LINEBREAKER.*}\s*$LINEBREAKER$//" \
+            | sed  "s/^.*$LINEBREAKER\s*title\s*=\s*{//" \
+            | sed -r "s/},\s*$LINEBREAKER.*}\s*[$LINEBREAKER]+\s*$//" \
             | sed 's/\$//g' \
             | sed 's/\\//g' \
             | sed 's/{//g' \
@@ -98,4 +105,3 @@ fi
 
 
 REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
-echo $REFFILENAME

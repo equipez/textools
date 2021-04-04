@@ -130,7 +130,7 @@ else
     exit -3
 fi
 
-TRYEXISTS=$(ls "$REFDIR"/"$BIBENTRYID"* | grep -q -i "pdf\|djvu\|ps\|dvi" | head -1)
+TRYEXISTS=$(ls "$REFDIR"/"$BIBENTRYID"* | grep -q  'pdf\|djvu\|ps\|dvi' | head -1)
 echo $TRYEXISTS
 if ! [[ -z $TRYEXISTS ]]; then
     $READER

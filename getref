@@ -14,6 +14,7 @@ READER="evince"
 
 LIBGEN="http://libgen.rs/search.php?req="
 LIBGENART="http://libgen.rs/scimag/?q="
+ARXIV="https://arxiv.org/search/?query="
 TMPHTML="$(date +%s)getref.html"
 
 SUCCESS=1
@@ -130,13 +131,13 @@ else
     exit -3
 fi
 
-#REFEXISTS=$(ls "$REFDIR""$BIBENTRYID"*| grep -i 'pdf\|djvu\|ps\|dvi' | head -1)
-#if ! [[ -z "$REFEXISTS" ]]; then
-#    printf "\nThe reference exists:\n"
-#    printf "$REFEXISTS\n\n"
-#    $READER $REFEXISTS
-#    exit 0
-#fi
+REFEXISTS=$(ls "$REFDIR""$BIBENTRYID"*  2>/dev/null | grep -i 'pdf\|djvu\|ps\|dvi' | head -1)
+if ! [[ -z "$REFEXISTS" ]]; then
+    printf "\nThe reference exists:\n"
+    printf "$REFEXISTS\n\n"
+    $READER $REFEXISTS
+    exit 0
+fi
 
 REFTITLE_UNDERSCORED=$(echo $REFTITLE_UNDERSCORED | sed 's/_$//')
 REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
@@ -150,42 +151,65 @@ REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed '
 )
 if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "proceedings" ]]; then
     TMPURL="$LIBGEN$REFTITLE"
-    printf "\nChecking $TMPURL ...\n\n"
+    echo "Checking $TMPURL ..."
     wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" \
+    TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" | head -1 \
         | sed "s/ title='Gen.lib.rus.ec'.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
     wget -q "$TMPURL" -O $TMPHTML
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
-        printf "\nChecking $TMPURL ...\n\n"
+        echo "Checking $TMPURL ..."
         wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep ">GET<" \
+        TMPURL=$(cat $TMPHTML | grep ">GET<" | head -1 \
             | sed "s/>GET<.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
         if [[ -z "$TMPURL" ]]; then
             SUCCESS=0
         else
-            printf \nChecking "$TMPURL" ...\n\n
+            echo "Checking $TMPURL ..."
             wget -q "$TMPURL" -O $REFFILENAME
         fi
     fi
 else
     TMPURL="$LIBGENART$REFTITLE"
-    printf "\nChecking $TMPURL ...\n\n"
+    echo "Checking $TMPURL ..."
     wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" \
+    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | head -1 \
         | sed 's/>Sci-Hub<.*$//' | sed 's/^.*href=//' | sed 's/"//g' | sed "s/'//g")
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
-        printf "\nChecking $TMPURL ...\n\n"
+        echo "Checking $TMPURL ..."
         wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep "save<" \
+        TMPURL=$(cat $TMPHTML | grep "save<" | head -1 \
             | sed "s/^.*href=//" | sed "s/\".*$//" | sed 's/"//g' | sed "s/'//g")
         if [[ -z "$TMPURL" ]]; then
             SUCCESS=0
         else
-            printf "\nChecking $TMPURL ...\n\n"
+            echo "Checking $TMPURL ..."
+            wget -q "$TMPURL" -O $REFFILENAME
+        fi
+    fi
+fi
+
+if [[ $SUCCESS -eq 0 ]]; then
+    TMPURL="$ARXIV$REFTITLE"
+    echo "Checking $TMPURL ..."
+    wget -q "$TMPURL" -O $TMPHTML
+    exit 0
+    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | head -1 \
+        | sed 's/>Sci-Hub<.*$//' | sed 's/^.*href=//' | sed 's/"//g' | sed "s/'//g")
+    if [[ -z "$TMPURL" ]]; then
+        SUCCESS=0
+    else
+        echo "Checking $TMPURL ..."
+        wget -q "$TMPURL" -O $TMPHTML
+        TMPURL=$(cat $TMPHTML | grep "save<" | head -1 \
+            | sed "s/^.*href=//" | sed "s/\".*$//" | sed 's/"//g' | sed "s/'//g")
+        if [[ -z "$TMPURL" ]]; then
+            SUCCESS=0
+        else
+            echo "Checking $TMPURL ..."
             wget -q "$TMPURL" -O $REFFILENAME
         fi
     fi

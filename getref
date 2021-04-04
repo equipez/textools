@@ -33,15 +33,15 @@ else
     BIBFILES=`ls -t *.bib`
 fi
 
-echo "$BIBFILES"
 
 # Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
 LINEBREAKER="======LINE_BREAK++++++"
 if ! [[ -z "$BIBENTRYID" ]]; then
-    for FILE in "$BIBFILES"; do
+    for FILE in $BIBFILES; do
         REFTITLE=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
+            | sed "s/$LINEBREAKER\s*@/\n@/g" \
             | grep "{\s*$BIBENTRYID\s*," | head -1 \
             | sed "s/^.*$LINEBREAKER\s*title\s*=\s*{//" \
             | sed "s/},\s*$LINEBREAKER.*$//" \
@@ -52,8 +52,6 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
             )
-        echo $FILE
-        echo $REFTITLE
         if ! [[ -z "$REFTITLE" ]]; then
             break
         fi
@@ -70,11 +68,11 @@ elif ! [[ -z "$REFTITLE" ]]; then
         | sed 's/^\s*//' \
         | sed 's/\s*$//' \
         )
+     
 else
     printf "\nNo bib entry id or reference title received.\n\n"
 fi
 
-echo $REFTITLE
 
 REFFILENAME="$BIBENTRYID"-"$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')"
 echo $REFFILENAME

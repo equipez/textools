@@ -129,17 +129,18 @@ BIBENTRIES="bibentries-$TIME"
 cp $BIBFILE $INPUTBIB
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
+LINEBREAKER="======LINE_BREAK++++++"
 if [[ $BIBLATEX -eq 0 ]] ; then
-    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
-        grep -v "techreport\|phdthesis\|masterthesis" > $OUTPUTBIB
-    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
-        grep techreport | sed 's/^\s*@report/@techreport/' | \
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
+        | sed "s/$LINEBREAKER//g" | grep -v "techreport\|phdthesis\|masterthesis" > $OUTPUTBIB
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
+        | sed "s/$LINEBREAKER//g" | grep techreport | sed 's/^\s*@report/@techreport/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
-    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
-        grep phdthesis | sed 's/^\s*@thesis/@phdthesis/' | sed 's/institution/school/' | \
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
+        | sed "s/$LINEBREAKER//g" | grep phdthesis | sed 's/^\s*@thesis/@phdthesis/' | sed 's/institution/school/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
-    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="" 1 | sed 's/@/\n@/g' | \
-        grep masterthesis | sed 's/^\s*@thesis/@masterthesis/' | sed 's/institution/school/' | \
+    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
+        | sed "s/$LINEBREAKER//g" | grep masterthesis | sed 's/^\s*@thesis/@masterthesis/' | sed 's/institution/school/' | \
         sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
     sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $OUTPUTBIB
     sed -i 's/,\s*date\s*=\s*/,year=/' $OUTPUTBIB

@@ -131,7 +131,14 @@ BIBTYPE=$(echo "$BIBTYPE" | tr '[:upper:]' '[:lower:]')
 if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "proceedings" ]]; then
     wget "$LIBGEN$REFTITLE" -O $TMPHTML
 else
-    printf "\nChecking $LIBGENART$REFTITLE ...\n\n"
-    wget -q "$LIBGENART$REFTITLE" -O $TMPHTML
-    cat $TMPHTML | grep ">Sci-Hub<"
+    TMPURL="$LIBGENART$REFTITLE"
+    printf "\nChecking $TMPURL ...\n\n"
+    wget -q "$TMPURL" -O $TMPHTML
+    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | sed 's/">Sci-Hub<.*$//' | sed 's/^.*href="//')
+    rm $TMPHTML
+    printf "\nChecking $TMPURL ...\n\n"
+    wget -q "$TMPURL" -O $TMPHTML
+    TMPURL=$(cat $TMPHTML | grep "save<" | sed "s/^.*href='//" | sed "s/'\".*$//")
+    printf "\nChecking $TMPURL ...\n\n"
+    wget -q "$TMPURL" -O $REFFILENAME
 fi

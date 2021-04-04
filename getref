@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [BIB_FILE_NAME]
+# Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]
 # getref tries downloading a reference according to the given bib entry id or title and name it as
 # $BIB_ENTRY_ID-$REFERENCE_TITLE or $REFERENCE_TITLE according to the availability of $BIB_ENTRY_ID.
 # According to $BIB_FILE_NAME, we decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
@@ -7,6 +7,7 @@
 BIBENTRYID=""
 REFTITLE=""
 BIBFILE=""
+REFFILE=""
 BIBTYPE=""
 
 REFDIR="$HOME/Bureau/bibliographie/literature/"
@@ -14,21 +15,37 @@ READER="evince"
 
 LIBGEN="http://libgen.rs/search.php?req="
 LIBGENART="http://libgen.rs/scimag/?q="
-ARXIV="https://arxiv.org/search/?query="
 TMPHTML="$(date +%s)getref.html"
 
 SUCCESS=1
 
 # Parse the arguments
-if [[ $# -eq 1 ]]; then
-    BIBENTRYID=$1
-elif [[ $# -eq 2 ]]; then
-    BIBENTRYID=$1
-    BIBFILE=$2
-else
-    printf "Usage: getbib BIB_ENTRY_ID|REFERENCE_TITLE [BIB_FILE_NAME]\n"
+if [[ $# -gt 5 ]]; then
+    printf "Usage: getbib BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]\n"
     exit -1
 fi
+
+while [[ -n "$1" ]]; do
+	case "$1" in
+    -b|--bib)
+        if [[ $# -gt 1 ]]; then
+            BIBFILE="$2"
+            shift
+        fi
+        ;;
+    -f|--from)
+        if [[ $# -gt 1 ]]; then
+            REFFILE="$2"
+            shift
+        fi
+        ;;
+	*)
+        BIBENTRYID=$1
+        ;;
+	esac
+	shift
+done
+
 
 # Decide whether the $BIBENTRYID recorded above is indeed $REFTITLE.
 if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
@@ -140,7 +157,7 @@ if ! [[ -z "$REFEXISTS" ]]; then
 fi
 
 REFTITLE_UNDERSCORED=$(echo $REFTITLE_UNDERSCORED | sed 's/_$//')
-REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
+REFFILE="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
 
 BIBTYPE=$(echo "$BIBTYPE" | tr '[:upper:]' '[:lower:]')
 
@@ -167,7 +184,7 @@ if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "pr
             SUCCESS=0
         else
             echo "Checking $TMPURL ..."
-            wget -q "$TMPURL" -O $REFFILENAME
+            wget -q "$TMPURL" -O $REFFILE
         fi
     fi
 else
@@ -187,30 +204,7 @@ else
             SUCCESS=0
         else
             echo "Checking $TMPURL ..."
-            wget -q "$TMPURL" -O $REFFILENAME
-        fi
-    fi
-fi
-
-if [[ $SUCCESS -eq 0 ]]; then
-    TMPURL="$ARXIV$REFTITLE"
-    echo "Checking $TMPURL ..."
-    wget -q "$TMPURL" -O $TMPHTML
-    exit 0
-    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | head -1 \
-        | sed 's/>Sci-Hub<.*$//' | sed 's/^.*href=//' | sed 's/"//g' | sed "s/'//g")
-    if [[ -z "$TMPURL" ]]; then
-        SUCCESS=0
-    else
-        echo "Checking $TMPURL ..."
-        wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep "save<" | head -1 \
-            | sed "s/^.*href=//" | sed "s/\".*$//" | sed 's/"//g' | sed "s/'//g")
-        if [[ -z "$TMPURL" ]]; then
-            SUCCESS=0
-        else
-            echo "Checking $TMPURL ..."
-            wget -q "$TMPURL" -O $REFFILENAME
+            wget -q "$TMPURL" -O $REFFILE
         fi
     fi
 fi
@@ -223,7 +217,7 @@ if [[ $SUCCESS -eq 0 ]]; then
     exit -4
 fi
 
-FILETYPE=$(file $REFFILENAME | tr '[:upper:]' '[:lower:]')
+FILETYPE=$(file $REFFILE | tr '[:upper:]' '[:lower:]')
 
 if echo "$FILETYPE" | grep -q "pdf"; then
     FILETYPE="pdf"
@@ -237,14 +231,14 @@ elif echo "$FILETYPE" | grep -q "empty"; then
     FILETYPE="empty"
 else
     printf "\nUnkown file type:\n"
-    printf "$(file $REFFILENAME)\n\n"
+    printf "$(file $REFFILE)\n\n"
     FILETYPE="unknown"
 fi
 
-mv $REFFILENAME $REFDIR/$REFFILENAME.$FILETYPE
-REFFILENAME=$REFDIR/$REFFILENAME.$FILETYPE
+mv $REFFILE $REFDIR/$REFFILE.$FILETYPE
+REFFILE=$REFDIR/$REFFILE.$FILETYPE
 if [[ $FILETYPE == "unknown" ]]; then
     printf "The reference has an unknown file type. Check it manually and then rename\n\n"
-    printf "$REFFILENAME\n\n"
+    printf "$REFFILE\n\n"
 fi
-$READER $REFFILENAME
+$READER $REFFILE

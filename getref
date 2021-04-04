@@ -41,7 +41,7 @@ fi
 
 
 # Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
-LINEBREAKER="======LINE_BREAK++++++"
+LINEBREAKER="THISISASTRANGELINEBREAKERSTARTING$(date +%s)THISISASTRANGELINEBREAKERENDING"
 if ! [[ -z "$BIBENTRYID" ]]; then
     for FILE in $BIBFILES; do
         REFTITLE=$(sed '/^\s*%/d' $FILE \
@@ -85,9 +85,21 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/\s*}/}/g" \
             | sed "s/\s*=\s*/=/g" \
             | sed -r 's/[^a-zA-Z0-9={}]+/_/g' \
-            | grep -i -r "\s*+title={$REFTITLE_UNDERSCORED}" | head -1 \
-            | sed "s/^@[^{]*{//" \
-            | sed "s/,\s*$LINEBREAKER.*}\s*$LINEBREAKER$//" \
+        )
+        echo $BIBENTRYID
+        BIBENTRYID=$(sed '/^\s*%/d' $FILE \
+            | sed 's/%.*$//' \
+            | awk -v ORS="$LINEBREAKER" 1 \
+            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
+            | sed "s/{\s*/{/g" \
+            | sed "s/\s*}/}/g" \
+            | sed "s/{//g" \
+            | sed "s/}//g" \
+            | sed -i "s/^@[article|book|.*report|.*thesis|incollection|inproceedings|proceedings]//" \
+            | sed "s/\s*=\s*/=/g" \
+            | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
+            | grep "_title={$REFTITLE_UNDERSCORED}" | head -1 \
+            | sed "s/_$LINEBREAKER.*}.*$//" \
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
             )
@@ -95,6 +107,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
             break
         fi
     done
+    echo $BIBENTRYID
     if [[ -z "$BIBENTRYID" ]]; then
         printf "\nThe title does not exist in the bib files(s).\n\n"
     fi
@@ -105,3 +118,5 @@ fi
 
 
 REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
+
+echo $REFILENAME

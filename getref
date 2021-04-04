@@ -10,6 +10,7 @@ BIBFILE=""
 BIBTYPE=""
 LIBGEN="http://libgen.rs/search.php?req="
 LIBGENART="http://libgen.rs/scimag/?q="
+TMPHTML="$(date +%s)getref.html"
 
 # Parse the arguments
 if [[ $# -eq 1 ]]; then
@@ -57,6 +58,16 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/\s*$//' \
             )
         if ! [[ -z "$REFTITLE" ]]; then
+            BIBTYPE=$(sed '/^\s*%/d' $FILE \
+                | sed 's/%.*$//' \
+                | awk -v ORS="$LINEBREAKER" 1 \
+                | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
+                | grep "$BIBENTRYID" \
+                | sed "s/^.*@//" \
+                | sed "s/{.*$//" \
+                | sed 's/^\s*//' \
+                | sed 's/\s*$//' \
+                )
             break
         fi
     done
@@ -86,21 +97,23 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/}//g" \
             | sed "s/\s*=\s*/=/g" \
             | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
-            | grep "_title=$REFTITLE_UNDERSCORED_$LINEBREAKER\|_title=$REFTITLE_UNDERSCORED$LINEBREAKER" | head -1 \
+            | grep "_title=$REFTITLE_UNDERSCORED\_$LINEBREAKER\|_title=$REFTITLE_UNDERSCORED$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
             )
         if ! [[ -z "$BIBENTRYID" ]]; then
-        BIBTYPE=$(sed '/^\s*%/d' $FILE \
-            | sed 's/%.*$//' \
-            | awk -v ORS="$LINEBREAKER" 1 \
-            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            | grep ""
-            | sed 's/^\s*//' \
-            | sed 's/\s*$//' \
-            )
+            BIBTYPE=$(sed '/^\s*%/d' $FILE \
+                | sed 's/%.*$//' \
+                | awk -v ORS="$LINEBREAKER" 1 \
+                | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
+                | grep "$BIBENTRYID" \
+                | sed "s/^.*@//" \
+                | sed "s/{.*$//" \
+                | sed 's/^\s*//' \
+                | sed 's/\s*$//' \
+                )
             break
         fi
     done
@@ -113,4 +126,12 @@ fi
 
 REFFILENAME="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
 
-wget 
+BIBTYPE=$(echo "$BIBTYPE" | tr '[:upper:]' '[:lower:]')
+
+if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "proceedings" ]]; then
+    wget "$LIBGEN$REFTITLE" -O $TMPHTML
+else
+    printf "\nChecking $LIBGENART$REFTITLE ...\n\n"
+    wget -q "$LIBGENART$REFTITLE" -O $TMPHTML
+    cat $TMPHTML | grep ">Sci-Hub<"
+fi

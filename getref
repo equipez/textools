@@ -67,7 +67,10 @@ fi
 if ! [[ -z $BIBFILE ]]; then
     BIBFILES="$BIBFILE"
 else
-    BIBFILES=`ls -t *.bib`
+    BIBFILES=$(ls -t *.bib 2>/dev/null)
+    if [[ -z $BIBFILES ]]; then
+        printf "\nNo bib file found.\n\n"
+    fi
 fi
 
 
@@ -150,7 +153,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
             break
         fi
     done
-    if [[ -z "$BIBENTRYID" ]]; then
+    if [[ -z "$BIBENTRYID" ]] && ! [[ -z "$BIBFILES" ]]; then
         printf "\nThe title does not exist in the bib files(s).\n"
     fi
 else

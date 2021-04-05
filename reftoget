@@ -9,20 +9,17 @@ REFTITLE=""
 BIBFILE=""
 REFFILE=""
 BIBTYPE=""
-SUCCESS=1
 
-# Directory to save the references
 REFDIR="$HOME/Bureau/bibliographie/literature/"
-# Command to read the reference
+UNIVERSALBIB=$REFDIR/../ref.bib
+REFTOGET=$REFDIR/../reftoget.bib
 READER="evince"
 
-# Libgen
 LIBGEN="http://libgen.rs/search.php?req="
-# Libgen for articles
 LIBGENART="http://libgen.rs/scimag/?q="
-# Temporary html file
 TMPHTML="$(date +%s)getref.html"
 
+SUCCESS=1
 
 # Parse the arguments
 if [[ $# -gt 5 ]]; then
@@ -104,7 +101,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
         exit -2
     fi
-    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9=@]+/_/g')
+    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
 elif ! [[ -z "$REFTITLE" ]]; then
     REFTITLE=$(echo "$REFTITLE" | sed 's/\$//g' \
         | sed 's/\\//g' \
@@ -113,14 +110,13 @@ elif ! [[ -z "$REFTITLE" ]]; then
         | sed 's/^\s*//' \
         | sed 's/\s*$//' \
     )
-    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9=@]+/_/g')
+    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
     for FILE in $BIBFILES; do
         BIBENTRYID=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            | sed -r "s/^@article|^@book|^@booklet|^@.*report|^@.*thesis|^@incollection\
-            |^@inproceedings|^@inbook|^@proceedings|^@misc|^@unpublished/@@/I" \
+            | sed -r "s/^@article|^@book|^@booklet|^@.*report|^@.*thesis|^@incollection|^@inproceedings|^@inbook|^@proceedings|^@misc|^@unpublished/@@/I" \
             | sed "s/{\s*/{/g" \
             | sed "s/\s*}/}/g" \
             | sed "s/{//g" \
@@ -164,6 +160,14 @@ if ! [[ -z "$REFFILE" ]]; then
     FILETYPE="${REFFILE##*.}"
     mv "$REFFILE" "$REFDIR"/"$BIBENTRYID"-"$REFTITLE_UNDERSCORED"."$FILETYPE"
     REFFILE="$REFDIR"/"$BIBENTRYID"-"$REFTITLE_UNDERSCORED"."$FILETYPE"
+
+    GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
+    cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $REFTOGET
+    for REF in $GOTREF; do
+        sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
+    done
+    sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
+
     $READER $REFFILE
     exit 0
 fi
@@ -194,6 +198,7 @@ if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "pr
     wget -q "$TMPURL" -O $TMPHTML
     TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" | head -1 \
         | sed "s/ title='Gen.lib.rus.ec'.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
+    wget -q "$TMPURL" -O $TMPHTML
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
@@ -205,7 +210,7 @@ if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "pr
             SUCCESS=0
         else
             echo "Checking $TMPURL ..."
-            wget "$TMPURL" -O $REFFILE
+            wget -q "$TMPURL" -O $REFFILE
         fi
     fi
 else
@@ -225,7 +230,7 @@ else
             SUCCESS=0
         else
             echo "Checking $TMPURL ..."
-            wget "$TMPURL" -O $REFFILE
+            wget -q "$TMPURL" -O $REFFILE
         fi
     fi
 fi
@@ -264,5 +269,12 @@ if [[ $FILETYPE == "unknown" ]]; then
     printf "The reference has an unknown file type. Check it manually and then rename\n\n"
     printf "$REFFILE\n\n"
 fi
+
+GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
+cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $REFTOGET
+for REF in $GOTREF; do
+    sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
+done
+sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
 
 $READER $REFFILE

@@ -23,7 +23,7 @@ SUCCESS=1
 
 # Parse the arguments
 if [[ $# -gt 5 ]]; then
-    printf "Usage: getbib BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]\n"
+    printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]\n"
     exit -1
 fi
 
@@ -56,7 +56,8 @@ if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -
     BIBENTRYID=""
 fi
 
-# Decide bib files to check
+
+# Decide the bib files to check
 if ! [[ -z $BIBFILE ]]; then
     BIBFILES="$BIBFILE"
 else

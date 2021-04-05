@@ -12,7 +12,7 @@ BIBTYPE=""
 
 REFDIR="$HOME/Bureau/bibliographie/literature/"
 UNIVERSALBIB=$REFDIR/../ref.bib
-TOGETREF=$REFDIR/../togetref.bib
+REFTOGET=$REFDIR/../reftoget.bib
 READER="evince"
 
 LIBGEN="http://libgen.rs/search.php?req="
@@ -161,11 +161,11 @@ if ! [[ -z "$REFFILE" ]]; then
     REFFILE="$REFDIR"/"$BIBENTRYID"-"$REFTITLE_UNDERSCORED"."$FILETYPE"
 
     GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
-    cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $TOGETREF
+    cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $REFTOGET
     for REF in $GOTREF; do
-        sed -i "/^\s*@.*{$REF.*$/d" $TOGETREF
+        sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
     done
-    sed -i "s/$LINEBREAKER/\n/g" $TOGETREF
+    sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
 
     $READER $REFFILE
     exit 0
@@ -270,10 +270,10 @@ if [[ $FILETYPE == "unknown" ]]; then
 fi
 
 GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
-cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $TOGETREF
+cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $REFTOGET
 for REF in $GOTREF; do
-    sed -i "/^\s*@.*{$REF.*$/d" $TOGETREF
+    sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
 done
-sed -i "s/$LINEBREAKER/\n/g" $TOGETREF
+sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
 
 $READER $REFFILE

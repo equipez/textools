@@ -189,22 +189,9 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/}//g" \
             | sed "s/\s*=\s*/=/g" \
             | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
-            | clean_title \
         )
-        echo $BIBENTRYID
-        BIBENTRYID=$(sed '/^\s*%/d' $FILE \
-            | sed 's/%.*$//' \
-            | awk -v ORS="$LINEBREAKER" 1 \
-            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            | sed -r "s/^@article|^@book|^@booklet|^@.*report|^@.*thesis|^@incollection\
-            |^@inproceedings|^@inbook|^@proceedings|^@misc|^@unpublished/@@/I" \
-            | sed "s/{\s*/{/g" \
-            | sed "s/\s*}/}/g" \
-            | sed "s/{//g" \
-            | sed "s/}//g" \
-            | sed "s/\s*=\s*/=/g" \
-            | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
-            | clean_title \
+        BIBENTRYID=$(clean_title "$BIBENTRYID")
+        BIBENTRYID=$(echo "$BIBENTRYID" \
             | grep "_title=$UNDERSCORED_REFTITLE\_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \

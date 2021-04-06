@@ -257,8 +257,8 @@ if ! [[ -z "$INPUTREF" ]]; then
     fi
     INPUTREF=$(readlink -f $INPUTREF)
     FILETYPE="${INPUTREF##*.}"
-    mv "$INPUTREF" "$REFDIR"/"$REFTITLE"."$FILETYPE"
-    REFFILE="$REFDIR"/"$REFTITLE"."$FILETYPE"
+    mv "$INPUTREF" "$REFDIR"/"$REFFILE"."$FILETYPE"
+    REFFILE="$REFDIR"/"$REFFILE"."$FILETYPE"
     $READER "$REFFILE"
     exit 0
 fi

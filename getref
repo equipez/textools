@@ -70,25 +70,34 @@ elif echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep
     BIBENTRYID=""
 fi
 
-echo $REFTITLE
-
-cleantitle () {
+####################################################################################################
+clean_title () {
     if [[ $# -ne 1 ]]; then
         printf "\n Error: $0 needs one argument.\n"
         exit -1
     fi
-    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' \
+    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g' \
         | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
         | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
 }
 
+underscore_title () {
+    if [[ $# -ne 1 ]]; then
+        printf "\n Error: $0 needs one argument.\n"
+        exit -1
+    fi
+    echo "$1" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//' | sed 's/^_//'
+}
+####################################################################################################
+
 if ! [[ -z "$REFTITLE" ]]; then
-    REFTITLE=$(cleantitle "$REFTITLE")
-    UNDERSCORED_REFTITLE=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//')
+    REFTITLE=$(clean_title "$REFTITLE")
+    if [[ $? != 0 ]]; then
+        exit $?
+    fi
+    UNDERSCORED_REFTITLE=$(underscore_title "$REFTITLE")
 fi
 
-echo "$REFTITLE"
-echo "$UNDERSCORED_REFTITLE"
 
 # Decide the bib files to check
 if ! [[ -z $BIBFILE ]]; then
@@ -96,7 +105,7 @@ if ! [[ -z $BIBFILE ]]; then
 else
     BIBFILES=$(ls -t *.bib 2>/dev/null)
     if [[ -z $BIBFILES ]]; then
-        printf "\nNo bib file found.\n\n"
+        printf "\nNo bib file found.\n"
     fi
 fi
 
@@ -137,31 +146,31 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     if [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$BIBFILES" ]]; then
         printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
     else
-        REFTITLE_IN_BIBFILE=$(cleantitle "$REFTITLE_IN_BIBFILE")
-        UNDERSCORED_REFTITLE_IN_BIBFILE=$(echo "$REFTITLE_IN_BIBFILE" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//')
+        REFTITLE_IN_BIBFILE=$(clean_title "$REFTITLE_IN_BIBFILE")
+        UNDERSCORED_REFTITLE_IN_BIBFILE=$(underscore_title "$REFTITLE_IN_BIBFILE")
     fi
     if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$REFTITLE" ]]; then
-        if [[$(echo "$UNDERSCORED_REFTITLE_IN_BIBFILE" | tr '[:upper:]' '[:lower:]') != $(echo "$UNDERSCORED_REFTITLE" | tr '[:upper:]' '[:lower:]')]]; then
+        if [[ $(echo "$UNDERSCORED_REFTITLE_IN_BIBFILE" | tr '[:upper:]' '[:lower:]') != $(echo "$UNDERSCORED_REFTITLE" | tr '[:upper:]' '[:lower:]') ]]; then
             read -n1 -s -r -p \
                 $"\nThe reference title and bib entry id contrdicts each other:\
-                \nIn $FILE, the title of $BIBENTRYID is:\
-                \n$REFTITLE_IN_BIBFILE\
+                \nIn "$FILE", the title of "$BIBENTRYID" is:\
+                \n"$REFTITLE_IN_BIBFILE"\
                 \nContinue to get the reference? [Y/n]\
                 \nIf yes, the title in the bib file will be used.
                 " KEY
             if [[ "$KEY" == "Y" || "$KEY" == "y" || "$KEY" == "" ]]; then
-                REFTITLE=$REFTITLE_IN_BIBFILE
-                UNDERSCORED_REFTITLE=$UNDERSCORED_REFTITLE_IN_BIBFILE
+                REFTITLE="$REFTITLE_IN_BIBFILE"
+                UNDERSCORED_REFTITLE="$UNDERSCORED_REFTITLE_IN_BIBFILE"
             else
                 exit 1
             fi
         else
-            REFTITLE=$REFTITLE_IN_BIBFILE
-            UNDERSCORED_REFTITLE=$UNDERSCORED_REFTITLE_IN_BIBFILE
+            REFTITLE="$REFTITLE_IN_BIBFILE"
+            UNDERSCORED_REFTITLE="$UNDERSCORED_REFTITLE_IN_BIBFILE"
         fi
     elif ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
-        REFTITLE=$REFTITLE_IN_BIBFILE
-        UNDERSCORED_REFTITLE=$UNDERSCORED_REFTITLE_IN_BIBFILE
+        REFTITLE="$REFTITLE_IN_BIBFILE"
+        UNDERSCORED_REFTITLE="$UNDERSCORED_REFTITLE_IN_BIBFILE"
     elif [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
         printf "\nThe title of the reference cannot be decided.\n\n"
         exit -2
@@ -180,7 +189,22 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/}//g" \
             | sed "s/\s*=\s*/=/g" \
             | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
-            | cleantitle
+            | clean_title \
+        )
+        echo $BIBENTRYID
+        BIBENTRYID=$(sed '/^\s*%/d' $FILE \
+            | sed 's/%.*$//' \
+            | awk -v ORS="$LINEBREAKER" 1 \
+            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
+            | sed -r "s/^@article|^@book|^@booklet|^@.*report|^@.*thesis|^@incollection\
+            |^@inproceedings|^@inbook|^@proceedings|^@misc|^@unpublished/@@/I" \
+            | sed "s/{\s*/{/g" \
+            | sed "s/\s*}/}/g" \
+            | sed "s/{//g" \
+            | sed "s/}//g" \
+            | sed "s/\s*=\s*/=/g" \
+            | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
+            | clean_title \
             | grep "_title=$UNDERSCORED_REFTITLE\_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \
@@ -201,6 +225,8 @@ elif ! [[ -z "$REFTITLE" ]]; then
             break
         fi
     done
+    echo "$REFTITLE"
+    echo "$UNDERSCORED_REFTITLE"
     if [[ -z "$BIBENTRYID" ]] && ! [[ -z "$BIBFILES" ]]; then
         printf "\nThe title does not exist in the bib files(s).\n"
     fi
@@ -234,7 +260,7 @@ if ! [[ -z "$INPUTREF" ]]; then
     FILETYPE="${INPUTREF##*.}"
     mv "$INPUTREF" "$REFDIR"/"$REFTITLE"."$FILETYPE"
     REFFILE="$REFDIR"/"$REFTITLE"."$FILETYPE"
-    $READER $REFFILE
+    $READER "$REFFILE"
     exit 0
 fi
 
@@ -258,7 +284,7 @@ if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "pr
             SUCCESS=0
         else
             echo "Checking $TMPURL ..."
-            wget "$TMPURL" -O $REFFILE
+            wget "$TMPURL" -O "$REFFILE"
         fi
     fi
 else
@@ -278,7 +304,7 @@ else
             SUCCESS=0
         else
             echo "Checking $TMPURL ..."
-            wget "$TMPURL" -O $REFFILE
+            wget "$TMPURL" -O "$REFFILE"
         fi
     fi
 fi
@@ -286,12 +312,12 @@ fi
 rm $TMPHTML
 
 if [[ $SUCCESS -eq 0 ]]; then
-    printf "Failed to get \n\n      $REFTITLE\n\nDownload it manually and name it to\n\n"
-    printf "      $REFFILE\n\n"
+    printf "Failed to get \n\n      "$REFTITLE"\n\nDownload it manually and name it to\n\n"
+    printf "      "$REFFILE"\n\n"
     exit -4
 fi
 
-FILETYPE=$(file $REFFILE | tr '[:upper:]' '[:lower:]')
+FILETYPE=$(file "$REFFILE" | tr '[:upper:]' '[:lower:]')
 
 if echo "$FILETYPE" | grep -q "pdf"; then
     FILETYPE="pdf"
@@ -302,12 +328,12 @@ elif echo "$FILETYPE" | grep -q "postscript"; then
 elif echo "$FILETYPE" | grep -q "dvi"; then
     FILETYPE="dvi"
 elif echo "$FILETYPE" | grep -q "empty"; then
-    printf "Failed to get \n\n      $REFTITLE\n\nDownload it manually and name it to\n\n"
-    printf "      $REFFILE\n\n"
+    printf "Failed to get \n\n      "$REFTITLE"\n\nDownload it manually and name it to\n\n"
+    printf "      "$REFFILE"\n\n"
     exit -4
 else
     printf "\nUnkown file type:\n"
-    printf "$(file $REFFILE)\n\n"
+    printf "$(file "$REFFILE")\n\n"
     FILETYPE="unknown"
 fi
 
@@ -315,10 +341,10 @@ if [[ $FILETYPE == "unknown" ]]; then
     printf "The reference has an unknown file type. Check it manually and then rename\n\n"
     printf "$REFFILE\n\n"
 else
-    mv $REFFILE "$REFDIR"/"$REFFILE"."$FILETYPE"
+    mv "$REFFILE" "$REFDIR"/"$REFFILE"."$FILETYPE"
     REFFILE="$REFDIR"/"$REFFILE"."$FILETYPE"
 fi
 
-$READER $REFFILE
+$READER "$REFFILE"
 
 exit 0

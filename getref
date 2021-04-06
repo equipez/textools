@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]
+# Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [--book]
 # getref tries downloading a reference according to the given bib entry id or title and name it as
 # $BIB_ENTRY_ID-$REFERENCE_TITLE or $REFERENCE_TITLE according to the availability of $BIB_ENTRY_ID.
 # According to $BIB_FILE_NAME, we decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
@@ -29,7 +29,7 @@ TMPHTML="$(date +%s)getref.html"
 
 # Parse the arguments
 if [[ $# -gt 5 ]]; then
-    printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]\n"
+    printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [-b|--book]\n"
     exit -1
 fi
 
@@ -281,3 +281,5 @@ else
 fi
 
 $READER $REFFILE
+
+exit 0

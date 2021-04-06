@@ -1,29 +1,16 @@
 #!/bin/bash
-# Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]
-# getref tries downloading a reference according to the given bib entry id or title and name it as
-# $BIB_ENTRY_ID-$REFERENCE_TITLE or $REFERENCE_TITLE according to the availability of $BIB_ENTRY_ID.
-# According to $BIB_FILE_NAME, we decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
+# Usage: reftoget [-b|--bib BIB_FILE_NAME] [-d|--dir REFERENCE_DIRECTORY]
+# reftoget records the references in BIB_FILE_NAME but not in REFERENCE_DIRECTORY. The result is
+# written in a bib file named reftoget.bib.
+# If BIB_FILE_NAME is not present, then all the bib files in the current directory will be checked.
+# If REFERENCE_DIRECTORY is not present, then we check the default reference directory defined below.
 
-BIBENTRYID=""
-REFTITLE=""
-BIBFILE=""
-REFFILE=""
-BIBTYPE=""
-
-REFDIR="$HOME/Bureau/bibliographie/literature/"
-UNIVERSALBIB=$REFDIR/../ref.bib
-REFTOGET=$REFDIR/../reftoget.bib
-READER="evince"
-
-LIBGEN="http://libgen.rs/search.php?req="
-LIBGENART="http://libgen.rs/scimag/?q="
-TMPHTML="$(date +%s)getref.html"
-
-SUCCESS=1
+DEFAULT_REFDIR="$HOME/Bureau/bibliographie/literature/"
+REFTOGET="reftoget.bib"
 
 # Parse the arguments
-if [[ $# -gt 5 ]]; then
-    printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE]\n"
+if [[ $# -gt 4 ]]; then
+    printf "Usage: reftoget [-b|--bib BIB_FILE_NAME] [-d|--dir REFERENCE_DIRECTORY]\n"
     exit -1
 fi
 
@@ -35,26 +22,17 @@ while [[ -n "$1" ]]; do
             shift
         fi
         ;;
-    -f|--from)
+    -d|--dir)
         if [[ $# -gt 1 ]]; then
             REFFILE="$2"
             shift
         fi
         ;;
 	*)
-        BIBENTRYID=$1
-        ;;
+        printf "Usage: reftoget [-b|--bib BIB_FILE_NAME] [-d|--dir REFERENCE_DIRECTORY]\n"
 	esac
 	shift
 done
-
-
-# Decide whether the $BIBENTRYID recorded above is indeed $REFTITLE.
-if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
-    || ! echo "$BIBENTRYID" | grep -q '[A-Z]' || ! echo "$BIBENTRYID" | grep -q '[0-9]'; then
-    REFTITLE="$BIBENTRYID"
-    BIBENTRYID=""
-fi
 
 
 # Decide the bib files to check
@@ -65,216 +43,21 @@ else
 fi
 
 
-# Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
-LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
-if ! [[ -z "$BIBENTRYID" ]]; then
-    for FILE in $BIBFILES; do
-        REFTITLE=$(sed '/^\s*%/d' $FILE \
-            | sed 's/%.*$//' \
-            | awk -v ORS="$LINEBREAKER" 1 \
-            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            | grep "^@.*{\s*$BIBENTRYID\s*," | head -1 \
-            | sed  "s/^.*$LINEBREAKER\s*title\s*=\s*{//" \
-            | sed -r "s/},\s*$LINEBREAKER.*}\s*[$LINEBREAKER]+\s*$//" \
-            | sed 's/\$//g' \
-            | sed 's/\\//g' \
-            | sed 's/{//g' \
-            | sed 's/}//g' \
-            | sed 's/^\s*//' \
-            | sed 's/\s*$//' \
-        )
-        if ! [[ -z "$REFTITLE" ]]; then
-            BIBTYPE=$(sed '/^\s*%/d' $FILE \
-                | sed 's/%.*$//' \
-                | awk -v ORS="$LINEBREAKER" 1 \
-                | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-                | grep "$BIBENTRYID" \
-                | sed "s/^.*@//" \
-                | sed "s/{.*$//" \
-                | sed 's/^\s*//' \
-                | sed 's/\s*$//' \
-            )
-            break
-        fi
-    done
-    if [[ -z "$REFTITLE" ]]; then
-        printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
-        exit -2
-    fi
-    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
-elif ! [[ -z "$REFTITLE" ]]; then
-    REFTITLE=$(echo "$REFTITLE" | sed 's/\$//g' \
-        | sed 's/\\//g' \
-        | sed 's/{//g' \
-        | sed 's/}//g' \
-        | sed 's/^\s*//' \
-        | sed 's/\s*$//' \
-    )
-    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g')
-    for FILE in $BIBFILES; do
-        BIBENTRYID=$(sed '/^\s*%/d' $FILE \
-            | sed 's/%.*$//' \
-            | awk -v ORS="$LINEBREAKER" 1 \
-            | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-            | sed -r "s/^@article|^@book|^@booklet|^@.*report|^@.*thesis|^@incollection|^@inproceedings|^@inbook|^@proceedings|^@misc|^@unpublished/@@/I" \
-            | sed "s/{\s*/{/g" \
-            | sed "s/\s*}/}/g" \
-            | sed "s/{//g" \
-            | sed "s/}//g" \
-            | sed "s/\s*=\s*/=/g" \
-            | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
-            | grep "_title=$REFTITLE_UNDERSCORED\_$LINEBREAKER\|_title=$REFTITLE_UNDERSCORED$LINEBREAKER" | head -1 \
-            | sed "s/^.*@@\s*//" \
-            | sed "s/_$LINEBREAKER.*$//" \
-            | sed 's/^\s*//' \
-            | sed 's/\s*$//' \
-        )
-        if ! [[ -z "$BIBENTRYID" ]]; then
-            BIBTYPE=$(sed '/^\s*%/d' $FILE \
-                | sed 's/%.*$//' \
-                | awk -v ORS="$LINEBREAKER" 1 \
-                | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
-                | grep "$BIBENTRYID" \
-                | sed "s/^.*@//" \
-                | sed "s/{.*$//" \
-                | sed 's/^\s*//' \
-                | sed 's/\s*$//' \
-            )
-            break
-        fi
-    done
-    if [[ -z "$BIBENTRYID" ]]; then
-        printf "\nThe title does not exist in the bib files(s).\n"
-    fi
-else
-    printf "\nNo bib entry id or reference title received.\n\n"
-    exit -3
+# Decide the reference directory
+if [[ -z $REFDIR ]]; then
+    REFDIR=$DEFAULT_REFDIR
 fi
 
-if ! [[ -z "$REFFILE" ]]; then
-    if  [[ -z "$BIBENTRYID" ]] || [[ -z "$REFTITLE" ]]; then
-        printf "\nNo bib entry id received or the reference does not exist in the bib file(s).\n\n"
-        exit -3
-    fi
-    REFFILE=$(readlink -f $REFFILE)
-    FILETYPE="${REFFILE##*.}"
-    mv "$REFFILE" "$REFDIR"/"$BIBENTRYID"-"$REFTITLE_UNDERSCORED"."$FILETYPE"
-    REFFILE="$REFDIR"/"$BIBENTRYID"-"$REFTITLE_UNDERSCORED"."$FILETYPE"
-
-    GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
-    cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $REFTOGET
+LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
+GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
+touch $REFTOGET
+for FILE in $BIBFILES; do
+    cat $FILE | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
+        | sed '/^\s*%/d' | sed '/^\s*@string/d' | sed '/^\s*@STRING/d' | sed '/^\s*@String/d' >> $REFTOGET
     for REF in $GOTREF; do
         sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
     done
-    sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
-
-    $READER $REFFILE
-    exit 0
-fi
-
-if ! [[ -z "$BIBENTRYID" ]]; then
-    REFEXISTS=$(ls "$REFDIR""$BIBENTRYID"*  2>/dev/null | grep -i 'pdf\|djvu\|ps\|dvi' | head -1)
-    if ! [[ -z "$REFEXISTS" ]]; then
-        printf "\nThe reference exists:\n"
-        printf "$REFEXISTS\n\n"
-        $READER $REFEXISTS
-        exit 0
-    fi
-fi
-
-REFTITLE_UNDERSCORED=$(echo $REFTITLE_UNDERSCORED | sed 's/_$//')
-REFFILE="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
-
-BIBTYPE=$(echo "$BIBTYPE" | tr '[:upper:]' '[:lower:]')
-
-REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' \
-    | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/\~//g' \
-    | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' \
-    | sed 's/\\//g' \
-)
-if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "proceedings" ]]; then
-    TMPURL="$LIBGEN$REFTITLE"
-    echo "Checking $TMPURL ..."
-    wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" | head -1 \
-        | sed "s/ title='Gen.lib.rus.ec'.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
-    wget -q "$TMPURL" -O $TMPHTML
-    if [[ -z "$TMPURL" ]]; then
-        SUCCESS=0
-    else
-        echo "Checking $TMPURL ..."
-        wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep ">GET<" | head -1 \
-            | sed "s/>GET<.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
-        if [[ -z "$TMPURL" ]]; then
-            SUCCESS=0
-        else
-            echo "Checking $TMPURL ..."
-            wget -q "$TMPURL" -O $REFFILE
-        fi
-    fi
-else
-    TMPURL="$LIBGENART$REFTITLE"
-    echo "Checking $TMPURL ..."
-    wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | head -1 \
-        | sed 's/>Sci-Hub<.*$//' | sed 's/^.*href=//' | sed 's/"//g' | sed "s/'//g")
-    if [[ -z "$TMPURL" ]]; then
-        SUCCESS=0
-    else
-        echo "Checking $TMPURL ..."
-        wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep "save<" | head -1 \
-            | sed "s/^.*href=//" | sed "s/\".*$//" | sed 's/"//g' | sed "s/'//g")
-        if [[ -z "$TMPURL" ]]; then
-            SUCCESS=0
-        else
-            echo "Checking $TMPURL ..."
-            wget -q "$TMPURL" -O $REFFILE
-        fi
-    fi
-fi
-
-rm $TMPHTML
-
-if [[ $SUCCESS -eq 0 ]]; then
-    printf "Failed to get \n\n      $REFTITLE\n\nDownload it manually and name it to\n\n"
-    printf "      $REFTITLE_UNDERSCORED\n\n"
-    exit -4
-fi
-
-FILETYPE=$(file $REFFILE | tr '[:upper:]' '[:lower:]')
-
-if echo "$FILETYPE" | grep -q "pdf"; then
-    FILETYPE="pdf"
-elif echo "$FILETYPE" | grep -q "djvu"; then
-    FILETYPE="djvu"
-elif echo "$FILETYPE" | grep -q "postscript"; then
-    FILETYPE="ps"
-elif echo "$FILETYPE" | grep -q "dvi"; then
-    FILETYPE="dvi"
-elif echo "$FILETYPE" | grep -q "empty"; then
-    printf "Failed to get \n\n      $REFTITLE\n\nDownload it manually and name it to\n\n"
-    printf "      $REFTITLE_UNDERSCORED\n\n"
-    exit -4
-else
-    printf "\nUnkown file type:\n"
-    printf "$(file $REFFILE)\n\n"
-    FILETYPE="unknown"
-fi
-
-mv $REFFILE $REFDIR/$REFFILE.$FILETYPE
-REFFILE=$REFDIR/$REFFILE.$FILETYPE
-if [[ $FILETYPE == "unknown" ]]; then
-    printf "The reference has an unknown file type. Check it manually and then rename\n\n"
-    printf "$REFFILE\n\n"
-fi
-
-GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
-cat $UNIVERSALBIB | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" > $REFTOGET
-for REF in $GOTREF; do
-    sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
 done
 sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
 
-$READER $REFFILE
+exit 0

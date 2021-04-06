@@ -71,6 +71,10 @@ elif echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep
     BIBENTRYID=""
 fi
 
+if ! [[ -z $REFTITLE ]]; then
+    REFTITLE=$(cleantitle $REFTITLE)
+    UNDERSCORED_REFTITLE=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//')
+fi
 
 # Decide the bib files to check
 if ! [[ -z $BIBFILE ]]; then
@@ -83,9 +87,10 @@ else
 fi
 
 
-# Decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
+# Decide $REFTITLE by $BIBENTRYID or vice versa.
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 if ! [[ -z "$BIBENTRYID" ]]; then
+    REFTITLE_IN_BIBFILE=""
     for FILE in $BIBFILES; do
         REFTITLE_IN_BIBFILE=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
@@ -117,36 +122,37 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     done
     if [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$BIBFILES" ]]; then
         printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
+    else
+        REFTITLE_IN_BIBFILE=$(cleantitle $REFTITLE_IN_BIBFILE)
+        UNDERSCORED_REFTITLE_IN_BIBFILE=$(echo "$REFTITLE_IN_BIBFILE" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//')
     fi
-    if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$REFTITLE" ]] && [[ "$REFTITLE_IN_BIBFILE" != "$REFTITLE" ]]; then
-        read -n1 -s -r -p \
-            $"\nThe reference title and bib entry id contrdicts each other:\
-            \nIn $FILE, the title of $BIBENTRYID is:\
-            \n$REFTITLE_IN_BIBFILE\
-            \nContinue to get the reference? [Y/n]\
-            \nIf yes, the title in the bib file will be used.
-            " KEY
-        if [[ "$KEY" == "Y" || "$KEY" == "y" || "$KEY" == "" ]]; then
-            REFTITLE=$REFTITLE_IN_BIBFILE
+    if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$REFTITLE" ]]; then
+        if [[$(echo "$UNDERSCORED_REFTITLE_IN_BIBFILE" | tr '[:upper:]' '[:lower:]') != $(echo "$UNDERSCORED_REFTITLE" | tr '[:upper:]' '[:lower:]')]]; then
+            read -n1 -s -r -p \
+                $"\nThe reference title and bib entry id contrdicts each other:\
+                \nIn $FILE, the title of $BIBENTRYID is:\
+                \n$REFTITLE_IN_BIBFILE\
+                \nContinue to get the reference? [Y/n]\
+                \nIf yes, the title in the bib file will be used.
+                " KEY
+            if [[ "$KEY" == "Y" || "$KEY" == "y" || "$KEY" == "" ]]; then
+                REFTITLE=$REFTITLE_IN_BIBFILE
+                UNDERSCORED_REFTITLE=$UNDERSCORED_REFTITLE_IN_BIBFILE
+            else
+                exit 1
+            fi
         else
-            exit 1
+            REFTITLE=$REFTITLE_IN_BIBFILE
+            UNDERSCORED_REFTITLE=$UNDERSCORED_REFTITLE_IN_BIBFILE
         fi
     elif ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
         REFTITLE=$REFTITLE_IN_BIBFILE
+        UNDERSCORED_REFTITLE=$UNDERSCORED_REFTITLE_IN_BIBFILE
     elif [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
         echo "\nThe title of the reference cannot be decided.\n\n"
         exit -2
     fi
-    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9=@]+/_/g')
 elif ! [[ -z "$REFTITLE" ]]; then
-    REFTITLE=$(echo "$REFTITLE" | sed 's/\$//g' \
-        | sed 's/\\//g' \
-        | sed 's/{//g' \
-        | sed 's/}//g' \
-        | sed 's/^\s*//' \
-        | sed 's/\s*$//' \
-    )
-    REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9=@]+/_/g')
     for FILE in $BIBFILES; do
         BIBENTRYID=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
@@ -160,7 +166,8 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/}//g" \
             | sed "s/\s*=\s*/=/g" \
             | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
-            | grep "_title=$REFTITLE_UNDERSCORED\_$LINEBREAKER\|_title=$REFTITLE_UNDERSCORED$LINEBREAKER" | head -1 \
+            | cleantitle
+            | grep "_title=$UNDERSCORED_REFTITLE\_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \
             | sed 's/^\s*//' \
@@ -200,16 +207,11 @@ if ! [[ -z "$BIBENTRYID" ]]; then
 fi
 
 
-REFTITLE=$(echo "$REFTITLE" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' \
-    | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
-    | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' \
-)
-REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//')
 if [[ -z "$BIBENTRYID" ]]; then
-    REFFILE="$REFTITLE_UNDERSCORED"
+    REFFILE="$UNDERSCORED_REFTITLE"
     REFDIR="$PWD"
 else
-    REFFILE="$BIBENTRYID"-"$REFTITLE_UNDERSCORED"
+    REFFILE="$BIBENTRYID"-"$UNDERSCORED_REFTITLE"
 fi
 
 
@@ -310,3 +312,14 @@ fi
 $READER $REFFILE
 
 exit 0
+
+
+cleantitle () {
+    if [[ $# -eq 1 ]]; then
+        printf "\n Error: $0 needs one argument.\n"
+        exit -1
+    fi
+    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' \
+        | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
+        | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
+}

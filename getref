@@ -114,11 +114,11 @@ fi
 
 
 # Decide the bib files to check
-if ! [[ -z $BIBFILE ]]; then
+if ! [[ -z "$BIBFILE" ]]; then
     BIBFILES="$BIBFILE"
 else
     BIBFILES=$(ls -t *.bib 2>/dev/null)
-    if [[ -z $BIBFILES ]]; then
+    if [[ -z "$BIBFILES" ]]; then
         printf "\nNo bib file found.\n"
     fi
 fi
@@ -129,7 +129,7 @@ LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 if ! [[ -z "$BIBENTRYID" ]]; then
     REFTITLE_IN_BIBFILE=""
     for FILE in $BIBFILES; do
-        REFTITLE_IN_BIBFILE=$(sed '/^\s*%/d' $FILE \
+        REFTITLE_IN_BIBFILE=$(sed '/^\s*%/d' "$FILE" \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
@@ -144,7 +144,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/\s*$//' \
         )
         if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$BIBTYPE" ]]; then
-            BIBTYPE=$(sed '/^\s*%/d' $FILE \
+            BIBTYPE=$(sed '/^\s*%/d' "$FILE" \
                 | sed 's/%.*$//' \
                 | awk -v ORS="$LINEBREAKER" 1 \
                 | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
@@ -191,7 +191,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     fi
 elif ! [[ -z "$REFTITLE" ]]; then
     for FILE in $BIBFILES; do
-        CLEANED_FILE=$(sed '/^\s*%/d' $FILE \
+        CLEANED_FILE=$(sed '/^\s*%/d' "$FILE" \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
@@ -213,7 +213,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed 's/\s*$//' \
         )
         if ! [[ -z "$BIBENTRYID" ]] && [[ -z "$BIBTYPE" ]]; then
-            BIBTYPE=$(sed '/^\s*%/d' $FILE \
+            BIBTYPE=$(sed '/^\s*%/d' "$FILE" \
                 | sed 's/%.*$//' \
                 | awk -v ORS="$LINEBREAKER" 1 \
                 | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
@@ -240,7 +240,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     if ! [[ -z "$EXISTINGREF" ]]; then
         printf "\nThe reference exists:\n"
         printf "$EXISTINGREF\n\n"
-        $READER $EXISTINGREF
+        $READER "$EXISTINGREF"
         exit 0
     fi
     REFFILE="$BIBENTRYID"-"$UNDERSCORED_REFTITLE"

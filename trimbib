@@ -111,7 +111,7 @@ fi
 read -n1 -s -r -p \
     $'Continue to trim the bib file? [Y/n] \nRevise it before trimming if it contains major mistakes.\n' KEY
 
-if ! [[ "$KEY" = 'Y' || "$KEY" = 'y' || "$KEY" = "" ]]; then
+if ! [[ "$KEY" == 'Y' || "$KEY" == 'y' || "$KEY" == "" ]]; then
     exit 1
 fi
 

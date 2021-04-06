@@ -87,7 +87,7 @@ fi
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 if ! [[ -z "$BIBENTRYID" ]]; then
     for FILE in $BIBFILES; do
-        REFTITLE=$(sed '/^\s*%/d' $FILE \
+        REFTITLE_IN_BIBFILE=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
@@ -101,7 +101,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
         )
-        if ! [[ -z "$REFTITLE" ]] && [[ -z "$BIBTYPE" ]]; then
+        if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$BIBTYPE" ]]; then
             BIBTYPE=$(sed '/^\s*%/d' $FILE \
                 | sed 's/%.*$//' \
                 | awk -v ORS="$LINEBREAKER" 1 \
@@ -115,8 +115,26 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             break
         fi
     done
-    if [[ -z "$REFTITLE" ]]; then
+    if [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$BIBFILES" ]]; then
         printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
+    fi
+    if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$REFTITLE" ]] && [[ "$REFTITLE_IN_BIBFILE" != "$REFTITLE" ]]; then
+        read -n1 -s -r -p \
+            $"\nThe reference title and bib entry id contrdicts each other:\
+            \nIn $FILE, the title of $BIBENTRYID is:\
+            \n$REFTITLE_IN_BIBFILE\
+            \nContinue to get the reference? [Y/n]\
+            \nIf yes, the title in the bib file will be used.
+            " KEY
+        if [[ "$KEY" == "Y" || "$KEY" == "y" || "$KEY" == "" ]]; then
+            REFTITLE=$REFTITLE_IN_BIBFILE
+        else
+            exit 1
+        fi
+    elif ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
+        REFTITLE=$REFTITLE_IN_BIBFILE
+    elif [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
+        echo "\nThe title of the reference cannot be decided.\n\n"
         exit -2
     fi
     REFTITLE_UNDERSCORED=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9=@]+/_/g')

@@ -28,7 +28,7 @@ TMPHTML="$(date +%s)getref.html"
 
 
 # Parse the arguments
-if [[ $# -gt 5 ]]; then
+if [[ $# -gt 6 ]]; then
     printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [-l|--livre]\n"
     exit -1
 fi
@@ -49,7 +49,6 @@ while [[ -n "$1" ]]; do
         ;;
     -l|--livre)
         BIBTYPE="book"
-        shift
         ;;
 	*)
         BIBENTRYID=$1
@@ -61,8 +60,8 @@ done
 
 if ! [[ -z "$BIBFILE" ]] && ! echo "$BIBFILE" | grep -q '\.bib$' ; then
     # If $BIBFILE is nonempty but it does not have the .bib extension, then it should be BIBENTRYID.
-    REFTITLE=$BIBENTRYID
-    BIBENTRYID=$BIBFILE
+    REFTITLE="$BIBENTRYID"
+    BIBENTRYID="$BIBFILE"
     BIBFILE=""
 elif echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
     || ! echo "$BIBENTRYID" | grep -q '[A-Z]' || ! echo "$BIBENTRYID" | grep -q '[0-9]'; then
@@ -71,10 +70,25 @@ elif echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep
     BIBENTRYID=""
 fi
 
-if ! [[ -z $REFTITLE ]]; then
-    REFTITLE=$(cleantitle $REFTITLE)
+echo $REFTITLE
+
+cleantitle () {
+    if [[ $# -ne 1 ]]; then
+        printf "\n Error: $0 needs one argument.\n"
+        exit -1
+    fi
+    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' \
+        | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
+        | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
+}
+
+if ! [[ -z "$REFTITLE" ]]; then
+    REFTITLE=$(cleantitle "$REFTITLE")
     UNDERSCORED_REFTITLE=$(echo "$REFTITLE" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//')
 fi
+
+echo "$REFTITLE"
+echo "$UNDERSCORED_REFTITLE"
 
 # Decide the bib files to check
 if ! [[ -z $BIBFILE ]]; then
@@ -123,7 +137,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     if [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$BIBFILES" ]]; then
         printf "\nThe bib entry id does not exist in the bib files(s).\n\n"
     else
-        REFTITLE_IN_BIBFILE=$(cleantitle $REFTITLE_IN_BIBFILE)
+        REFTITLE_IN_BIBFILE=$(cleantitle "$REFTITLE_IN_BIBFILE")
         UNDERSCORED_REFTITLE_IN_BIBFILE=$(echo "$REFTITLE_IN_BIBFILE" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//')
     fi
     if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$REFTITLE" ]]; then
@@ -149,7 +163,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         REFTITLE=$REFTITLE_IN_BIBFILE
         UNDERSCORED_REFTITLE=$UNDERSCORED_REFTITLE_IN_BIBFILE
     elif [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
-        echo "\nThe title of the reference cannot be decided.\n\n"
+        printf "\nThe title of the reference cannot be decided.\n\n"
         exit -2
     fi
 elif ! [[ -z "$REFTITLE" ]]; then
@@ -204,14 +218,10 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         $READER $EXISTINGREF
         exit 0
     fi
-fi
-
-
-if [[ -z "$BIBENTRYID" ]]; then
+    REFFILE="$BIBENTRYID"-"$UNDERSCORED_REFTITLE"
+else
     REFFILE="$UNDERSCORED_REFTITLE"
     REFDIR="$PWD"
-else
-    REFFILE="$BIBENTRYID"-"$UNDERSCORED_REFTITLE"
 fi
 
 
@@ -312,14 +322,3 @@ fi
 $READER $REFFILE
 
 exit 0
-
-
-cleantitle () {
-    if [[ $# -eq 1 ]]; then
-        printf "\n Error: $0 needs one argument.\n"
-        exit -1
-    fi
-    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' \
-        | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
-        | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
-}

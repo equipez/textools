@@ -27,6 +27,39 @@ LIBGENART="http://libgen.rs/scimag/?q="
 TMPHTML="$(date +%s)getref.html"
 
 
+########################################### FUNCTIONS ##############################################
+clean_title () {
+    if [[ $# -ne 1 ]]; then
+        printf "\n Error: $0 needs one argument.\n"
+        exit -1
+    fi
+    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g' \
+        | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
+        | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
+}
+
+underscore_title () {
+    if [[ $# -ne 1 ]]; then
+        printf "\n Error: $0 needs one argument.\n"
+        exit -1
+    fi
+    echo "$1" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//' | sed 's/^_//'
+}
+
+fix_url() {
+    if [[ $# -ne 1 ]]; then
+        printf "\n Error: $0 needs one argument.\n"
+        exit -1
+    fi
+    if echo $1 | grep -q '^\/\/' ; then
+        echo "http:$1"
+    else
+        echo "$1"
+    fi
+}
+####################################################################################################
+
+
 # Parse the arguments
 if [[ $# -gt 6 ]]; then
     printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [-l|--livre]\n"
@@ -70,25 +103,6 @@ elif echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep
     BIBENTRYID=""
 fi
 
-####################################################################################################
-clean_title () {
-    if [[ $# -ne 1 ]]; then
-        printf "\n Error: $0 needs one argument.\n"
-        exit -1
-    fi
-    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g' \
-        | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
-        | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
-}
-
-underscore_title () {
-    if [[ $# -ne 1 ]]; then
-        printf "\n Error: $0 needs one argument.\n"
-        exit -1
-    fi
-    echo "$1" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//' | sed 's/^_//'
-}
-####################################################################################################
 
 if ! [[ -z "$REFTITLE" ]]; then
     REFTITLE=$(clean_title "$REFTITLE")
@@ -212,8 +226,6 @@ elif ! [[ -z "$REFTITLE" ]]; then
             break
         fi
     done
-    echo "$REFTITLE"
-    echo "$UNDERSCORED_REFTITLE"
     if [[ -z "$BIBENTRYID" ]] && ! [[ -z "$BIBFILES" ]]; then
         printf "\nThe title does not exist in the bib files(s).\n"
     fi
@@ -263,6 +275,7 @@ if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "pr
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
+        TMPURL=$(fix_url $TMPURL)
         echo "Checking $TMPURL ..."
         wget -q "$TMPURL" -O $TMPHTML
         TMPURL=$(cat $TMPHTML | grep ">GET<" | head -1 \
@@ -270,6 +283,7 @@ if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "pr
         if [[ -z "$TMPURL" ]]; then
             SUCCESS=0
         else
+            TMPURL=$(fix_url $TMPURL)
             echo "Checking $TMPURL ..."
             wget "$TMPURL" -O "$REFFILE"
         fi
@@ -283,6 +297,7 @@ else
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
+        TMPURL=$(fix_url $TMPURL)
         echo "Checking $TMPURL ..."
         wget -q "$TMPURL" -O $TMPHTML
         TMPURL=$(cat $TMPHTML | grep "save<" | head -1 \
@@ -290,6 +305,7 @@ else
         if [[ -z "$TMPURL" ]]; then
             SUCCESS=0
         else
+            TMPURL=$(fix_url $TMPURL)
             echo "Checking $TMPURL ..."
             wget "$TMPURL" -O "$REFFILE"
         fi
@@ -299,8 +315,8 @@ fi
 rm $TMPHTML
 
 if [[ $SUCCESS -eq 0 ]]; then
-    printf "Failed to get \n\n      "$REFTITLE"\n\nDownload it manually and name it to\n\n"
-    printf "      "$REFFILE"\n\n"
+    printf "Failed to get \n\n      $REFTITLE\n\n"
+    printf "Download it manually and name it to\n\n      $REFFILE\n\n"
     exit -4
 fi
 
@@ -315,8 +331,8 @@ elif echo "$FILETYPE" | grep -q "postscript"; then
 elif echo "$FILETYPE" | grep -q "dvi"; then
     FILETYPE="dvi"
 elif echo "$FILETYPE" | grep -q "empty"; then
-    printf "Failed to get \n\n      "$REFTITLE"\n\nDownload it manually and name it to\n\n"
-    printf "      "$REFFILE"\n\n"
+    printf "Failed to get \n\n      $REFTITLE\n\n"
+    printf "Download it manually and name it to\n\n      $REFFILE\n\n"
     exit -4
 else
     printf "\nUnkown file type:\n"

@@ -84,7 +84,7 @@ while [[ -n "$1" ]]; do
         BIBTYPE="book"
         ;;
 	*)
-        BIBENTRYID=$1
+        BIBENTRYID="$1"
         ;;
 	esac
 	shift
@@ -255,7 +255,7 @@ if ! [[ -z "$INPUTREF" ]]; then
         printf "\nNo bib entry id received or the reference does not exist in the bib file(s).\n\n"
         exit -3
     fi
-    INPUTREF=$(readlink -f $INPUTREF)
+    INPUTREF=$(readlink -f "$INPUTREF")
     FILETYPE="${INPUTREF##*.}"
     mv "$INPUTREF" "$REFDIR"/"$REFFILE"."$FILETYPE"
     REFFILE="$REFDIR"/"$REFFILE"."$FILETYPE"

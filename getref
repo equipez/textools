@@ -177,7 +177,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     fi
 elif ! [[ -z "$REFTITLE" ]]; then
     for FILE in $BIBFILES; do
-        BIBENTRYID=$(sed '/^\s*%/d' $FILE \
+        CLEANED_FILE=$(sed '/^\s*%/d' $FILE \
             | sed 's/%.*$//' \
             | awk -v ORS="$LINEBREAKER" 1 \
             | sed "s/$LINEBREAKER\s*@/$LINEBREAKER\n@/g" \
@@ -190,8 +190,8 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/\s*=\s*/=/g" \
             | sed -r 's/[^a-zA-Z0-9@=]+/_/g' \
         )
-        BIBENTRYID=$(clean_title "$BIBENTRYID")
-        BIBENTRYID=$(echo "$BIBENTRYID" \
+        CLEANED_FILE=$(clean_title "$CLEANED_FILE")
+        BIBENTRYID=$(echo "$CLEANED_FILE" \
             | grep "_title=$UNDERSCORED_REFTITLE\_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \

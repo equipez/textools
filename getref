@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [--book]
+# Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME or BIB_ENTRY_ID] [-f|--from REFERENCE_FILE] [-l|--livre]
 # getref tries downloading a reference according to the given bib entry id or title and name it as
 # $BIB_ENTRY_ID-$REFERENCE_TITLE or $REFERENCE_TITLE according to the availability of $BIB_ENTRY_ID.
 # According to $BIB_FILE_NAME, we decide $REFERENCE_TITLE by $BIB_ENTRY_ID or vice versa.
@@ -29,7 +29,7 @@ TMPHTML="$(date +%s)getref.html"
 
 # Parse the arguments
 if [[ $# -gt 5 ]]; then
-    printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [-b|--book]\n"
+    printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [-l|--livre]\n"
     exit -1
 fi
 
@@ -47,6 +47,10 @@ while [[ -n "$1" ]]; do
             shift
         fi
         ;;
+    -l|--livre)
+        BIBTYPE="book"
+        shift
+        ;;
 	*)
         BIBENTRYID=$1
         ;;
@@ -55,9 +59,14 @@ while [[ -n "$1" ]]; do
 done
 
 
-# Decide whether the $BIBENTRYID recorded above is indeed $REFTITLE.
-if echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
+if ! [[ -z "$BIBFILE" ]] && ! echo "$BIBFILE" | grep -q '\.bib$' ; then
+    # If $BIBFILE is nonempty but it does not have the .bib extension, then it should be BIBENTRYID.
+    REFTITLE=$BIBENTRYID
+    BIBENTRYID=$BIBFILE
+    BIBFILE=""
+elif echo "$BIBENTRYID" | grep -q '[^a-zA-Z0-9_]' || ! echo "$BIBENTRYID" | grep -q '[a-z]' \
     || ! echo "$BIBENTRYID" | grep -q '[A-Z]' || ! echo "$BIBENTRYID" | grep -q '[0-9]'; then
+    # If BIBENTRYID satisfies the above criteria, then it is indeed $REFTITLE.
     REFTITLE="$BIBENTRYID"
     BIBENTRYID=""
 fi
@@ -92,7 +101,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
         )
-        if ! [[ -z "$REFTITLE" ]]; then
+        if ! [[ -z "$REFTITLE" ]] && [[ -z "$BIBTYPE" ]]; then
             BIBTYPE=$(sed '/^\s*%/d' $FILE \
                 | sed 's/%.*$//' \
                 | awk -v ORS="$LINEBREAKER" 1 \
@@ -139,7 +148,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed 's/^\s*//' \
             | sed 's/\s*$//' \
         )
-        if ! [[ -z "$BIBENTRYID" ]]; then
+        if ! [[ -z "$BIBENTRYID" ]] && [[ -z "$BIBTYPE" ]]; then
             BIBTYPE=$(sed '/^\s*%/d' $FILE \
                 | sed 's/%.*$//' \
                 | awk -v ORS="$LINEBREAKER" 1 \

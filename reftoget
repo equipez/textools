@@ -49,15 +49,24 @@ if [[ -z $REFDIR ]]; then
 fi
 
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
+TIME=`date +%Y.%m.%d-%H.%M.%S`
+TMPBIB=tmpbib-$TIME
 GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
 touch $REFTOGET
 for FILE in $BIBFILES; do
     cat $FILE | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
-        | sed '/^\s*%/d' | sed '/^\s*@string/d' | sed '/^\s*@STRING/d' | sed '/^\s*@String/d' >> $REFTOGET
+        | sed '/^\s*%/d' | sed '/^\s*@string/d' | sed '/^\s*@STRING/d' | sed '/^\s*@String/d' > $TMPBIB
+    while IFS= read -r LINE
+    do
+        BIBENTRYID=$(echo "$LINE" | sed 's/^\s*@[^@{]*{\s*//' | sed 's/,.*$//')
+        sed -i "/^\s*@.*{$BIBENTRYID.*$/d" $TMPBIB
+    done < "$REFTOGET"
     for REF in $GOTREF; do
         sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
     done
 done
 sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
+
+rm $TMPBIB
 
 exit 0

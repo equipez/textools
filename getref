@@ -34,7 +34,7 @@ clean_title () {
         exit -1
     fi
     echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g' \
-        | sed "s/\'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
+        | sed "s/'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
         | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
 }
 
@@ -82,6 +82,16 @@ while [[ -n "$1" ]]; do
         ;;
     -l|--livre)
         BIBTYPE="book"
+        ;;
+    *.bib)
+        if [[ -z $BIBFILE ]]; then
+            $BIBFILE="$1"
+        fi
+        ;;
+    *.pdf|*.djvu|*.ps|*.dvi)
+        if [[ -z $INPUTREF ]]; then
+            INPUTREF="$1"
+        fi
         ;;
 	*)
         BIBENTRYID="$1"

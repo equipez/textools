@@ -7,6 +7,7 @@
 
 DEFAULT_REFDIR="$HOME/Bureau/bibliographie/literature/"
 REFTOGET="reftoget.bib"
+rm "$REFTOGET"
 
 # Parse the arguments
 if [[ $# -gt 4 ]]; then
@@ -36,7 +37,7 @@ done
 
 
 # Decide the bib files to check
-if ! [[ -z $BIBFILE ]]; then
+if ! [[ -z "$BIBFILE" ]]; then
     BIBFILES="$BIBFILE"
 else
     BIBFILES=$(ls -t *.bib 2>/dev/null)
@@ -44,32 +45,33 @@ fi
 
 
 # Decide the reference directory
-if [[ -z $REFDIR ]]; then
-    REFDIR=$DEFAULT_REFDIR
+if [[ -z "$REFDIR" ]]; then
+    REFDIR="$DEFAULT_REFDIR"
 fi
 
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 TIME=`date +%Y.%m.%d-%H.%M.%S`
-TMPBIB=tmpbib-$TIME
-GOTREF=$(ls $REFDIR | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
-rm -f $REFTOGET
-touch $REFTOGET
+TMPBIB=tmpbib-"$TIME"
+GOTREF=$(ls "$REFDIR" | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
+touch "$REFTOGET"
 for FILE in $BIBFILES; do
-    cat $FILE | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
-        | sed '/^\s*%/d' | sed '/^\s*@string/d' | sed '/^\s*@STRING/d' | sed '/^\s*@String/d' > $TMPBIB
+    cat "$FILE" | awk -v ORS="$LINEBREAKER" 1 | sed "s/$LINEBREAKER\s*@/\n@/g" \
+        | sed '/^\s*%/d' | sed '/^\s*@string/d' | sed '/^\s*@STRING/d' | sed '/^\s*@String/d' > "$TMPBIB"
     while IFS= read -r LINE
     do
         BIBENTRYID=$(echo "$LINE" | sed 's/^\s*@[^{]*{\s*//' | sed 's/,.*$//')
-        sed -i "/^\s*@.*{$BIBENTRYID.*$/d" $TMPBIB
+        if ! [[ -z "$BIBENTRYID" ]]; then
+            sed -i "/^\s*@.*{$BIBENTRYID.*$/d" "$TMPBIB"
+        fi
     done < "$REFTOGET"
     cat "$TMPBIB" >> "$REFTOGET"
     for REF in $GOTREF; do
-        sed -i "/^\s*@.*{$REF.*$/d" $REFTOGET
+        sed -i "/^\s*@.*{$REF.*$/d" "$REFTOGET"
     done
 done
 
-sed -i "s/$LINEBREAKER/\n/g" $REFTOGET
+sed -i "s/$LINEBREAKER/\n/g" "$REFTOGET"
 
-rm $TMPBIB
+rm "$TMPBIB"
 
 exit 0

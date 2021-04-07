@@ -256,7 +256,7 @@ if ! [[ -z "$INPUTREF" ]]; then
         exit -3
     fi
     INPUTREF=$(readlink -f "$INPUTREF")
-    FILETYPE=$(file "$INPUTFILE" | tr '[:upper:]' '[:lower:]')
+    FILETYPE=$(file "$INPUTREF" | tr '[:upper:]' '[:lower:]')
     if echo "$FILETYPE" | grep -q "pdf"; then
         FILETYPE="pdf"
     elif echo "$FILETYPE" | grep -q "djvu"; then
@@ -267,7 +267,7 @@ if ! [[ -z "$INPUTREF" ]]; then
         FILETYPE="dvi"
     else
         printf "\nUnkown file type:\n"
-        printf "$(file "$INPUTFILE")\n\n"
+        printf "$(file "$INPUTREF")\n\n"
         FILETYPE="unknown"
     fi
     mv "$INPUTREF" "$REFDIR"/"$REFFILE"."$FILETYPE"

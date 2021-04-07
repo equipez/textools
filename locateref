@@ -1,20 +1,17 @@
 #!/bin/bash
 
 REFDIR=$HOME/Bureau/bibliographie
-KEYWORDS=$@
+KEYWORDS="$@"
 
-clean_word () {
-    if [[ $# -ne 1 ]]; then
-        printf "\n Error: $0 needs one argument.\n"
-        exit -1
-    fi
-    echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g' \
-        | sed "s/'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
-        | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//'
-}
+KEYWORDS="$(sed 's/{//g' "$KEYWORDS" | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' \
+    | sed 's/\]//g' | sed "s/'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \ 
+    | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//' \ 
+    | sed 's/[^0-9a-zA-Z]/ /g'\
+    | tr '[:upper:]' '[:lower:]'\
+    )"
 
-
-
+            
+GOTREF=$(ls "$REFDIR") 
 for WORD in $KEYWORDS; do
-        
+    
 done

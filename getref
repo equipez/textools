@@ -16,6 +16,11 @@ REFDIR="$HOME/Bureau/bibliographie/literature/"
 if ! [[ -d "$REFDIR" ]]; then
     REFDIR="$PWD"
 fi
+# Default bib file
+DEFAULT_BIBFILE="$HOME/Bureau/bibliographie/ref.bib"
+if ! [[ -f "DEFAULT_BIBFILE" ]]; then
+    DEFAULT_BIBFILE=""
+fi
 # Command to read the reference
 READER="evince"
 

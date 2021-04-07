@@ -265,54 +265,54 @@ fi
 
 
 BIBTYPE=$(echo "$BIBTYPE" | tr '[:upper:]' '[:lower:]')
-if [[ $BIBTYPE == "book" ]] || [[ $BIBTYPE == "booklet" ]] || [[ $BIBTYPE == "proceedings" ]] \
-    || [[ $BIBTYPE = "masterthesis" ]] || [[ $BIBTYPE = "phdthesis" ]]; then
+if [[ "$BIBTYPE" == "book" ]] || [[ "$BIBTYPE" == "booklet" ]] || [[ "$BIBTYPE" == "proceedings" ]] \
+    || [[ "$BIBTYPE" = "masterthesis" ]] || [[ "$BIBTYPE" = "phdthesis" ]]; then
     TMPURL="$LIBGEN$REFTITLE"
     echo "Checking $TMPURL ..."
-    wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep " title='Gen.lib.rus.ec'" | head -1 \
+    wget -q "$TMPURL" -O "$TMPHTML"
+    TMPURL=$(cat "$TMPHTML" | grep " title='Gen.lib.rus.ec'" | head -1 \
         | sed "s/ title='Gen.lib.rus.ec'.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
-        TMPURL=$(fix_url $TMPURL)
-        echo "Checking $TMPURL ..."
-        wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep ">GET<" | head -1 \
+        TMPURL=$(fix_url "$TMPURL")
+        echo "Checking "$TMPURL" ..."
+        wget -q "$TMPURL" -O "$TMPHTML"
+        TMPURL=$(cat "$TMPHTML" | grep ">GET<" | head -1 \
             | sed "s/>GET<.*$//" | sed "s/^.*href=//" | sed 's/"//g' | sed "s/'//g")
         if [[ -z "$TMPURL" ]]; then
             SUCCESS=0
         else
-            TMPURL=$(fix_url $TMPURL)
-            echo "Checking $TMPURL ..."
+            TMPURL=$(fix_url "$TMPURL")
+            echo "Checking "$TMPURL" ..."
             wget "$TMPURL" -O "$REFFILE"
         fi
     fi
 else
     TMPURL="$LIBGENART$REFTITLE"
     echo "Checking $TMPURL ..."
-    wget -q "$TMPURL" -O $TMPHTML
-    TMPURL=$(cat $TMPHTML | grep ">Sci-Hub<" | head -1 \
+    wget -q "$TMPURL" -O "$TMPHTML"
+    TMPURL=$(cat "$TMPHTML" | grep ">Sci-Hub<" | head -1 \
         | sed 's/>Sci-Hub<.*$//' | sed 's/^.*href=//' | sed 's/"//g' | sed "s/'//g")
     if [[ -z "$TMPURL" ]]; then
         SUCCESS=0
     else
-        TMPURL=$(fix_url $TMPURL)
+        TMPURL=$(fix_url "$TMPURL")
         echo "Checking $TMPURL ..."
-        wget -q "$TMPURL" -O $TMPHTML
-        TMPURL=$(cat $TMPHTML | grep "save<" | head -1 \
+        wget -q "$TMPURL" -O "$TMPHTML"
+        TMPURL=$(cat "$TMPHTML" | grep "save<" | head -1 \
             | sed "s/^.*href=//" | sed "s/\".*$//" | sed 's/"//g' | sed "s/'//g")
         if [[ -z "$TMPURL" ]]; then
             SUCCESS=0
         else
-            TMPURL=$(fix_url $TMPURL)
-            echo "Checking $TMPURL ..."
+            TMPURL=$(fix_url "$TMPURL")
+            echo "Checking "$TMPURL" ..."
             wget "$TMPURL" -O "$REFFILE"
         fi
     fi
 fi
 
-rm $TMPHTML
+rm "$TMPHTML"
 
 if [[ $SUCCESS -eq 0 ]]; then
     printf "Failed to get \n\n      $REFTITLE\n\n"
@@ -340,7 +340,7 @@ else
     FILETYPE="unknown"
 fi
 
-if [[ $FILETYPE == "unknown" ]]; then
+if [[ "$FILETYPE" == "unknown" ]]; then
     printf "The reference has an unknown file type. Check it manually and then rename\n\n"
     printf "$REFFILE\n\n"
 else

@@ -18,7 +18,7 @@ if ! [[ -d "$REFDIR" ]]; then
 fi
 # Default bib file
 DEFAULT_BIBFILE="$HOME/Bureau/bibliographie/ref.bib"
-if ! [[ -f "DEFAULT_BIBFILE" ]]; then
+if ! [[ -f "$DEFAULT_BIBFILE" ]]; then
     DEFAULT_BIBFILE=""
 fi
 # Command to read the reference
@@ -132,10 +132,11 @@ fi
 if ! [[ -z "$BIBFILE" ]]; then
     BIBFILES="$BIBFILE"
 else
-    BIBFILES=$(ls -t *.bib 2>/dev/null)
-    if [[ -z "$BIBFILES" ]]; then
-        printf "\nNo bib file found.\n"
-    fi
+    BIBFILES="$DEFAULT_BIBFILE"
+fi
+#BIBFILES=$(ls -t *.bib 2>/dev/null)
+if [[ -z "$BIBFILES" ]]; then
+    printf "\nNo bib file found.\n"
 fi
 
 

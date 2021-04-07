@@ -236,7 +236,7 @@ fi
 
 
 if ! [[ -z "$BIBENTRYID" ]]; then
-    EXISTINGREF=$(ls "$REFDIR""$BIBENTRYID"* 2>/dev/null | grep -i 'pdf\|djvu\|ps\|dvi' | head -1)
+    EXISTINGREF=$(ls "$REFDIR"/"$BIBENTRYID-"* 2>/dev/null | grep -i 'pdf\|djvu\|ps\|dvi' | head -1)
     if ! [[ -z "$EXISTINGREF" ]]; then
         printf "\nThe reference exists:\n"
         printf "$EXISTINGREF\n\n"

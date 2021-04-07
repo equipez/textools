@@ -256,7 +256,20 @@ if ! [[ -z "$INPUTREF" ]]; then
         exit -3
     fi
     INPUTREF=$(readlink -f "$INPUTREF")
-    FILETYPE="${INPUTREF##*.}"
+    FILETYPE=$(file "$INPUTFILE" | tr '[:upper:]' '[:lower:]')
+    if echo "$FILETYPE" | grep -q "pdf"; then
+        FILETYPE="pdf"
+    elif echo "$FILETYPE" | grep -q "djvu"; then
+        FILETYPE="djvu"
+    elif echo "$FILETYPE" | grep -q "postscript"; then
+        FILETYPE="ps"
+    elif echo "$FILETYPE" | grep -q "dvi"; then
+        FILETYPE="dvi"
+    else
+        printf "\nUnkown file type:\n"
+        printf "$(file "$INPUTFILE")\n\n"
+        FILETYPE="unknown"
+    fi
     mv "$INPUTREF" "$REFDIR"/"$REFFILE"."$FILETYPE"
     REFFILE="$REFDIR"/"$REFFILE"."$FILETYPE"
     $READER "$REFFILE"

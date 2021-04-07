@@ -2,16 +2,36 @@
 
 REFDIR=$HOME/Bureau/bibliographie
 KEYWORDS="$@"
+TIME=`date +%Y.%m.%d-%H.%M.%S`
+GOTREF=gotref-"$TIME"
 
-KEYWORDS="$(sed 's/{//g' "$KEYWORDS" | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' \
-    | sed 's/\]//g' | sed "s/'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \ 
-    | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//' \ 
-    | sed 's/[^0-9a-zA-Z]/ /g'\
+KEYWORDS="$(echo $KEYWORDS | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' \
+    | sed 's/\]//g' | sed "s/'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
+    | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//' \
+    | sed 's/[^0-9a-zA-Z]/\n/g'\
     | tr '[:upper:]' '[:lower:]'\
     )"
 
-            
-GOTREF=$(ls "$REFDIR") 
-for WORD in $KEYWORDS; do
-    
-done
+find "$REFDIR" -name "*" > $GOTREF
+
+printf "\n"
+NUMBER_OF_MATCH=0
+while IFS= read -r LINE
+do
+    MATCH=1
+    LINE_LOWER_CASE=$(echo $LINE | tr '[:upper:]' '[:lower:]')
+    for WORD in $KEYWORDS; do
+        if ! echo $LINE_LOWER_CASE | grep -q "$WORD"; then
+            MATCH=0
+            break
+        fi
+    done
+    if [[ $MATCH -eq 1 ]]; then
+        NUMBER_OF_MATCH=$((NUMBER_OF_MATCH+1))
+        printf "$LINE\n"
+    fi
+done < "$GOTREF"
+
+echo $NUMBER_OF_MATCH
+
+rm $GOTREF

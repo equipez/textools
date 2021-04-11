@@ -5,6 +5,7 @@
 # 2. Items are ordered by author, year, and the entry key.
 # 3. Macros are sorted alphabetically.
 # 4. The file is indented.
+#
 # If -l|--latex is present, then a BibLaTeX file will be produced;
 # If -t|--tex is present, then a BibTeX file will be produced;
 # if neither -l|--latex nor -t|--tex is present, then trimbib will try to decide the type of the

@@ -2,7 +2,7 @@
 
 REFDIR=$HOME/Bureau/bibliographie/literature
 KEYWORDS="$@"
-TIME=`date +%Y.%m.%d-%H.%M.%S`
+TIME=$(date +%Y.%m.%d-%H.%M.%S)
 GOTREF=gotref-"$TIME"
 READER=evince
 

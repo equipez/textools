@@ -5,6 +5,7 @@
 
 AUXFILE=""
 OUTPUTFILE=""
+TIME=$(date +%Y.%m.%d-%H.%M.%S)
 
 # Log files
 GETBIBLOG="getbib.log"
@@ -71,7 +72,6 @@ OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
 # We work on OUTPUTBIB and copy it to OUTPUTFILE in the very end. This is necessary, because
 # OUTPUTFILE may be identical to $AUXNAME.bib; we do not want to destroy $AUXNAME.bib until the very
 # end, because the script may be interrupted in the middle.
-TIME=`date +%Y.%m.%d-%H.%M.%S`
 OUTPUTBIB="outputbib-$TIME.bib"
 BIBMACROS="bibmacros-$TIME"
 BIBENTRIES="bibentries-$TIME"

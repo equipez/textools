@@ -279,7 +279,6 @@ if ! [[ -z "$INPUTREF" ]]; then
     fi
     INPUTREF=$(readlink -f "$INPUTREF")
     FILETYPE=$(file "$INPUTREF" | tr '[:upper:]' '[:lower:]')
-    echo $FILETYPE
     if echo "$FILETYPE" | grep -q "pdf"; then
         FILETYPE="pdf"
     elif echo "$FILETYPE" | grep -q "djvu"; then

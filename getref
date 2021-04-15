@@ -221,16 +221,9 @@ elif ! [[ -z "$REFTITLE" ]]; then
             | sed "s/\s*=\s*/=/g" \
         )
         CLEANED_FILE=$(clean_title "$CLEANED_FILE")
-        CLEANED_FILE=$(underscore_title "$CLEANED_FILE")
-        echo "$CLEANED_FILE" > tmp
+        CLEANED_FILE=$(echo "$CLEANED_FILE" | sed -r 's/[^a-zA-Z0-9@=]+/_/g')
         BIBENTRYID=$(echo "$CLEANED_FILE" \
-            | grep "_title=$UNDERSCORED_REFTITLE\_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
-        )
-        echo "_title=$UNDERSCORED_REFTITLE\_$LINEBREAKER"
-        echo "_title=$UNDERSCORED_REFTITLE$LINEBREAKER"
-        echo $BIBENTRYID
-        BIBENTRYID=$(echo "$CLEANED_FILE" \
-            | grep "_title=$UNDERSCORED_REFTITLE\_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
+            | grep "_title=${UNDERSCORED_REFTITLE}_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \
             | sed 's/^\s*//' \

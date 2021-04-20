@@ -1,0 +1,5 @@
+#!/usr/bin/perl
+# Delete the comment lines in TeX files.
+# USEAGE: cat file | perl nocom > newfile
+while(<STDIN>){ s/^\%.*$/\%/; s/([^\\])\%.*$/\1\%/g; print; }
+exit(0);

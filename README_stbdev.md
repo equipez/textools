@@ -1,1 +1,1 @@
-This is the stable repository of textools.
+This is a development repository of textools.

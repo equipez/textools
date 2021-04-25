@@ -132,7 +132,7 @@ let g:Tex_Env_col = g:Tex_Env_column
 
 " Press <leader>lb to compile and export a BibTeX file that contains only the cited terms according
 " to the current aux. It calls the getbib script in ~/local/bin.
-nmap <leader>lb  <esc><leader>ll<esc> :! getbib "%:t:r"<cr><cr>
+nmap <leader>lb  <esc><leader>ll<esc> :! getbib "%:p"<cr><cr>
 
 "" Trim BibTeX files on save.
 "function TrimBibTeX()

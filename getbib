@@ -78,54 +78,55 @@ printf "\nExporting bib entries ..."
 rm -f "$BIBENTRIES" "$BIBMACROS"
 touch "$BIBENTRIES" "$BIBMACROS"
 
-BIBDATAFILES=$(grep bibdata "$AUXFILE" | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' \
-    | sed 's/,/\ /' | tr '\n' ' ')
-    CITEDBIBS=$(grep bibcite "$AUXFILE" | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sort -u)
+BIBDATAFILES=$(grep bibdata "$AUXFILE" | sed 's/.*\\bibdata{//' | sed 's/}.*$//' | sed 's/,/\ /' | tr '\n' ' ')
+CITEDBIBS=$(grep bibcite "$AUXFILE" | sed 's/.*\\bibcite{//' | sed 's/}.*$//' | sort -u)
+#BIBDATAFILES=`grep bibdata "$AUXFILE" | sed 's/.*\\\\bibdata{//' | sed 's/}.*$//' | sed 's/,/\ /'`
+#CITEDBIBS=`grep bibcite "$AUXFILE" | sed 's/.*\\\\bibcite{//' | sed 's/}.*$//' | sort -u`
 
-    CITEDBIBS_REDUCED="$CITEDBIBS"
-    for FILE in $BIBDATAFILES
+CITEDBIBS_REDUCED="$CITEDBIBS"
+for FILE in $BIBDATAFILES
+do
+    CITEDBIBS="$CITEDBIBS_REDUCED"
+    for BIB in $CITEDBIBS
     do
-        CITEDBIBS="$CITEDBIBS_REDUCED"
-        for BIB in $CITEDBIBS
-        do
-            if grep -q "@.*{\s*$BIB\s*," "$FILE" ; then
-                CITEDBIBS_REDUCED=$(echo "$CITEDBIBS_REDUCED" | sed "/^\s*$BIB\s*$/d")
-                BIBENTRY=$(sed -n "/@.*{\s*$BIB/,/^\s*}/{p;/^\s*}/q}" "$FILE")
-                echo "" >> "$BIBENTRIES"
-                echo "$BIBENTRY" >> "$BIBENTRIES"
-                BIBMACRO=$(echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \
-                    | sed 's/.*journal\s*=\s*//' \
-                    | sed 's/.*journaltitle\s*=\s*//' \
-                    | sed 's/.*series\s*=\s*//' \
-                    | sed s/,.*$// | sed 's/{.*}//')
-                                    if [[ -n $BIBMACRO ]]; then
-                                        echo "" >> "$BIBMACROS"
-                                        grep "@string{\s*$BIBMACRO" "$FILE" | sed 's/.*@string/@string/' >> "$BIBMACROS"
-                                    fi
-            fi
-        done
+        if grep -q "@.*{\s*$BIB\s*," "$FILE" ; then
+            CITEDBIBS_REDUCED=$(echo "$CITEDBIBS_REDUCED" | sed "/^\s*$BIB\s*$/d")
+            BIBENTRY=$(sed -n "/@.*{\s*$BIB/,/^\s*}/{p;/^\s*}/q}" "$FILE")
+            echo "" >> "$BIBENTRIES"
+            echo "$BIBENTRY" >> "$BIBENTRIES"
+            BIBMACRO=$(echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \
+                | sed 's/.*journal\s*=\s*//' \
+                | sed 's/.*journaltitle\s*=\s*//' \
+                | sed 's/.*series\s*=\s*//' \
+                | sed s/,.*$// | sed 's/{.*}//')
+                if [[ -n $BIBMACRO ]]; then
+                    echo "" >> "$BIBMACROS"
+                    grep "@string{\s*$BIBMACRO" "$FILE" | sed 's/.*@string/@string/' >> "$BIBMACROS"
+                fi
+        fi
     done
+done
 
-    if ! grep -q '[^[:space:]]' "$BIBENTRIES" ; then
-        printf "\n%s is not an aux file containing citations or it refers to invalid bib files. Abort.\n" "$AUXFILE"
-        rm "$BIBENTRIES" "$BIBMACROS"
-        exit 3
-    fi
+if ! grep -q '[^[:space:]]' "$BIBENTRIES" ; then
+    printf "\n%s is not an aux file containing citations or it refers to invalid bib files. Abort.\n" "$AUXFILE"
+    rm "$BIBENTRIES" "$BIBMACROS"
+    exit 3
+fi
 
-    {
-        printf "%% bib file generated according to $AUXNAME.aux at $TIME.\n"
-        printf "%%\n"
-        printf "%% The recommended format of the bib entry label is:\n"
-        printf "%%\n"
-        printf "%%     <AuthorLastnames_YearLetter>\n"
-        printf "%%\n"
-        printf "%%  For example, the key for an article by Yuan may be:\n"
-        printf "%%\n"
-        printf "%%     Yuan_2000a\n%%\n"
-        printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n"
-        printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n"
-        printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n"
-    } > "$OUTPUTBIB"
+{
+    printf "%% bib file generated according to %s.aux at %s.\n" "$AUXNAME" "$TIME"
+    printf "%%\n"
+    printf "%% The recommended format of the bib entry label is:\n"
+    printf "%%\n"
+    printf "%%     <AuthorLastnames_YearLetter>\n"
+    printf "%%\n"
+    printf "%%  For example, the key for an article by Yuan may be:\n"
+    printf "%%\n"
+    printf "%%     Yuan_2000a\n%%\n"
+    printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n"
+    printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n"
+    printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n"
+} > "$OUTPUTBIB"
 
 if grep -q '[^[:space:]]' "$BIBMACROS" ; then
     {

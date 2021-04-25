@@ -48,14 +48,10 @@ AUXNAME=${AUXFILE##*/}
 # AUXNAME is the name of the aux file without path or extension.
 AUXNAME=${AUXNAME%.*}
 if [[ -z "$AUXNAME" ]]; then
-    echo ""
-    echo "No aux file found in the current directory."
-    echo ""
+    printf "\nNo aux file found in the current directory.\n"
     exit 2
 elif [[ ! -f "$AUXFILE" ]]; then
-    echo ""
-    echo "$AUXFILE does not exist."
-    echo ""
+    printf "\n%s does not exist.\n" "$AUXFILE"
     exit 2
 fi
 
@@ -78,8 +74,7 @@ BIBENTRIES="bibentries-$TIME"
 
 
 # Export the cited entries.
-echo ""
-echo "Exporting bib entries ..."
+printf "\nExporting bib entries ..."
 rm -f "$BIBENTRIES" "$BIBMACROS"
 touch "$BIBENTRIES" "$BIBMACROS"
 
@@ -112,9 +107,7 @@ BIBDATAFILES=$(grep bibdata "$AUXFILE" | sed 's/.*\\\\bibdata{//' | sed 's/}.*$/
     done
 
     if ! grep -q '[^[:space:]]' "$BIBENTRIES" ; then
-        echo ""
-        echo "$AUXFILE is not an aux file containing citations or it refers to invalid bib files. Abort."
-        echo ""
+        printf "\n%s is not an aux file containing citations or it refers to invalid bib files. Abort.\n" "$AUXFILE"
         rm "$BIBENTRIES" "$BIBMACROS"
         exit 3
     fi

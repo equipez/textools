@@ -6,8 +6,8 @@
 
 % Bibliography
 \newcommand{\bibfile}{!comp!expand("%:t:r")!comp!.bib}  % Name of the BibTeX file.
-\newcommand{\universalbib}{ref.bib}
-\ifdraft{\IfFileExists{./\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
+\newcommand{\universalbib}{/home/zaikunzhang/Bureau/bibliographie/ref.bib}
+\ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
 
 
 % Geometry

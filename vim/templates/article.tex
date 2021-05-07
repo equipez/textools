@@ -4,18 +4,20 @@
 \usepackage{ifdraft}
 
 
-% Bibliography
+%% Bibliography
 \newcommand{\bibfile}{!comp!expand("%:t:r")!comp!.bib}  % Name of the BibTeX file.
 \newcommand{\universalbib}{/home/zaikunzhang/Bureau/bibliographie/ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
+\newcommand{\iscite}{0}  % \iscite=0: without citation; \iscite=1: with citation
+\def\oldcite{} \let\oldcite=\cite \def\cite{\renewcommand\iscite{1}\oldcite}
 
 
-% Geometry
+%% Geometry
 %\voffset=-1.5cm \hoffset=-1.4cm \textwidth=16cm \textheight=22.0cm  % Luis' setting
 \usepackage[a4paper, textwidth=16.0cm, textheight=22.0cm]{geometry}
 \renewcommand{\baselinestretch}{1.2}
 
-% Basic packages
+%% Basic packages
 \usepackage{amsmath,amsthm,amssymb,amsfonts}
 \usepackage{empheq}
 \usepackage{color}
@@ -31,7 +33,7 @@
 \usepackage[en-US]{datetime2}
 
 
-% Graph, tikz and pgf
+%% Graph, tikz and pgf
 %\usepackage{subfigure}
 \setlength{\unitlength}{1mm}
 % The \unitlength command is a Length command. It defines the units used in the Picture Environment.
@@ -45,7 +47,7 @@
 \usepgfplotslibrary{fillbetween}
 \pgfplotsset{compat=1.11}
 
-% Format of the table of content.
+%% Format of the table of content
 \usepackage[normalem]{ulem}
 \usepackage[toc,page]{appendix}
 \renewcommand{\appendixpagename}{\Large{Appendix}}
@@ -55,22 +57,21 @@
 \setcounter{tocdepth}{2}
 
 
-% Turn off some unharmful warnings
+%% Turn off some unharmful warnings
 \usepackage{silence}
-\WarningFilter{latex}{Empty `thebibliography' environment}  % Mute the warning about no bib entry is cited
 \WarningFilter{latex}{Writing or overwriting file} % Mute the warning about 'writing/overwriting file'
 \WarningFilter{latex}{Writing file} % Mute the warning about 'writing/overwriting file'
 \WarningFilter{latex}{Tab has} % Mute the warning about 'Tab has been converted to Blank Space'
 
 
-% Enumerate and itemize
+%% Enumerate and itemize
 \usepackage{eqlist}
 \usepackage{enumitem}
 \setlist[itemize]{leftmargin=*}
 \setlist[enumerate]{leftmargin=*}
 
 
-% Hyperref
+%% Hyperref
 \definecolor{darkblue}{rgb}{0,0.1,0.5}
 \definecolor{darkgreen}{rgb}{0,0.5,0.1}
 \definecolor{darkyellow}{rgb}{0.65,0.65,0.01}
@@ -80,7 +81,7 @@
 \usepackage{url}
 
 
-% Algorithm environment
+%% Algorithm environment
 \usepackage[section]{algorithm}
 \usepackage{algpseudocode,algorithmicx}
 \newcommand{\INPUT}{\textbf{Input}}
@@ -91,7 +92,7 @@
 \newcommand*\Let[2]{\State #1 $=$ #2}
 
 
-% Theorem-like environments
+%% Theorem-like environments
 \newtheorem{theorem}{Theorem}%[section]
 \newtheorem{conjecture}{Conjecture}%[section]
 \newtheorem{corollary}{Corollary}%[section]
@@ -110,11 +111,11 @@
 \xpatchcmd{\proof}{\itshape}{\normalfont\proofnamefont}{}{}
 \newcommand{\proofnamefont}{\bfseries}
 
-% Equation numbering
+%% Equation numbering
 \numberwithin{equation}{section}
 
 
-% Fine tuning
+%% Fine tuning
 \usepackage{microtype}
 \usepackage[nobottomtitles*]{titlesec} % No section title at the bottom of pages
 % Prevent footnote from running to the next page
@@ -129,7 +130,7 @@
 \displaywidowpenalty=10000
 
 
-% Operators, commands
+%% Operators, commands
 \usepackage{relsize}
 \usepackage{nccmath}
 \DeclareMathOperator*{\mcap}{\medmath{\bigcap}}
@@ -211,6 +212,7 @@
 %\newcommand{\bb}{\mathbf{f}}
 \newcommand{\bb}{\mathbf{r}}
 \newcommand{\nov}{n_{\textnormal{o}}}
+\xspaceaddexceptions{]\}}
 \newcommand{\MATLAB}{\textsc{Matlab}\xspace}
 \newcommand{\octave}{\mbox{GNU Octave}\xspace}
 \newcommand{\prblm}{\texttt}
@@ -260,7 +262,7 @@
 \newcommand{\out}{{\text{out}}}
 
 
-% Commands for revision
+%% Commands for revision
 \newcommand{\red}[1]{\textcolor{red}{#1}}
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
 \newcommand{\green}[1]{\textcolor{darkgreen}{#1}}
@@ -300,8 +302,13 @@
 <++>
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% References
-%\small
-%\bibliography{\bibfile}
-%\bibliographystyle{plain}
+%% References
+\ifnum\iscite=1
+% The following lines take effect only if \iscite=1, i.e., there are citations.
+\small
+\bibliography{\bibfile}
+\bibliographystyle{plain}
+\fi
+
+%% The end
 \end{document}

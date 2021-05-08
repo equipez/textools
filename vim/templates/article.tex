@@ -213,7 +213,8 @@
 %\newcommand{\bb}{\mathbf{f}}
 \newcommand{\bb}{\mathbf{r}}
 \newcommand{\nov}{n_{\textnormal{o}}}
-\xspaceaddexceptions{]\}}
+\xspaceaddexceptions{]\}}  
+% tex.stackexchange.com/questions/15252/why-does-xspace-behave-differently-for-parenthesis-vs-braces-brackets
 \newcommand{\MATLAB}{\textsc{Matlab}\xspace}
 \newcommand{\octave}{\mbox{GNU Octave}\xspace}
 \newcommand{\prblm}{\texttt}
@@ -304,8 +305,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% References
+% Include references only if \iscite=1, i.e., there are citations.
 \ifnum\iscite=1
-% The following lines take effect only if \iscite=1, i.e., there are citations.
 \small
 \bibliography{\bibfile}
 \bibliographystyle{plain}

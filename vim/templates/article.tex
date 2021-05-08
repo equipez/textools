@@ -5,7 +5,7 @@
 
 
 %% Bibliography
-\newcommand{\bibfile}{!comp!expand("%:t:r")!comp!.bib}  % Name of the BibTeX file.
+\newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
 \newcommand{\universalbib}{/home/zaikunzhang/Bureau/bibliographie/ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
 \newcommand{\iscite}{0}  % \iscite=0: without citation; \iscite=1: with citation
@@ -16,6 +16,7 @@
 %\voffset=-1.5cm \hoffset=-1.4cm \textwidth=16cm \textheight=22.0cm  % Luis' setting
 \usepackage[a4paper, textwidth=16.0cm, textheight=22.0cm]{geometry}
 \renewcommand{\baselinestretch}{1.2}
+
 
 %% Basic packages
 \usepackage{amsmath,amsthm,amssymb,amsfonts}

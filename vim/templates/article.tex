@@ -40,7 +40,7 @@
 % The \unitlength command is a Length command. It defines the units used in the Picture Environment.
 \usepackage{graphicx}
 %\usepackage{tikz,tikzscale,pgf,pgfarrows,pgfnodes,filecontents,tikz-cd}
-\usepackage{tikz,tikzscale,pgf,pgfarrows,pgfnodes,filecontents}
+\usepackage{tikz,tikzscale,pgf}
 \usetikzlibrary{arrows,arrows.meta,patterns,positioning,decorations.markings,shapes}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
@@ -60,6 +60,8 @@
 
 %% Turn off some unharmful warnings
 \usepackage{silence}
+\WarningFilter{hyperref}{Draft mode on}
+\WarningFilter{microtype}{`draft` option active}
 \WarningFilter{latex}{Writing or overwriting file} % Mute the warning about 'writing/overwriting file'
 \WarningFilter{latex}{Writing file} % Mute the warning about 'writing/overwriting file'
 \WarningFilter{latex}{Tab has} % Mute the warning about 'Tab has been converted to Blank Space'
@@ -213,7 +215,7 @@
 %\newcommand{\bb}{\mathbf{f}}
 \newcommand{\bb}{\mathbf{r}}
 \newcommand{\nov}{n_{\textnormal{o}}}
-\xspaceaddexceptions{]\}}  
+\xspaceaddexceptions{]\}}
 % tex.stackexchange.com/questions/15252/why-does-xspace-behave-differently-for-parenthesis-vs-braces-brackets
 \newcommand{\MATLAB}{\textsc{Matlab}\xspace}
 \newcommand{\octave}{\mbox{GNU Octave}\xspace}

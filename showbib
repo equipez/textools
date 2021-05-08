@@ -65,9 +65,9 @@ TEXTOOLSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 BCPYOUTPUT="bibtex_check.html"
 if [[ $BIBLATEX -eq 1 ]] ; then
-    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -o $BCPYOUTPUT -l -b"
+    BCPY="python3 $TEXTOOLSDIR/python/bibtex_check.py -o $BCPYOUTPUT -l -b"
 else
-    BCPY="python $TEXTOOLSDIR/python/bibtex_check.py -o $BCPYOUTPUT -b"
+    BCPY="python3 $TEXTOOLSDIR/python/bibtex_check.py -o $BCPYOUTPUT -b"
 fi
 
 $BCPY $BIBFILE > /dev/null

@@ -133,6 +133,12 @@
 \displaywidowpenalty=10000
 
 
+% Use @ to put 1 math unit (mu) in math
+% See https://nhigham.com/2013/01/07/fine-tuning-spacing-in-latex-equations/
+% and also TeXbook p. 155.
+\mathcode`@="8000{\catcode`\@=\active\gdef@{\mkern1mu}}
+
+
 %% Operators, commands
 \usepackage{relsize}
 \usepackage{nccmath}

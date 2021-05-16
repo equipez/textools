@@ -126,7 +126,7 @@ cp "$BIBFILE" "$INPUTBIB"
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
-if [[ $BIBLATEX -eq 0 ]] ; then
+if [[ "$BIBLATEX" -eq 0 ]] ; then
     sed '/^\s*%/d' "$INPUTBIB" | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 \
         | sed "s/$LINEBREAKER\s*@/\n@/g" | sed "s/$LINEBREAKER//g" > "$TMPBIB"
     {
@@ -146,7 +146,7 @@ fi
 
 # Print the macros in $INPUTBIB to $BIBMACROS
 printf "\nSorting the macros ..."
-grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" "$INPUTBIB" |sed 's/.*@/@/' \
+grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" "$INPUTBIB" | sed 's/.*@/@/' \
     | sed 's/@String/@string/' | sed 's/@STRING/@string/' \
     | sed 's/\.\s*"\s*}/\."}/' \
     | sed 's/\s*=\s*/\ =\ /' \

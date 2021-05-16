@@ -59,9 +59,9 @@ done
 # If $BIBFILE is a symlink, we work on its target.
 # If the input is empty, then use the latest bib file under the current directory.
 if [[ -z "$BIBFILE" ]]; then
-	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
+    BIBFILE=$(find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1)
 fi
-BIBFILE=`readlink -f $BIBFILE`
+BIBFILE="$(readlink -f "$BIBFILE")"
 if [[ -z "${BIBFILE##*/}" ]]; then
     echo ""
 	echo "No bib file found."
@@ -74,7 +74,7 @@ elif [[ ! -f "$BIBFILE" ]]; then
 	exit 2
 fi
 
-if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" $BIBFILE ; then
+if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" "$BIBFILE" ; then
     USER_INPUT_LATEX=1
 else
     USER_INPUT_LATEX=0
@@ -105,9 +105,9 @@ OUTPUTFILE="$(cd "$(dirname -- "$OUTPUTFILE")" && pwd)/$(basename -- "$OUTPUTFIL
 
 # Check the bib file before trimming.
 if [[ $USER_INPUT_LATEX -eq 1 ]] ; then
-    checkbib -l $BIBFILE
+    checkbib -l "$BIBFILE"
 else
-    checkbib $BIBFILE
+    checkbib "$BIBFILE"
 fi
 
 read -n1 -s -r -p \
@@ -128,19 +128,21 @@ BIBMACROS="bibmacros-$TIME"
 BIBEROUT="biberout-$TIME"
 BIBENTRIES="bibentries-$TIME"
 
-cp $BIBFILE $INPUTBIB
+cp "$BIBFILE" "$INPUTBIB"
 
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 if [[ $BIBLATEX -eq 0 ]] ; then
-    sed '/^\s*%/d' $INPUTBIB | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 \
-        | sed "s/$LINEBREAKER\s*@/\n@/g" | sed "s/$LINEBREAKER//g" > $TMPBIB
-    grep -v "techreport\|phdthesis\|masterthesis" $TMPBIB > $OUTPUTBIB
-    grep techreport $TMPBIB | sed 's/^\s*@report/@techreport/' | sed 's/type\s*=\s*{.*}\s*,//' >> $OUTPUTBIB
-    grep phdthesis $TMPBIB | sed 's/^\s*@thesis/@phdthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
-        | sed 's/institution/school/' >> $OUTPUTBIB
-    grep masterthesis $TMPBIB | sed 's/^\s*@thesis/@masterthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
-        | sed 's/institution/school/' >> $OUTPUTBIB
+    sed '/^\s*%/d' "$INPUTBIB" | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 \
+        | sed "s/$LINEBREAKER\s*@/\n@/g" | sed "s/$LINEBREAKER//g" > "$TMPBIB"
+    {
+        grep -v "techreport\|phdthesis\|masterthesis" "$TMPBIB"
+        grep techreport "$TMPBIB" | sed 's/^\s*@report/@techreport/' | sed 's/type\s*=\s*{.*}\s*,//'
+        grep phdthesis $TMPBIB | sed 's/^\s*@thesis/@phdthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
+            | sed 's/institution/school/'
+        grep masterthesis $TMPBIB | sed 's/^\s*@thesis/@masterthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
+            | sed 's/institution/school/'
+    } > "$OUTPUTBIB"
     rm -f $TMPBIB
     sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $OUTPUTBIB
     sed -i 's/,\s*date\s*=\s*/,year=/' $OUTPUTBIB

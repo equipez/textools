@@ -41,14 +41,10 @@ if [[ -z "$BIBFILE" ]]; then
 fi
 BIBFILE=$(readlink -f "$BIBFILE")
 if [[ -z "${BIBFILE##*/}" ]]; then
-    echo ""
-    echo "No bib file found."
-    echo ""
+    printf "\nNo bib file found.\n"
     exit 2
 elif [[ ! -f "$BIBFILE" ]]; then
-    echo ""
-    echo "$BIBFILE does not exist."
-    echo ""
+    printf "\n%s does not exist.\n" "$BIBFILE"
     exit 2
 fi
 
@@ -63,13 +59,12 @@ else
 fi
 
 
-echo ""
 if [[ $BIBLATEX -eq 1 ]] ; then
-    echo "Checking $BIBFILE in BibLaTeX mode ..."
-    echo "Result of checking $BIBFILE in BibLaTeX mode" > $LOG
+    printf "\nChecking %s in BibLaTeX mode ..." "$BIBFILE"
+    printf "Result of checking %s in BibLaTeX mode" "$BIBFILE" > $LOG
 else
-    echo "Checking $BIBFILE in BibTeX mode ..."
-    echo "Result of checking $BIBFILE in BibTeX mode" > $LOG
+    printf "\nChecking %s in BibTeX mode ..." "$BIBFILE"
+    printf "Result of checking %s in BibTeX mode" "$BIBFILE" > $LOG
 fi
 echo ""
 echo "" >> $LOG

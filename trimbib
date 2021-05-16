@@ -28,7 +28,7 @@ BAKDIR=./backup/
 
 if [[ $# -gt 4 ]]; then
     printf "Usage: trimbib [-l|--latex] [-t|--tex] [BIBFILE_NAME] [-o|--output NAME_OF_OUTPUT_FILE]\n"
-    exit -1
+    exit 1
 fi
 
 # Parse the arguments
@@ -66,12 +66,12 @@ if [[ -z "${BIBFILE##*/}" ]]; then
     echo ""
 	echo "No bib file found."
     echo ""
-	exit -2
+	exit 2
 elif [[ ! -f "$BIBFILE" ]]; then
     echo ""
     echo "$BIBFILE does not exist."
     echo ""
-	exit -2
+	exit 2
 fi
 
 if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" $BIBFILE ; then
@@ -84,7 +84,7 @@ if [[ $USER_SPECIFY_LATEX -eq 1 && $USER_SPECIFY_TEX -eq 1 ]] ; then
     echo ""
     echo "-l|--latex and -t|--t cannot be present simultaneously."
     echo ""
-    exit -1
+    exit 1
 elif [[ $USER_SPECIFY_LATEX -eq 1 ]] ; then
     BIBLATEX=1
 elif [[ $USER_SPECIFY_LATEX -ne 1 ]] ; then
@@ -101,7 +101,7 @@ if [[ -z "$OUTPUTFILE" ]]; then
 fi
 # Get the full path of $OUTPUTFILE. Note that we do not resolve the link if $OUTPUTFILE exists
 # and is a symlink.
-OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
+OUTPUTFILE="$(cd "$(dirname -- "$OUTPUTFILE")" && pwd)/$(basename -- "$OUTPUTFILE")"
 
 # Check the bib file before trimming.
 if [[ $USER_INPUT_LATEX -eq 1 ]] ; then
@@ -292,7 +292,7 @@ if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
     echo "$BIBFILE is not a bib file or contains no bib entry. Abort."
     echo ""
     rm $OUTPUTBIB $BIBMACROS $BIBENTRIES $CHECKBIBLOG.bak
-    exit -3
+    exit 3
 fi
 
 

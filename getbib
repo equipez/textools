@@ -61,7 +61,7 @@ if [[ -z "$OUTPUTFILE" ]]; then
 fi
 # Get the full path of $OUTPUTFILE. Note that we do not resolve the link if $OUTPUTFILE exists
 # and is a symlink.
-OUTPUTFILE="$(cd "$(dirname "$OUTPUTFILE")" && pwd)/$(basename "$OUTPUTFILE")"
+OUTPUTFILE="$(cd "$(dirname -- "$OUTPUTFILE")" && pwd)/$(basename -- "$OUTPUTFILE")"
 
 
 # Temporary files.

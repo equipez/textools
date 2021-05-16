@@ -111,13 +111,13 @@ CAPITAL_WORDS="Yuan Powell \
 
     echo ""
     echo "===> Running $BCPY $BIBFILE ... "
-    "$BCPY" "$BIBFILE" | grep "flawed name\|missing field\|wrong type\|non-unique id" \
+    $BCPY "$BIBFILE" | grep "flawed name\|missing field\|wrong type\|non-unique id" \
         | sed 's/>/\n/g' | sed 's/</\n/g' \
         | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
         | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
             cat $BCPYLOG
             {
-                printf "\n--------------------------------------------------\n===> Message from %s:" "$BCPY"
+                printf "\n--------------------------------------------------\n===> Message from %s:\n" "$BCPY"
                 cat $BCPYLOG
             } >> "$LOG"
         rm $BCPYLOG

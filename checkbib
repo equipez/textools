@@ -117,7 +117,7 @@ CAPITAL_WORDS="Yuan Powell \
         | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
             cat $BCPYLOG
             {
-                printf "\n--------------------------------------------------\n===> Message from $BCPY:"
+                printf "\n--------------------------------------------------\n===> Message from %s:" "$BCPY"
                 cat $BCPYLOG
             } >> "$LOG"
         rm $BCPYLOG
@@ -126,26 +126,26 @@ CAPITAL_WORDS="Yuan Powell \
         echo ""
         echo "===> Running biber --tool -V $BIBFILE ..."
         echo ""
-        biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > $BIBERLOG 2>&1
-        rm $BIBFILE.blg
+        biber --tool -V "$BIBFILE" | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > "$BIBERLOG" 2>&1
+        rm "$BIBFILE.blg"
         BIBDIR="$(dirname "${BIBFILE}")"
-        BIBNAME="$(echo `basename $BIBFILE` | awk -F"." '{print $1}')"
+        #        BIBNAME="$(echo `basename $BIBFILE` | awk -F"." '{print $1}')"
+        BIBNAME="$(basename "$BIBFILE" | awk -F"." '{print $1}')"
+        echo "$BIBNAME"
         rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
         # biber 2.16 (as of 2021-04-03) produces ~/_bibertool.bib if it is invoked by
         # "biber --tool -V FILE_WITH_FULL_PATH" and there exists a dot (.) in the full path of the directory
         # containing the file.
         rm -f ~/_bibertool.bib
         cat $BIBERLOG
-        echo "" >> $LOG
-        echo "--------------------------------------------------" >> $LOG
-        echo "" >> $LOG
-        echo "===> Message from biber:" >> $LOG
-        echo "" >> $LOG
-        cat $BIBERLOG >> $LOG
-        rm $BIBERLOG
+        {
+            printf "\n--------------------------------------------------\n===> Message from biber:\n"
+            cat $BIBERLOG
+        } >> "$LOG"
+    rm $BIBERLOG
 
-        echo ""
-        echo "Done. Log written in $LOG."
-        echo ""
+    echo ""
+    echo "Done. Log written in $LOG."
+    echo ""
 
-        exit 0
+    exit 0

@@ -21,17 +21,17 @@ fi
 
 # Parse the arguments
 while [[ -n "$1" ]]; do
-	case "$1" in
-	-l|--latex)
-        BIBLATEX=1
-		;;
-	*)
-        if [[ -z "$BIBFILE" ]]; then
-            BIBFILE="$1"
-        fi
-        ;;
-	esac
-	shift
+    case "$1" in
+        -l|--latex)
+            BIBLATEX=1
+            ;;
+        *)
+            if [[ -z "$BIBFILE" ]]; then
+                BIBFILE="$1"
+            fi
+            ;;
+    esac
+    shift
 done
 
 # Get the name of the bib file with full path.
@@ -42,14 +42,14 @@ fi
 BIBFILE=$(readlink -f "$BIBFILE")
 if [[ -z "${BIBFILE##*/}" ]]; then
     echo ""
-	echo "No bib file found."
+    echo "No bib file found."
     echo ""
-	exit 2
+    exit 2
 elif [[ ! -f "$BIBFILE" ]]; then
     echo ""
     echo "$BIBFILE does not exist."
     echo ""
-	exit 2
+    exit 2
 fi
 
 # Get the directory where this script resides
@@ -76,17 +76,17 @@ echo "" >> $LOG
 
 echo "===> Looking for non-ASCII characters ..."
 grep --color='auto' -P -n "[^\x00-\x7F]" "$BIBFILE" | grep --color='auto' -P -v '[\p{Han}]'
-echo "===> Non-ASCII characters:" >> $LOG
-echo "" >> $LOG
-grep -P -n "[^\x00-\x7F]" $BIBFILE | grep -P -v '[\p{Han}]' >> $LOG
+{
+    printf "===> Non-ASCII characters:\n"
+    grep -P -n "[^\x00-\x7F]" "$BIBFILE" | grep -P -v '[\p{Han}]'
+} >> "$LOG"
 
 echo ""
 echo "===> Checking the capital letters that need to be protected by curly braces ..."
-echo "" >> $LOG
-echo "--------------------------------------------------" >> $LOG
-echo "" >> $LOG
-echo "===> Capital letters that need to be protected by curly braces:" >> $LOG
-echo "" >> $LOG
+{
+    printf "\n--------------------------------------------------\n"
+    printf "===> Capital letters that need to be protected by curly braces:\n"
+} >> "$LOG"
 CAPITAL_WORDS="Yuan Powell \
     Armijo BFGS Banach Bernoulli Bregman Broyden Cauchy DFP DFO Euclid Euclidean Euler \
     Eulerian Fortran GNU Gauss Gaussian Hermit Hermitian  Hessian Hilbert Hilbertian \
@@ -103,50 +103,49 @@ CAPITAL_WORDS="Yuan Powell \
     Fejer Fej.*\\\\'e.*r Fej.*\\\\'{e}.*r Fejerian Fej.*\\\\'e.*rian Fej.*\\\\'{e}.*rian \
     Holder H.*\\\\\"o.*lder H.*\\\\\"{o}.*lder Holderian H.*\\\\\"o.*lderian H.*\\\\\"{o}.*lderian \
     KL K-L Kurdyka Lojasiewicz \\\\L.*ojasiewicz {\\\\L.*}.*ojasiewicz"
-for WORD in $CAPITAL_WORDS
-do
-    grep -n "title\s*=" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD"
-    grep -n "title\s*=" $BIBFILE | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD" >> $LOG
-done
+    for WORD in $CAPITAL_WORDS
+    do
+        grep -n "title\s*=" "$BIBFILE" | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD"
+        grep -n "title\s*=" "$BIBFILE" | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD" >> $LOG
+    done
 
-echo ""
-echo "===> Running $BCPY $BIBFILE ... "
-$BCPY $BIBFILE | grep "flawed name\|missing field\|wrong type\|non-unique id" \
-    | sed 's/>/\n/g' | sed 's/</\n/g' \
-    | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
-    | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
-cat $BCPYLOG
-echo "" >> $LOG
-echo "--------------------------------------------------" >> $LOG
-echo "" >> $LOG
-echo "===> Message from $BCPY:" >> $LOG
-cat $BCPYLOG >> $LOG
-rm $BCPYLOG
-rm $BCPYOUTPUT
+    echo ""
+    echo "===> Running $BCPY $BIBFILE ... "
+    "$BCPY" "$BIBFILE" | grep "flawed name\|missing field\|wrong type\|non-unique id" \
+        | sed 's/>/\n/g' | sed 's/</\n/g' \
+        | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
+        | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
+            cat $BCPYLOG
+            {
+                printf "\n--------------------------------------------------\n===> Message from $BCPY:"
+                cat $BCPYLOG
+            } >> "$LOG"
+        rm $BCPYLOG
+        rm $BCPYOUTPUT
 
-echo ""
-echo "===> Running biber --tool -V $BIBFILE ..."
-echo ""
-biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > $BIBERLOG 2>&1
-rm $BIBFILE.blg
-BIBDIR="$(dirname "${BIBFILE}")"
-BIBNAME="$(echo `basename $BIBFILE` | awk -F"." '{print $1}')"
-rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
-# biber 2.16 (as of 2021-04-03) produces ~/_bibertool.bib if it is invoked by
-# "biber --tool -V FILE_WITH_FULL_PATH" and there exists a dot (.) in the full path of the directory
-# containing the file.
-rm -f ~/_bibertool.bib
-cat $BIBERLOG
-echo "" >> $LOG
-echo "--------------------------------------------------" >> $LOG
-echo "" >> $LOG
-echo "===> Message from biber:" >> $LOG
-echo "" >> $LOG
-cat $BIBERLOG >> $LOG
-rm $BIBERLOG
+        echo ""
+        echo "===> Running biber --tool -V $BIBFILE ..."
+        echo ""
+        biber --tool -V $BIBFILE | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > $BIBERLOG 2>&1
+        rm $BIBFILE.blg
+        BIBDIR="$(dirname "${BIBFILE}")"
+        BIBNAME="$(echo `basename $BIBFILE` | awk -F"." '{print $1}')"
+        rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
+        # biber 2.16 (as of 2021-04-03) produces ~/_bibertool.bib if it is invoked by
+        # "biber --tool -V FILE_WITH_FULL_PATH" and there exists a dot (.) in the full path of the directory
+        # containing the file.
+        rm -f ~/_bibertool.bib
+        cat $BIBERLOG
+        echo "" >> $LOG
+        echo "--------------------------------------------------" >> $LOG
+        echo "" >> $LOG
+        echo "===> Message from biber:" >> $LOG
+        echo "" >> $LOG
+        cat $BIBERLOG >> $LOG
+        rm $BIBERLOG
 
-echo ""
-echo "Done. Log written in $LOG."
-echo ""
+        echo ""
+        echo "Done. Log written in $LOG."
+        echo ""
 
-exit 0
+        exit 0

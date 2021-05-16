@@ -353,7 +353,7 @@ fi
     printf "\n***************** checkbib.log after trimming ****************"
     cat $CHECKBIBLOG
     printf "\n"
-}
+} >> $CHECKBIBLOG.bak
 mv $CHECKBIBLOG.bak $CHECKBIBLOG
 
 cat "$CHECKBIBLOG"  | cat - "$TRIMBIBLOG" > "tmp-$TIME" && mv "tmp-$TIME" $TRIMBIBLOG

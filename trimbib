@@ -359,15 +359,12 @@ mv $CHECKBIBLOG.bak $CHECKBIBLOG
 cat "$CHECKBIBLOG"  | cat - "$TRIMBIBLOG" > "tmp-$TIME" && mv "tmp-$TIME" $TRIMBIBLOG
 rm $CHECKBIBLOG
 
-printf "Done. See $TRIMBIBLOG for $CHECKBIBLOG and the difference due to the trimming."
-
+printf "Done. See %s for %s and the difference due to the trimming." "$TRIMBIBLOG" "$CHECKBIBLOG"
 if [[ $BIBDIFFERENT -eq 1 ]]; then
-    echo ""
-    echo "A copy of the original bib file is saved at"
-    echo "$BAKDIR/$BAKBIBFILE"
+    printf "\nA copy of the original bib file is saved at %s" "$BAKDIR/$BAKBIBFILE"
     printf "\nA copy of the original bib file is saved at %s" "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
 fi
 
-echo ""
+printf "\n"
 
 exit 0

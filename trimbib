@@ -138,26 +138,26 @@ if [[ $BIBLATEX -eq 0 ]] ; then
     {
         grep -v "techreport\|phdthesis\|masterthesis" "$TMPBIB"
         grep techreport "$TMPBIB" | sed 's/^\s*@report/@techreport/' | sed 's/type\s*=\s*{.*}\s*,//'
-        grep phdthesis $TMPBIB | sed 's/^\s*@thesis/@phdthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
+        grep phdthesis "$TMPBIB" | sed 's/^\s*@thesis/@phdthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
             | sed 's/institution/school/'
-        grep masterthesis $TMPBIB | sed 's/^\s*@thesis/@masterthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
+        grep masterthesis "$TMPBIB" | sed 's/^\s*@thesis/@masterthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
             | sed 's/institution/school/'
     } > "$OUTPUTBIB"
-    rm -f $TMPBIB
-    sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' $OUTPUTBIB
-    sed -i 's/,\s*date\s*=\s*/,year=/' $OUTPUTBIB
-    sed -i 's/,\s*location\s*=\s*/,address=/' $OUTPUTBIB
-    mv $OUTPUTBIB $INPUTBIB
+    rm -f "$TMPBIB"
+    sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' "$OUTPUTBIB"
+    sed -i 's/,\s*date\s*=\s*/,year=/' "$OUTPUTBIB"
+    sed -i 's/,\s*location\s*=\s*/,address=/' "$OUTPUTBIB"
+    mv "$OUTPUTBIB" "$INPUTBIB"
 fi
 
 # Print the macros in $INPUTBIB to $BIBMACROS
 echo ""
 echo "Sorting the macros ..."
-grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" $INPUTBIB |sed 's/.*@/@/' \
+grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" "$INPUTBIB" |sed 's/.*@/@/' \
     | sed 's/@String/@string/' | sed 's/@STRING/@string/' \
     | sed 's/\.\s*"\s*}/\."}/' \
     | sed 's/\s*=\s*/\ =\ /' \
-    > $BIBMACROS
+    > "$BIBMACROS"
 
 
 # Trim the bib entries by biber
@@ -267,39 +267,40 @@ fi
 #    and "date" instead of year (due to the difference between BibTeX and BibLaTeX). We use
 #    "--output-field-replace" to disable such behavior.
 if [[ $BIBLATEX -eq 1 ]] ; then
-    biber --output-file $BIBEROUT \
+    biber --output-file "$BIBEROUT" \
         --tool --configfile=biber.conf \
         --output-safechars --output-safecharsset=full \
-        --output_indent=4 $INPUTBIB
+        --output_indent=4 "$INPUTBIB"
 else
-    biber --output-file $BIBEROUT \
+    biber --output-file "$BIBEROUT" \
         --tool --configfile=biber.conf \
         --output-safechars --output-safecharsset=full \
         --output_indent=4 \
-        --output-field-replace=location:address,journaltitle:journal,date:year $INPUTBIB
+        --output-field-replace=location:address,journaltitle:journal,date:year "$INPUTBIB"
 fi
 
 rm biber.conf
-rm $INPUTBIB
-rm $INPUTBIB.blg
+rm "$INPUTBIB"
+rm "$INPUTBIB.blg"
 
 
 # Print the trimmed bib entries into $BIBENTRIES.
-touch $BIBEROUT  # $BIBEROUT is not generated if biber encounters errors.
-gawk -v line=$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' $BIBEROUT) 'NR>line' $BIBEROUT >  $BIBENTRIES
+touch "$BIBEROUT"  # $BIBEROUT is not generated if biber encounters errors.
+gawk -v line="$(gawk '/@STRING|@String|@string/{n=NR}END{print n}' "$BIBEROUT")" 'NR>line' "$BIBEROUT" >  "$BIBENTRIES"
 
-rm $BIBEROUT
-if ! grep -q '[^[:space:]]' $BIBENTRIES ; then
+rm "$BIBEROUT"
+if ! grep -q '[^[:space:]]' "$BIBENTRIES" ; then
     echo ""
     echo "$BIBFILE is not a bib file or contains no bib entry. Abort."
     echo ""
-    rm $OUTPUTBIB $BIBMACROS $BIBENTRIES $CHECKBIBLOG.bak
+    rm "$OUTPUTBIB" "$BIBMACROS" "$BIBENTRIES" "$CHECKBIBLOG.bak"
     exit 3
 fi
 
 
 # Generate the new bib file.
-printf "%% bib file generated at "$TIME".\n" > $OUTPUTBIB
+{
+printf "%% bib file generated at %s.\n" "$TIME" > $OUTPUTBIB
 printf "%%\n" >> $OUTPUTBIB
 printf "%% The recommended format of the bib entry label is:\n" >> $OUTPUTBIB
 printf "%%\n" >> $OUTPUTBIB
@@ -310,7 +311,8 @@ printf "%%\n" >> $OUTPUTBIB
 printf "%%     Yuan_2000a\n%%\n" >> $OUTPUTBIB
 printf "%% It is advised to use the abbreviations of names of serials in Math. Rev.\n" >> $OUTPUTBIB
 printf "%% See https://mathscinet.ams.org/msnhtml/serials.pdf .\n" >> $OUTPUTBIB
-printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n" >> $OUTPUTBIB
+printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n"
+} > "$OUTPUTBIB"
 
 grep -q -v '^\s*$' $BIBMACROS  > /dev/null  # Check whether $BIBMACROS is empty.
 if [[ $? -eq 0 ]] ; then

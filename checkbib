@@ -9,7 +9,7 @@ BIBLATEX=0
 BIBFILE=""
 
 # Log files
-LOG=checkbib.log
+LOG="$(basename -- "$0").log"
 BCPYLOG="bcpy.log"
 BIBERLOG="biber.log"
 
@@ -60,24 +60,21 @@ fi
 
 
 if [[ $BIBLATEX -eq 1 ]] ; then
-    printf "\nChecking %s in BibLaTeX mode ..." "$BIBFILE"
-    printf "Result of checking %s in BibLaTeX mode" "$BIBFILE" > $LOG
+    printf "\nChecking %s in BibLaTeX mode ...\n" "$BIBFILE"
+    printf "Result of checking %s in BibLaTeX mode\n" "$BIBFILE" > $LOG
 else
-    printf "\nChecking %s in BibTeX mode ..." "$BIBFILE"
-    printf "Result of checking %s in BibTeX mode" "$BIBFILE" > $LOG
+    printf "\nChecking %s in BibTeX mode ...\n" "$BIBFILE"
+    printf "Result of checking %s in BibTeX mode\n" "$BIBFILE" > $LOG
 fi
-echo ""
-echo "" >> $LOG
 
-echo "===> Looking for non-ASCII characters ..."
+printf "===> Looking for non-ASCII characters ..."
 grep --color='auto' -P -n "[^\x00-\x7F]" "$BIBFILE" | grep --color='auto' -P -v '[\p{Han}]'
 {
     printf "===> Non-ASCII characters:\n"
     grep -P -n "[^\x00-\x7F]" "$BIBFILE" | grep -P -v '[\p{Han}]'
 } >> "$LOG"
 
-echo ""
-echo "===> Checking the capital letters that need to be protected by curly braces ..."
+printf "\n===> Checking the capital letters that need to be protected by curly braces ..."
 {
     printf "\n--------------------------------------------------\n"
     printf "===> Capital letters that need to be protected by curly braces:\n"
@@ -104,8 +101,7 @@ CAPITAL_WORDS="Yuan Powell \
         grep -n "title\s*=" "$BIBFILE" | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD" >> $LOG
     done
 
-    echo ""
-    echo "===> Running $BCPY $BIBFILE ... "
+    printf "\n===> Running %s %s ...\n" "$BCPY" "$BIBFILE"
     $BCPY "$BIBFILE" | grep "flawed name\|missing field\|wrong type\|non-unique id" \
         | sed 's/>/\n/g' | sed 's/</\n/g' \
         | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
@@ -118,9 +114,7 @@ CAPITAL_WORDS="Yuan Powell \
         rm $BCPYLOG
         rm $BCPYOUTPUT
 
-        echo ""
-        echo "===> Running biber --tool -V $BIBFILE ..."
-        echo ""
+        printf "\n===> Running biber --tool -V %s ...\n" "$BIBFILE"
         biber --tool -V "$BIBFILE" | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > "$BIBERLOG" 2>&1
         rm "$BIBFILE.blg"
         BIBDIR="$(dirname "${BIBFILE}")"
@@ -137,8 +131,6 @@ CAPITAL_WORDS="Yuan Powell \
         } >> "$LOG"
     rm $BIBERLOG
 
-    echo ""
-    echo "Done. Log written in $LOG."
-    echo ""
+    printf "\nDone. Log written in %s.\n" "$LOG"
 
     exit 0

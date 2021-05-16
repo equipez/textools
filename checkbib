@@ -16,7 +16,7 @@ BIBERLOG="biber.log"
 
 if [[ $# -gt 2 ]]; then
     printf "Usage: checkbib [-l|--latex] [BIBFILE_NAME] \n"
-    exit -1
+    exit 1
 fi
 
 # Parse the arguments
@@ -37,19 +37,19 @@ done
 # Get the name of the bib file with full path.
 # If the input is empty, then use the latest bib file under the current directory.
 if [[ -z "$BIBFILE" ]]; then
-	BIBFILE=`find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1`
+    BIBFILE=$(find ./ -maxdepth 1 -type f -name "*.bib" -print0 | xargs -r -0 ls -1 -t | head -1)
 fi
-BIBFILE=`readlink -f $BIBFILE`
+BIBFILE=$(readlink -f "$BIBFILE")
 if [[ -z "${BIBFILE##*/}" ]]; then
     echo ""
 	echo "No bib file found."
     echo ""
-	exit -2
+	exit 2
 elif [[ ! -f "$BIBFILE" ]]; then
     echo ""
     echo "$BIBFILE does not exist."
     echo ""
-	exit -2
+	exit 2
 fi
 
 # Get the directory where this script resides
@@ -75,10 +75,10 @@ echo ""
 echo "" >> $LOG
 
 echo "===> Looking for non-ASCII characters ..."
-grep --color='auto' -P -n "[^\x00-\x7F]" $BIBFILE
+grep --color='auto' -P -n "[^\x00-\x7F]" "$BIBFILE" | grep --color='auto' -P -v '[\p{Han}]'
 echo "===> Non-ASCII characters:" >> $LOG
 echo "" >> $LOG
-grep -P -n "[^\x00-\x7F]" $BIBFILE >> $LOG
+grep -P -n "[^\x00-\x7F]" $BIBFILE | grep -P -v '[\p{Han}]' >> $LOG
 
 echo ""
 echo "===> Checking the capital letters that need to be protected by curly braces ..."

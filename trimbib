@@ -314,8 +314,8 @@ fi
     printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n"
 } > "$OUTPUTBIB"
 
-grep -q -v '^\s*$' "$BIBMACROS"  > /dev/null  # Check whether $BIBMACROS is empty.
-if [[ $? -eq 0 ]] ; then
+#grep -q -v '^\s*$' "$BIBMACROS"  > /dev/null  # Check whether $BIBMACROS is empty.
+if grep -q -v '^\s*$' "$BIBMACROS"  > /dev/null ; then
 {
     printf "%% String macros for abbreviations of names of serials.\n"
     printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
@@ -346,7 +346,7 @@ if [[ -f "$OUTPUTFILE" ]]; then
         cp "$OUTPUTFILE" "$BAKDIR/$FULLBIBNAME-latest_backup"
     	mv "$OUTPUTFILE" "$BAKDIR/$BAKBIBFILE"
         # Keep at most 50 latest files under $BAKDIR.
-        (cd $BAKDIR && ls -tp | grep -v '/$' | grep "$FULLBIBNAME" | tail -n +51 | xargs -I {} rm -- {})
+        (cd "$BAKDIR" && ls -tp | grep -v '/$' | grep "$FULLBIBNAME" | tail -n +51 | xargs -I {} rm -- {})
     fi
 fi
 
@@ -361,13 +361,14 @@ else
     checkbib "$OUTPUTFILE"
 fi
 
-echo "" >> $CHECKBIBLOG.bak
-echo "***************** checkbib.log after trimming ****************" >> $CHECKBIBLOG.bak
-cat $CHECKBIBLOG >> $CHECKBIBLOG.bak
-echo "" >> $CHECKBIBLOG.bak
+{
+    printf "\n***************** checkbib.log after trimming ****************"
+    cat $CHECKBIBLOG
+    printf "\n"
+}
 mv $CHECKBIBLOG.bak $CHECKBIBLOG
 
-cat $CHECKBIBLOG  | cat - $TRIMBIBLOG > "tmp-$TIME" && mv "tmp-$TIME" $TRIMBIBLOG
+cat "$CHECKBIBLOG"  | cat - "$TRIMBIBLOG" > "tmp-$TIME" && mv "tmp-$TIME" $TRIMBIBLOG
 rm $CHECKBIBLOG
 
 echo "Done. See $TRIMBIBLOG for $CHECKBIBLOG and the difference due to the trimming."
@@ -376,10 +377,7 @@ if [[ $BIBDIFFERENT -eq 1 ]]; then
     echo ""
     echo "A copy of the original bib file is saved at"
     echo "$BAKDIR/$BAKBIBFILE"
-
-    echo "" >> $TRIMBIBLOG
-    echo "A copy of the original bib file is saved at" >> $TRIMBIBLOG
-    echo "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
+    printf "\nA copy of the original bib file is saved at %s" "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG
 fi
 
 echo ""

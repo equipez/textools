@@ -95,42 +95,42 @@ CAPITAL_WORDS="Yuan Powell \
     Fejer Fej.*\\\\'e.*r Fej.*\\\\'{e}.*r Fejerian Fej.*\\\\'e.*rian Fej.*\\\\'{e}.*rian \
     Holder H.*\\\\\"o.*lder H.*\\\\\"{o}.*lder Holderian H.*\\\\\"o.*lderian H.*\\\\\"{o}.*lderian \
     KL K-L Kurdyka Lojasiewicz \\\\L.*ojasiewicz {\\\\L.*}.*ojasiewicz"
-    for WORD in $CAPITAL_WORDS
-    do
-        grep -n "title\s*=" "$BIBFILE" | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD"
-        grep -n "title\s*=" "$BIBFILE" | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD" >> $LOG
-    done
+for WORD in $CAPITAL_WORDS
+do
+    grep -n "title\s*=" "$BIBFILE" | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD"
+    grep -n "title\s*=" "$BIBFILE" | grep -v "{.*{.*$WORD.*}.*}" | grep -v "=\s*{$WORD" | grep --color='auto' "$WORD" >> $LOG
+done
 
-    printf "\n===> Running %s %s ...\n" "$BCPY" "$BIBFILE"
-    $BCPY "$BIBFILE" | grep "flawed name\|missing field\|wrong type\|non-unique id" \
-        | sed 's/>/\n/g' | sed 's/</\n/g' \
-        | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
-        | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
-            cat $BCPYLOG
-            {
-                printf "\n--------------------------------------------------\n===> Message from %s:\n" "$BCPY"
-                cat $BCPYLOG
-            } >> "$LOG"
-        rm $BCPYLOG
-        rm $BCPYOUTPUT
-
-        printf "\n===> Running biber --tool -V %s ...\n" "$BIBFILE"
-        biber --tool -V "$BIBFILE" | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > "$BIBERLOG" 2>&1
-        rm "$BIBFILE.blg"
-        BIBDIR="$(dirname "${BIBFILE}")"
-        BIBNAME="$(basename -- "$BIBFILE" | awk -F"." '{print $1}')"
-        rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
-        # biber 2.16 (as of 2021-04-03) produces ~/_bibertool.bib if it is invoked by
-        # "biber --tool -V FILE_WITH_FULL_PATH" and there exists a dot (.) in the full path of the directory
-        # containing the file.
-        rm -f ~/_bibertool.bib
-        cat $BIBERLOG
+printf "\n===> Running %s %s ...\n" "$BCPY" "$BIBFILE"
+$BCPY "$BIBFILE" | grep "flawed name\|missing field\|wrong type\|non-unique id" \
+    | sed 's/>/\n/g' | sed 's/</\n/g' \
+    | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
+    | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
+        cat $BCPYLOG
         {
-            printf "\n--------------------------------------------------\n===> Message from biber:\n"
-            cat $BIBERLOG
+            printf "\n--------------------------------------------------\n===> Message from %s:\n" "$BCPY"
+            cat $BCPYLOG
         } >> "$LOG"
-    rm $BIBERLOG
+    rm $BCPYLOG
+    rm $BCPYOUTPUT
 
-    printf "\nDone. Log written in %s.\n" "$LOG"
+    printf "\n===> Running biber --tool -V %s ...\n" "$BIBFILE"
+    biber --tool -V "$BIBFILE" | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > "$BIBERLOG" 2>&1
+    rm "$BIBFILE.blg"
+    BIBDIR="$(dirname "${BIBFILE}")"
+    BIBNAME="$(basename -- "$BIBFILE" | awk -F"." '{print $1}')"
+    rm -f "$BIBDIR"/"$BIBNAME"_bibertool.bib  # This file will not be generated if $BIBFILE contains errors.
+    # biber 2.16 (as of 2021-04-03) produces ~/_bibertool.bib if it is invoked by
+    # "biber --tool -V FILE_WITH_FULL_PATH" and there exists a dot (.) in the full path of the directory
+    # containing the file.
+    rm -f ~/_bibertool.bib
+    cat $BIBERLOG
+    {
+        printf "\n--------------------------------------------------\n===> Message from biber:\n"
+        cat $BIBERLOG
+    } >> "$LOG"
+rm $BIBERLOG
 
-    exit 0
+printf "\nDone. Log written in %s.\n" "$LOG"
+
+exit 0

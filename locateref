@@ -1,12 +1,12 @@
 #!/bin/bash
 
 REFDIR=$HOME/Bureau/bibliographie/literature
-KEYWORDS="$@"
+KEYWORDS="$*"
 TIME=$(date +%Y.%m.%d-%H.%M.%S)
-GOTREF=gotref-"$TIME"
+GOTREF="/tmp/gotref-$TIME"
 READER=evince
 
-KEYWORDS="$(echo $KEYWORDS | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' \
+KEYWORDS="$(echo "$KEYWORDS" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' \
     | sed 's/\]//g' | sed "s/'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
     | sed 's/\\\\L/L/g' | sed 's/\\\\l/l/g' | sed 's/\\//g' | sed 's/^\s*//' | sed 's/\s*$//' \
     | sed 's/[^0-9a-zA-Z]/\n/g'\
@@ -15,18 +15,18 @@ KEYWORDS="$(echo $KEYWORDS | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's
 
 if [[ -z "$KEYWORDS" ]]; then
     printf "No keyword received.\n"
-    exit -1
+    exit 1
 fi
 
-find "$REFDIR" -name "*" > $GOTREF
+find "$REFDIR" -name "*" > "$GOTREF"
 
 NUMBER_OF_MATCH=0
 while IFS= read -r LINE
 do
     MATCH=1
-    LINE_LOWER_CASE=$(echo $LINE | tr '[:upper:]' '[:lower:]')
+    LINE_LOWER_CASE=$(echo "$LINE" | tr '[:upper:]' '[:lower:]')
     for WORD in $KEYWORDS; do
-        if ! echo $LINE_LOWER_CASE | grep -qF "$WORD"; then
+        if ! echo "$LINE_LOWER_CASE" | grep -qF "$WORD"; then
             MATCH=0
             break
         fi
@@ -34,7 +34,7 @@ do
     if [[ $MATCH -eq 1 ]]; then
         NUMBER_OF_MATCH=$((NUMBER_OF_MATCH+1))
         MATCHED_LINE="$LINE"
-        printf "$LINE\n"
+        printf "%s\n" "$LINE"
     fi
 done < "$GOTREF"
 
@@ -47,6 +47,6 @@ if [[ $NUMBER_OF_MATCH -eq 1 ]]; then
     "$READER" "$MATCHED_LINE"
 fi
 
-rm $GOTREF
+rm "$GOTREF"
 
 exit 0

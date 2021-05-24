@@ -1,4 +1,5 @@
 <+	+>	!comp!	!exe!
+% Last Modified:    Mon 24 May 2021 09:47:32 PM HKT
 %\documentclass[12pt,a4paper]{article}  % Use this line if this document will be released
 \documentclass[12pt,a4paper,draft]{article}  % Use this line if this document is a draft
 \usepackage{ifdraft}
@@ -61,7 +62,8 @@
 %% Turn off some unharmful warnings
 \usepackage{silence}
 \WarningFilter{hyperref}{Draft mode on}
-\WarningFilter{microtype}{`draft` option active}
+\WarningFilter{refcheck}{Unused label}
+\WarningFilter{microtype}{`draft' option active}
 \WarningFilter{latex}{Writing or overwriting file} % Mute the warning about 'writing/overwriting file'
 \WarningFilter{latex}{Writing file} % Mute the warning about 'writing/overwriting file'
 \WarningFilter{latex}{Tab has} % Mute the warning about 'Tab has been converted to Blank Space'

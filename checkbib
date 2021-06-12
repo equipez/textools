@@ -82,8 +82,9 @@ printf "\n===> Checking the capital letters that need to be protected by curly b
 
 CAPITAL_WORDS="Yuan Powell \
     COBYLA UOBYQA NEWUOA BOBYQA LINCOA PDFO \
+    KKT Karush Kuhn Tucker \
     Armijo BFGS Banach Bernoulli Bregman Broyden Cauchy DFP DFO Euclid Euclidean Euler \
-    Eulerian Fortran GNU Gauss Gaussian Hermit Hermitian  Hessian Hilbert Hilbertian \
+    Eulerian Fenchel Fortran GNU Gauss Gaussian Hermit Hermitian  Hessian Hilbert Hilbertian \
     Jacobi Jacobian Kronecker Lagrange Lagrangian Laplace Laplacian Lebesgue Levenberg Lipschitz \
     Lipschitzian MATLAB Matlab Marquardt Moore Newton Newtonian ODE PDE Plateau Python RAS \
     Riemann Riemannian Rockafellar SGD Schwarz Seidel Givens Householder Frobenius Schmidt \

@@ -81,6 +81,7 @@ printf "\n===> Checking the capital letters that need to be protected by curly b
 } >> "$LOG"
 
 CAPITAL_WORDS="Yuan Powell \
+    COBYLA UOBYQA NEWUOA BOBYQA LINCOA PDFO \
     Armijo BFGS Banach Bernoulli Bregman Broyden Cauchy DFP DFO Euclid Euclidean Euler \
     Eulerian Fortran GNU Gauss Gaussian Hermit Hermitian  Hessian Hilbert Hilbertian \
     Jacobi Jacobian Kronecker Lagrange Lagrangian Laplace Laplacian Lebesgue Levenberg Lipschitz \

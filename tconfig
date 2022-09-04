@@ -1,0 +1,33 @@
+#!/usr/bin/bash
+
+####################################################################################################
+# Set DEFAULT_BIBDIR to the directory containing the `ref.bib` file and the `literature` directory.
+#DEFAULT_BIBDIR=
+####################################################################################################
+
+# If DEFAULT_BIBDIR is not set above, then it will be set to the shortest path that contains both
+# a file `ref.bib` and a directory `literature`.
+if [[ -z "$DEFAULT_BIBDIR" ]] ; then
+    DEFAULT_BIBDIR=$(find "$HOME" -type d -path "*/bibliographie" -exec test -f '{}'/ref.bib -a -d '{}'/literature \; -print | sort -n | head -1)
+fi
+
+# If DEFAULT_BIBDIR is still not set, then it is set to the following value.
+if [[ -z "$DEFAULT_BIBDIR" ]] ; then
+    DEFAULT_BIBDIR="$HOME/Bureau/bibliographie"
+fi
+
+if ! [[ -d "$DEFAULT_BIBDIR" ]] ; then
+    printf "\nDEFAULT_BIBDIR does not exist. Its current value is\n\n%s\n\nSet it properly.\n\n" "$DEFAULT_BIBDIR"
+    exit 1
+fi
+
+export DEFAULT_BIBDIR
+mkdir -p "$DEFAULT_BIBDIR"
+
+export DEFAULT_BIBFILE="$DEFAULT_BIBDIR/ref.bib"
+
+export DEFAULT_REFDIR="$DEFAULT_BIBDIR/literature"
+mkdir -p "$DEFAULT_REFDIR"
+
+export REFDIR="$DEFAULT_REFDIR"
+mkdir -p "$REFDIR"

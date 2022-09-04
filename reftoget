@@ -5,9 +5,14 @@
 # If BIB_FILE_NAME is not present, then all the bib files in the current directory will be checked.
 # If REFERENCE_DIRECTORY is not present, then we check the default reference directory defined below.
 
-DEFAULT_REFDIR="$HOME/Bureau/bibliographie/literature/"
+# The directory where this scrip resides
+TDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# Some configuration, which should define DEFAULT_REFDIR
+# shellcheck source=./tconfig
+source "$TDIR/tconfig"
+
 REFTOGET="reftoget.bib"
-rm "$REFTOGET"
+rm -f "$REFTOGET"
 
 # Parse the arguments
 if [[ $# -gt 4 ]]; then
@@ -50,8 +55,9 @@ if [[ -z "$REFDIR" ]]; then
 fi
 
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
-TIME=`date +%Y.%m.%d-%H.%M.%S`
-TMPBIB=tmpbib-"$TIME"
+TIME=$(date +%Y.%m.%d-%H.%M.%S)
+TMPDIR="$(mktemp -d)"
+TMPBIB="$TMPDIR"/tmpbib-"$TIME"
 GOTREF=$(ls "$REFDIR" | sed 's/\..*$//' | sed 's/-.*$//' | sort -u)
 touch "$REFTOGET"
 for FILE in $BIBFILES; do
@@ -72,6 +78,6 @@ done
 
 sed -i "s/$LINEBREAKER/\n/g" "$REFTOGET"
 
-rm "$TMPBIB"
+rm -f "$TMPBIB"
 
 exit 0

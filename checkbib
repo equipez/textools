@@ -93,6 +93,7 @@ CAPITAL_WORDS="Yuan Powell \
     Lasso LASSO ADMM APG FISTA CPU FPU GPU Hadamard Weierstrass Liouville Abel Abelian Galois \
     Hamilton Hamiltonian Atiyah Fourier Gronwall Bellman LaSalle Bihari Monte Carlo Sobolev \
     Ky Fan \
+    Gram Schmidt \
     Poincare Poincar.*\\\\'e.* Poincar.*\\\\'{e}.* \
     Frechet Fr.*\\\\'e.*chet Fr.*\\\\'{e}.*chet \
     Fejer Fej.*\\\\'e.*r Fej.*\\\\'{e}.*r Fejerian Fej.*\\\\'e.*rian Fej.*\\\\'{e}.*rian \

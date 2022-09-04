@@ -12,13 +12,17 @@ BIBTYPE=""
 SUCCESS=1
 TIME=$(date +%Y.%m.%d-%H.%M.%S)
 
+# The directory where this scrip resides
+TDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# Some configuration, which should define REFDIR and DEFAULT_BIBFILE
+# shellcheck source=./tconfig
+source "$TDIR/tconfig"
+
 # Directory to save the references
-REFDIR="$HOME/Bureau/bibliographie/literature/"
 if ! [[ -d "$REFDIR" ]]; then
     REFDIR="$PWD"
 fi
 # Default bib file
-DEFAULT_BIBFILE="$HOME/Bureau/bibliographie/ref.bib"
 if ! [[ -f "$DEFAULT_BIBFILE" ]]; then
     DEFAULT_BIBFILE=""
 fi

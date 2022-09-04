@@ -185,15 +185,17 @@ cat > biber.conf <<EOF
             <!--!!!Put the name of the desired fields here.!!!-->
 	  		<field fieldtype="field" datatype="literal">_number</field>
 	  		<field fieldtype="field" datatype="literal">_publisher</field>
+	  		<field fieldtype="field" datatype="literal">note</field>
 	  		<field fieldtype="field" datatype="literal">journal</field>
 	  		<field fieldtype="field" datatype="literal">school</field>
 	  		<field fieldtype="field" datatype="literal">address</field>
 		</fields>
 		<entryfields>
-            <!--!!!For article, retain "_number", "_publisher", "journal".!!!-->
+            <!--!!!For article, retain "_number", "_publisher", "note", "journal".!!!-->
 	  		<entrytype>article</entrytype>
 	  		<field>_number</field>
 	  		<field>_publisher</field>
+	  		<field>note</field>
 	  		<field>journal</field>
 		</entryfields>
 		<entryfields>

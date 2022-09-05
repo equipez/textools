@@ -135,6 +135,7 @@ for line in fIn:
         fields = []
         problems = []
         currentId = line.split("{")[1].rstrip(",\n")
+        #problems.append(currentId)
         if currentId in ids:
             problems.append("non-unique id: '"+currentId+"'")
             counterNonUniqueId += 1
@@ -165,9 +166,11 @@ for line in fIn:
                     problems.append("wrong type: maybe should be 'inproceedings' because entry has page numbers")
                     counterWrongTypes += 1
 
-                # check if abbreviations are used in journal titles
+                # check if abbreviations are used in journal titles. An abbreviation is considered
+                # spotted if a dot "." is found, except that the line contains "arXiv", as arXiv ids
+                # contain dots.
                 if currentType == "article" and (field == "journal" or field == "journaltitle"):
-                    if "." in line:
+                    if "." in line and not "arXiv" in line:
                         problems.append("flawed name: abbreviated journal title '"+value+"'")
                         counterFlawedNames += 1
 
@@ -498,7 +501,7 @@ html.write("</ul></ul></div>")
 
 #bibTags.sort()
 for bibTag in bibTags:
-    print('Linje: ' + bibTag + '\n')
+    print(bibTag.replace('\n', ''))
     html.write(bibTag)
 html.write("</body></html>")
 html.close()

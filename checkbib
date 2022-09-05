@@ -118,10 +118,10 @@ done
 
 printf "\n===> Running %s %s ...\n" "$BCPY" "$BIBFILE"
 # Writing "$BCPY" in the next line will not work.
-$BCPY "$BIBFILE" | grep "flawed name\|missing field\|wrong type\|non-unique id" \
-    | sed 's/>/\n/g' | sed 's/</\n/g' \
-    | grep "div id\|flawed name\|missing field\|wrong type\|non-unique id" \
-    | sed "s/div id=/\n--> /" | sed "s/class=.*$//"> $BCPYLOG 2>&1
+$BCPY "$BIBFILE" | grep  "flawed name\|missing field\|wrong type\|non-unique id" \
+    | sed "s|^<div id=|WARN - |" | sed "s|</li></ul><form class='bibTag_control'>.*$||" \
+    | sed "s|class='bibTag .*<ul class='enumprob'><li>|, |" | sed "s|</li><li>|, |" \
+    > $BCPYLOG 2>&1
 cat $BCPYLOG
 {
     printf "\n--------------------------------------------------\n===> Message from %s:\n" "$BCPY"

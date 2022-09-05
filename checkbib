@@ -14,7 +14,7 @@ BCPYLOG="bcpy.log"
 BIBERLOG="biber.log"
 
 # Check whether biber is available with a high enough version.
-BIBER_MINVER=2.17
+BIBER_MINVER=2.14
 if ! command -v biber &> /dev/null ; then
     printf "\nbiber version >= %s is needed, but biber is not found.\n\n"  "$BIBER_MINVER"
     exit 3

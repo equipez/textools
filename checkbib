@@ -13,6 +13,17 @@ LOG="$(basename -- "$0").log"
 BCPYLOG="bcpy.log"
 BIBERLOG="biber.log"
 
+# Check whether biber is available with a high enough version.
+BIBER_MINVER=2.17
+if ! command -v biber &> /dev/null ; then
+    printf "\nbiber version >= %s is needed, but biber is not found.\n\n"  "$BIBER_MINVER"
+    exit 3
+fi
+BIBER_VER="$(biber --version | grep -Eo '[0-9]\.[0-9]+' | head -1)"
+if (( $(echo "$BIBER_MINVER > $BIBER_VER" | bc -l) )); then
+    printf "\nbiber version >= %s is needed, but the current version is %s.\n\n"  "$BIBER_MINVER" "$BIBER_VER"
+    exit 3
+fi
 
 if [[ $# -gt 2 ]]; then
     printf "Usage: checkbib [-l|--latex] [BIBFILE_NAME] \n"

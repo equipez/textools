@@ -34,14 +34,15 @@ LIBGEN="http://libgen.rs/search.php?req="
 # Libgen for articles
 LIBGENART="http://libgen.rs/scimag/?q="
 # Temporary html file
-TMPHTML="$TIME-getref.html"
+TMPDIR="$(mktemp -d)"
+TMPHTML="$TMPDIR/$TIME-getref.html"
 
 
 ########################################### FUNCTIONS ##############################################
 clean_title () {
     if [[ $# -ne 1 ]]; then
         printf "\n Error: $0 needs one argument.\n"
-        exit -1
+        exit 1
     fi
     echo "$1" | sed 's/{//g' | sed 's/}//g' | sed 's/(//g' | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g' \
         | sed "s/'//" | sed 's/"//g' | sed 's/`//g' | sed 's/^//g' | sed 's/~//g' \
@@ -51,7 +52,7 @@ clean_title () {
 underscore_title () {
     if [[ $# -ne 1 ]]; then
         printf "\n Error: $0 needs one argument.\n"
-        exit -1
+        exit 1
     fi
     echo "$1" | sed -r 's/[^a-zA-Z0-9]+/_/g' | sed 's/_$//' | sed 's/^_//'
 }
@@ -59,7 +60,7 @@ underscore_title () {
 fix_url() {
     if [[ $# -ne 1 ]]; then
         printf "\n Error: $0 needs one argument.\n"
-        exit -1
+        exit 1
     fi
     if echo $1 | grep -q '^\/\/' ; then
         echo "http:$1"
@@ -73,7 +74,7 @@ fix_url() {
 # Parse the arguments
 if [[ $# -gt 6 ]]; then
     printf "Usage: getref BIB_ENTRY_ID|REFERENCE_TITLE [-b|--bib BIB_FILE_NAME] [-f|--from REFERENCE_FILE] [-l|--livre]\n"
-    exit -1
+    exit 1
 fi
 
 while [[ -n "$1" ]]; do
@@ -208,7 +209,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
         UNDERSCORED_REFTITLE="$UNDERSCORED_REFTITLE_IN_BIBFILE"
     elif [[ -z "$REFTITLE_IN_BIBFILE" ]] && [[ -z "$REFTITLE" ]]; then
         printf "\nThe title of the reference cannot be decided.\n\n"
-        exit -2
+        exit 2
     fi
 elif ! [[ -z "$REFTITLE" ]]; then
     for FILE in $BIBFILES; do
@@ -252,7 +253,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
     fi
 else
     printf "\nNo bib entry id or reference title received.\n\n"
-    exit -3
+    exit 3
 fi
 
 
@@ -274,7 +275,7 @@ fi
 if ! [[ -z "$INPUTREF" ]]; then
     if  [[ -z "$BIBENTRYID" ]] || [[ -z "$REFTITLE" ]]; then
         printf "\nNo bib entry id received or the reference does not exist in the bib file(s).\n\n"
-        exit -3
+        exit 3
     fi
     if echo "$INPUTREF" | grep -q "^http://\|^https://\|^ftp://" ; then
         TMPREF="$TIME-ref"
@@ -356,7 +357,7 @@ rm "$TMPHTML"
 if [[ $SUCCESS -eq 0 ]]; then
     printf "Failed to get \n\n      $REFTITLE\n\n"
     printf "Download it manually and name it to\n\n      $REFFILE\n\n"
-    exit -4
+    exit 4
 fi
 
 FILETYPE=$(file "$REFFILE" | tr '[:upper:]' '[:lower:]')
@@ -372,7 +373,7 @@ elif echo "$FILETYPE" | grep -q "dvi"; then
 elif echo "$FILETYPE" | grep -q "empty"; then
     printf "Failed to get \n\n      $REFTITLE\n\n"
     printf "Download it manually and name it to\n\n      $REFFILE\n\n"
-    exit -4
+    exit 4
 else
     printf "\nUnkown file type:\n"
     printf "$(file "$REFFILE")\n\n"

@@ -17,7 +17,7 @@ rm -f "$REFTOGET"
 # Parse the arguments
 if [[ $# -gt 4 ]]; then
     printf "Usage: reftoget [-b|--bib BIB_FILE_NAME] [-d|--dir REFERENCE_DIRECTORY]\n"
-    exit -1
+    exit 1
 fi
 
 while [[ -n "$1" ]]; do

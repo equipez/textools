@@ -13,7 +13,7 @@ BIBFILE=""
 
 if [[ $# -gt 2 ]]; then
     printf "Usage: showbib [-l|--latex] [BIBFILE_NAME] \n"
-    exit -1
+    exit 1
 fi
 
 # Parse the arguments
@@ -43,12 +43,12 @@ if [[ -z "${BIBFILE##*/}" ]]; then
     echo ""
 	echo "No bib file found."
     echo ""
-	exit -2
+	exit 2
 elif [[ ! -f "$BIBFILE" ]]; then
     echo ""
     echo "$BIBFILE does not exist."
     echo ""
-	exit -2
+	exit 2
 fi
 
 # Decide whether this is a BibLaTeX file or a BibTeX file.

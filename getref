@@ -228,7 +228,7 @@ elif ! [[ -z "$REFTITLE" ]]; then
         CLEANED_FILE=$(clean_title "$CLEANED_FILE")
         CLEANED_FILE=$(echo "$CLEANED_FILE" | sed -r 's/[^a-zA-Z0-9@=]+/_/g')
         BIBENTRYID=$(echo "$CLEANED_FILE" \
-            | grep "_title=${UNDERSCORED_REFTITLE}_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
+            | grep -i "_title=${UNDERSCORED_REFTITLE}_$LINEBREAKER\|_title=$UNDERSCORED_REFTITLE$LINEBREAKER" | head -1 \
             | sed "s/^.*@@\s*//" \
             | sed "s/_$LINEBREAKER.*$//" \
             | sed 's/^\s*//' \

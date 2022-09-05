@@ -130,8 +130,9 @@ rm $BCPYLOG
 rm $BCPYOUTPUT
 
 printf "\n===> Running biber --tool -V %s ...\n" "$BIBFILE"
+# Ignore warnings on `year = {2002 (to appear)}`
 biber --tool -V "$BIBFILE" \
-    | grep -v "legacy year field .* is not an integer - this will probably not sort properly" \  # Ignore warnings on `year = {2002 (to appear)}`
+    | grep -v "legacy year field .* is not an integer - this will probably not sort properly" \
     | grep -v "Invalid value of field 'year' must be datatype 'datepart' - ignoring field" \
     | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' > "$BIBERLOG" 2>&1
 rm "$BIBFILE.blg"

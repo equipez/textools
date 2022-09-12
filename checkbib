@@ -5,6 +5,8 @@
 # If -l|--latex is present, then checkbib checks the file as a BibLaTeX file; otherwise, it checks
 # the file as a BibTeX file.
 
+RELAXED_ENTRIES="Delbos_Gratton_Pauwels_Zhang_2020\|Gratton_Vicente_Zhang_2021\|Zhang_newuoas"
+
 BIBLATEX=0
 BIBFILE=""
 
@@ -121,6 +123,7 @@ $BCPY "$BIBFILE" | grep  "flawed name\|missing field\|wrong type\|non-unique id"
     | grep -v "arXiv" \
     | sed "s|^<div id=|WARN - |" | sed "s|</li></ul><form class='bibTag_control'>.*$||" \
     | sed "s|class='bibTag .*<ul class='enumprob'><li>|, |" | sed "s|</li><li>|, |" \
+    | grep -v "$RELAXED_ENTRIES" \
     > $BCPYLOG 2>&1
 cat $BCPYLOG
 {
@@ -140,6 +143,7 @@ biber --tool -V "$BIBFILE" \
     | grep -v "Entry 'Gallard_etal_2018'.*Missing mandatory field 'editor'" \
     | grep -v "Entry 'Kennedy_Martins_2013'.*Missing mandatory field 'editor'" \
     | grep -v "Entry 'Yao_etal_2019'.*Missing mandatory field 'editor'" \
+    | grep -v "$RELAXED_ENTRIES" \
     > "$BIBERLOG" 2>&1
 rm "$BIBFILE.blg"
 BIBDIR="$(dirname "${BIBFILE}")"

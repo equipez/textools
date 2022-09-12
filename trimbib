@@ -363,7 +363,7 @@ else
 fi
 
 {
-    printf "\n***************** checkbib.log after trimming ****************"
+    printf "\n***************** checkbib.log after trimming ****************\n"
     cat $CHECKBIBLOG
     printf "\n"
 } >> $CHECKBIBLOG.bak
@@ -372,7 +372,7 @@ mv $CHECKBIBLOG.bak $CHECKBIBLOG
 cat "$CHECKBIBLOG"  | cat - "$TRIMBIBLOG" > "tmp-$TIME" && mv "tmp-$TIME" $TRIMBIBLOG
 rm $CHECKBIBLOG
 
-printf "Done. See %s for %s and the difference due to the trimming." "$TRIMBIBLOG" "$CHECKBIBLOG"
+printf "Done. See %s for %s and the difference due to the trimming.\n" "$TRIMBIBLOG" "$CHECKBIBLOG"
 if [[ $BIBDIFFERENT -eq 1 ]]; then
     printf "\nA copy of the original bib file is saved at %s" "$BAKDIR/$BAKBIBFILE"
     printf "\nA copy of the original bib file is saved at %s" "$BAKDIR/$BAKBIBFILE" >> $TRIMBIBLOG

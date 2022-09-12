@@ -160,6 +160,6 @@ cat $BIBERLOG
 } >> "$LOG"
 rm $BIBERLOG
 
-printf "\nDone. Log written in %s.\n" "$LOG"
+printf "\nDone. Log written in %s.\n\n" "$LOG"
 
 exit 0

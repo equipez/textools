@@ -20,6 +20,7 @@
 
 %% Basic packages
 \usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{mathtools}  % Provides \coloneqq
 \usepackage{empheq}
 \usepackage{xcolor}
 \usepackage[bbgreekl]{mathbbol}
@@ -85,6 +86,7 @@
 %% N.B.: DO NOT use `silence` together with `hyperref`. They will cause an infinite loop.
 \ifdraft{
 \usepackage{silence}
+\WarningFilter{xcolor}{Incompatible color definition on}
 \WarningFilter{hyperref}{Draft mode on}
 \WarningFilter{refcheck}{Unused label}
 \WarningFilter{microtype}{`draft' option active}
@@ -320,11 +322,18 @@
 \newcommand{\TYPO}[1]{{\color{orange}{#1}}}
 \newcommand{\MISTAKE}[1]{{\color{violet}{#1}}}
 \newcommand{\REPHRASE}[1]{{\color{darkgreen}{#1}}}
-\newcommand{\REVISION}[1]{{\color{blue}{#1}}}
-\newcommand{\REVISIONred}[1]{{\color{red}{#1}}}
-\newcommand{\COMMENT}[1]{\textcolor{brown}{{\small{(comment: #1)}}}}
-%\newcommand{\REVISION}[1]{#1}
-%\newcommand{\REVISIONred}[1]{#1}
+\newcommand{\REVISE}[1]{{\color{blue}{#1}}}
+\newcommand{\REVISEred}[1]{{\color{red}{#1}}}
+\newcommand{\COMMENT}{\todo}  % Needs the todonotes package
+%\newcommand{\COMMENT}[1]{\textcolor{brown}{{\small{(comment: #1)}}}}  % This puts comments inline
+
+% Use the following if revision is finished
+%\newcommand{\TYPO}{}
+%\newcommand{\MISTAKE}{}
+%\newcommand{\REPHRASE}{}
+%\newcommand{\REVISE}{}
+%\newcommand{\REVISEred}{}
+%\newcommand{\COMMENT}[1]{}  % Input ignored.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

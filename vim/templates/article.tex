@@ -8,6 +8,7 @@
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
 \newcommand{\universalbib}{/home/zaikunzhang/Bureau/bibliographie/ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
+% 20221018: \iscite does not work as intended.
 \newcommand{\iscite}{0}  % \iscite=0: without citation; \iscite=1: with citation
 \def\oldcite{} \let\oldcite=\cite \def\cite{\renewcommand\iscite{1}\oldcite}
 
@@ -286,6 +287,8 @@
 \renewcommand{\ggg}{\mathbf{g}}
 \newcommand{\GG}{\mathbf{G}}
 \renewcommand{\Pr}{\mathbb{P}}
+\newcommand{\lb}{\underline}
+\newcommand{\ub}{\overline}
 
 % mathlcal font
 \DeclareFontFamily{U}{dutchcal}{\skewchar\font=45 }
@@ -364,6 +367,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% References
 % Include references only if \iscite=1, i.e., there are citations.
+% 20221018: This part does not work as intended. Seems that \iscite is always 0. To be investigated.
 \ifnum\iscite=1
 \small
 \bibliography{\bibfile}

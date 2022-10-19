@@ -105,6 +105,7 @@ CAPITAL_WORDS="Yuan Powell \
     Turing Knuth Dirichlet Poisson DtN Steklov Courant Hausdorff Hoffman Taylor Nesterov Polyak \
     Lasso LASSO ADMM APG FISTA CPU FPU GPU Hadamard Weierstrass Liouville Abel Abelian Galois \
     Hamilton Hamiltonian Atiyah Fourier Gronwall Bellman LaSalle Bihari Monte Carlo Sobolev \
+    Frank Wolfe \
     Ky Fan \
     Gram Schmidt \
     Poincare Poincar.*\\\\'e.* Poincar.*\\\\'{e}.* \

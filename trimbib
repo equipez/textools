@@ -81,7 +81,7 @@ elif [[ ! -f "$BIBFILE" ]]; then
 	exit 2
 fi
 
-if grep -q "journaltitle\s*=\s*\|date\s*=\s*\|location\s*=\s*\|type\s*=\s*" "$BIBFILE" ; then
+if grep -q "journaltitle[[:space:]]*=[[:space:]]*\|date[[:space:]]*=[[:space:]]*\|location[[:space:]]*=[[:space:]]*\|type[[:space:]]*=[[:space:]]*" "$BIBFILE" ; then
     USER_INPUT_LATEX=1
 else
     USER_INPUT_LATEX=0
@@ -138,29 +138,29 @@ cp "$BIBFILE" "$INPUTBIB"
 # Pre-process the bib file if the output is a BibTeX file. This is necessary if the input is BibLaTeX.
 LINEBREAKER="LINEBREAKERSTARTING$(date +%s)LINEBREAKERENDING"
 if [[ $BIBLATEX -eq 0 ]] ; then
-    sed '/^\s*%/d' "$INPUTBIB" | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 \
-        | sed "s/$LINEBREAKER\s*@/\n@/g" | sed "s/$LINEBREAKER//g" > "$TMPBIB"
+    sed '/^[[:space:]]*%/d' "$INPUTBIB" | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 \
+        | sed "s/$LINEBREAKER[[:space:]]*@/\n@/g" | sed "s/$LINEBREAKER//g" > "$TMPBIB"
     {
         grep -v "techreport\|phdthesis\|masterthesis" "$TMPBIB"
-        grep techreport "$TMPBIB" | sed 's/^\s*@report/@techreport/' | sed 's/type\s*=\s*{.*}\s*,//'
-        grep phdthesis "$TMPBIB" | sed 's/^\s*@thesis/@phdthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
+        grep techreport "$TMPBIB" | sed 's/^[[:space:]]*@report/@techreport/' | sed 's/type[[:space:]]*=[[:space:]]*{.*}[[:space:]]*,//'
+        grep phdthesis "$TMPBIB" | sed 's/^[[:space:]]*@thesis/@phdthesis/' | sed 's/type[[:space:]]*=[[:space:]]*{.*}[[:space:]]*,//' \
             | sed 's/institution/school/'
-        grep masterthesis "$TMPBIB" | sed 's/^\s*@thesis/@masterthesis/' | sed 's/type\s*=\s*{.*}\s*,//' \
+        grep masterthesis "$TMPBIB" | sed 's/^[[:space:]]*@thesis/@masterthesis/' | sed 's/type[[:space:]]*=[[:space:]]*{.*}[[:space:]]*,//' \
             | sed 's/institution/school/'
     } > "$OUTPUTBIB"
     rm -f "$TMPBIB"
-    sed -i 's/,\s*journaltitle\s*=\s*/,journal=/' "$OUTPUTBIB"
-    sed -i 's/,\s*date\s*=\s*/,year=/' "$OUTPUTBIB"
-    sed -i 's/,\s*location\s*=\s*/,address=/' "$OUTPUTBIB"
+    sed -i 's/,[[:space:]]*journaltitle[[:space:]]*=[[:space:]]*/,journal=/' "$OUTPUTBIB"
+    sed -i 's/,[[:space:]]*date[[:space:]]*=[[:space:]]*/,year=/' "$OUTPUTBIB"
+    sed -i 's/,[[:space:]]*location[[:space:]]*=[[:space:]]*/,address=/' "$OUTPUTBIB"
     mv "$OUTPUTBIB" "$INPUTBIB"
 fi
 
 # Print the macros in $INPUTBIB to $BIBMACROS
 printf "\nSorting the macros ..."
-grep "^\s*@string{\|^\s*@String{\|^\s*@STRING{" "$INPUTBIB" | sed 's/.*@/@/' \
+grep "^[[:space:]]*@string{\|^[[:space:]]*@String{\|^[[:space:]]*@STRING{" "$INPUTBIB" | sed 's/.*@/@/' \
     | sed 's/@String/@string/' | sed 's/@STRING/@string/' \
-    | sed 's/\.\s*"\s*}/\."}/' \
-    | sed 's/\s*=\s*/\ =\ /' \
+    | sed 's/\.[[:space:]]*"[[:space:]]*}/\."}/' \
+    | sed 's/[[:space:]]*=[[:space:]]*/\ =\ /' \
     > "$BIBMACROS"
 
 
@@ -316,18 +316,19 @@ fi
     printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n"
 } > "$OUTPUTBIB"
 
-#grep -q -v '^\s*$' "$BIBMACROS"  > /dev/null  # Check whether $BIBMACROS is empty.
-if grep -q -v '^\s*$' "$BIBMACROS"  > /dev/null ; then
+#grep -q -v '^[[:space:]]*$' "$BIBMACROS"  > /dev/null  # Check whether $BIBMACROS is empty.
+if grep -q -v '^[[:space:]]*$' "$BIBMACROS"  > /dev/null ; then
 {
     printf "%% String macros for abbreviations of names of serials.\n"
     printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
-    sed -r '/^\s*$/d' "$BIBMACROS" | sort -u
+    sed -r '/^[[:space:]]*$/d' "$BIBMACROS" | sort -u
     printf "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MACRO_END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n"
 } >> "$OUTPUTBIB"
 fi
 rm "$BIBMACROS"
 
-cat "$BIBENTRIES" >> "$OUTPUTBIB"
+sed "s|\=[[:space:]]{Rev. fr. inform. rech. op\\\\'{e}r.}|\= rfrio|g" "$BIBENTRIES" \
+    >> "$OUTPUTBIB"
 rm "$BIBENTRIES"
 
 
@@ -339,7 +340,7 @@ BIBDIFFERENT=0
 if [[ -f "$OUTPUTFILE" ]]; then
     printf "****** Difference between the trimmed bib and the original %s ******\n" "$OUTPUTFILE" > $TRIMBIBLOG
     # Remove the comments before comparing.
-    diff <(grep -v "^\s*%" "$OUTPUTBIB") <(grep -v "^\s*%" "$OUTPUTFILE") >> $TRIMBIBLOG
+    diff <(grep -v "^[[:space:]]*%" "$OUTPUTBIB") <(grep -v "^[[:space:]]*%" "$OUTPUTFILE") >> $TRIMBIBLOG
     if [[ $? -eq 1 ]]; then
         BIBDIFFERENT=1
         # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.

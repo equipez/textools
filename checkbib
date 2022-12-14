@@ -5,7 +5,7 @@
 # If -l|--latex is present, then checkbib checks the file as a BibLaTeX file; otherwise, it checks
 # the file as a BibTeX file.
 
-RELAXED_ENTRIES="Delbos_Gratton_Pauwels_Zhang_2020\|Gratton_Vicente_Zhang_2021\|Zhang_newuoas\|Polak_Ribiere_1969\|_short"
+RELAXED_ENTRIES="Delbos_Gratton_Pauwels_Zhang_2020\|Gratton_Vicente_Zhang_2021\|Zhang_newuoas\|_short" #"\|Polak_Ribiere_1969\|_short"
 
 BIBLATEX=0
 BIBFILE=""

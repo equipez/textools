@@ -327,8 +327,10 @@ if grep -q -v '^[[:space:]]*$' "$BIBMACROS"  > /dev/null ; then
 fi
 rm "$BIBMACROS"
 
-sed "s|\=[[:space:]]{Rev. fr. inform. rech. op\\\\'{e}r.}|\= rfrio|g" "$BIBENTRIES" \
-    >> "$OUTPUTBIB"
+# On Linux, rfrio is always expanded to {Rev. fr. inform. rech. op\'{e}r.} in $BIBENTRIES. The
+# following line changes it back.
+sed "s|\=[[:space:]]{Rev. fr. inform. rech. op\\\\'{e}r.}|\= rfrio|g" "$BIBENTRIES" >> "$OUTPUTBIB"
+
 rm "$BIBENTRIES"
 
 

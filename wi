@@ -1,12 +1,15 @@
 #!/bin/bash
-# wi, a Writing Improver based on 
+# wi, a Writing Improver based on
 # http://matt.might.net/articles/shell-scripts-for-passive-voice-weasel-words-duplicates/
 
+# The directory where this scrip resides
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 echo "weasel words: "
-sh ~/local/bin/weasel $1 
+bash "$THIS_DIR"/weasel $1
 echo
 echo "passive voice: "
-sh ~/local/bin/passive $1 
+bash "$THIS_DIR"/passive $1
 echo
 echo "duplicates: "
-perl ~/local/bin/dups $1 
+perl "$THIS_DIR"/dups $1

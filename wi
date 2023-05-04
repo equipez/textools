@@ -1,0 +1,12 @@
+#!/bin/bash
+# wi, a Writing Improver based on 
+# http://matt.might.net/articles/shell-scripts-for-passive-voice-weasel-words-duplicates/
+
+echo "weasel words: "
+sh ~/local/bin/weasel $1 
+echo
+echo "passive voice: "
+sh ~/local/bin/passive $1 
+echo
+echo "duplicates: "
+perl ~/local/bin/dups $1 

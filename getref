@@ -188,7 +188,7 @@ if ! [[ -z "$BIBENTRYID" ]]; then
     if ! [[ -z "$REFTITLE_IN_BIBFILE" ]] && ! [[ -z "$REFTITLE" ]]; then
         if [[ $(echo "$UNDERSCORED_REFTITLE_IN_BIBFILE" | tr '[:upper:]' '[:lower:]') != $(echo "$UNDERSCORED_REFTITLE" | tr '[:upper:]' '[:lower:]') ]]; then
             read -n1 -s -r -p \
-                $"\nThe reference title and bib entry id contrdicts each other:\
+                $"\nThe reference title and bib entry id contradicts each other:\
                 \nIn "$FILE", the title of "$BIBENTRYID" is:\
                 \n"$REFTITLE_IN_BIBFILE"\
                 \nContinue to get the reference? [Y/n]\

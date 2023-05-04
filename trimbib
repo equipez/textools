@@ -345,7 +345,7 @@ if [[ -f "$OUTPUTFILE" ]]; then
     diff <(grep -v "^[[:space:]]*%" "$OUTPUTBIB") <(grep -v "^[[:space:]]*%" "$OUTPUTFILE") >> $TRIMBIBLOG
     if [[ $? -eq 1 ]]; then
         BIBDIFFERENT=1
-        # $BAKDIR/$FULLBIBNAME-lastes_backup is always the latest backup.
+        # $BAKDIR/$FULLBIBNAME-latest_backup is always the latest backup.
         mkdir -p $BAKDIR
         cp "$OUTPUTFILE" "$BAKDIR/$FULLBIBNAME-latest_backup"
     	mv "$OUTPUTFILE" "$BAKDIR/$BAKBIBFILE"

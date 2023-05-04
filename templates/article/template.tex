@@ -1,4 +1,3 @@
-<+	+>	!comp!	!exe!
 %\documentclass[12pt,a4paper]{article}  % Use this line if this document will be released
 \documentclass[12pt,a4paper,draft]{article}  % Use this line if this document is a draft
 \usepackage{ifdraft}
@@ -6,7 +5,11 @@
 
 %% Bibliography
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
-\newcommand{\universalbib}{/home/zaikunzhang/Bureau/bibliographie/ref.bib}
+% ref.bib should be a symbolic link to the universal BibTeX file, which should be a local copy of
+% https://github.com/equipez/bibliographie/blob/main/ref.bib
+% When the paper is finished, run `getbib` in the current directory to get the BibTeX file
+% containing only the cited references. The name will be xyz.bib if this TeX file is xyz.tex.
+\newcommand{\universalbib}{ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
 % 20221018: \iscite does not work as intended.
 \newcommand{\iscite}{0}  % \iscite=0: without citation; \iscite=1: with citation
@@ -60,11 +63,11 @@
 
 %% Todo notes
 \ifdraft{
-\setlength{\marginparwidth}{2.42cm}
-\usepackage[tickmarkheight=3pt,textsize=small,backgroundcolor=blue!16,linecolor=purple,bordercolor=purple]{todonotes}
+    \setlength{\marginparwidth}{2.42cm}
+    \usepackage[tickmarkheight=3pt,textsize=small,backgroundcolor=blue!16,linecolor=purple,bordercolor=purple]{todonotes}
 }{
-\newcommand{\todo}[1]{}
-\newcommand{\listoftodos}{}
+    \newcommand{\todo}[1]{}
+    \newcommand{\listoftodos}{}
 }
 
 
@@ -86,25 +89,25 @@
 %% Turn off some unharmful warnings in draft mode
 %% N.B.: DO NOT use `silence` together with `hyperref`. They will cause an infinite loop.
 \ifdraft{
-\usepackage{silence}
-\WarningFilter{xcolor}{Incompatible color definition on}
-\WarningFilter{hyperref}{Draft mode on}
-\WarningFilter{refcheck}{Unused label}
-\WarningFilter{microtype}{`draft' option active}
-\WarningFilter{latex}{Writing or overwriting file} % Mute the warning about 'writing/overwriting file'
-\WarningFilter{latex}{Writing file} % Mute the warning about 'writing/overwriting file'
-\WarningFilter{latex}{Tab has} % Mute the warning about 'Tab has been converted to Blank Space'
-\WarningFilter{latex}{Marginpar on page} % Mute the warning about 'Marginpar on page xx moved'
-\WarningFilter{latex}{author given} % Mute the warning about 'No \author given'
+    \usepackage{silence}
+    \WarningFilter{xcolor}{Incompatible color definition on}
+    \WarningFilter{hyperref}{Draft mode on}
+    \WarningFilter{refcheck}{Unused label}
+    \WarningFilter{microtype}{`draft' option active}
+    \WarningFilter{latex}{Writing or overwriting file} % Mute the warning about 'writing/overwriting file'
+    \WarningFilter{latex}{Writing file} % Mute the warning about 'writing/overwriting file'
+    \WarningFilter{latex}{Tab has} % Mute the warning about 'Tab has been converted to Blank Space'
+    \WarningFilter{latex}{Marginpar on page} % Mute the warning about 'Marginpar on page xx moved'
+    \WarningFilter{latex}{author given} % Mute the warning about 'No \author given'
 }{}
 
 
 %% Hyperref
 %% N.B.: DO NOT use `silence` together with `hyperref`. They will cause an infinite loop.
 \ifdraft{\usepackage{refcheck}}{
-\usepackage{hyperref}
-\hypersetup{colorlinks, linkcolor=darkblue, anchorcolor=darkblue, citecolor=darkblue, urlcolor=darkblue}
-\usepackage{url}
+    \usepackage{hyperref}
+    \hypersetup{colorlinks, linkcolor=darkblue, anchorcolor=darkblue, citecolor=darkblue, urlcolor=darkblue}
+    \usepackage{url}
 } % Check unused labels
 
 
@@ -341,15 +344,16 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{ <++>}
+\title{Template}
 
 \date{\DTMnow}
 
-\author{<++>
-\thanks{<++>}
-%\and
-%Author2
-%\thanks{Information2}
+\author{
+    Zaikun Zhang\thanks{The Hong Kong Polytechnic University, Hong Kong, China. Email:
+    \texttt{zaikun.zhang@polyu.edu.hk}.}
+    %\and
+    %Author2
+    %\thanks{Information2}
 }
 
 
@@ -363,16 +367,18 @@
 %\textbf{Keywords}: Keyword1, Keyword2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-<++>
+This is an article template for the team of Zaikun Zhang.
+
+\cite{Zhang_2014}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% References
 % Include references only if \iscite=1, i.e., there are citations.
 % 20221018: This part does not work as intended. Seems that \iscite is always 0. To be investigated.
 \ifnum\iscite=1
-\small
-\bibliography{\bibfile}
-\bibliographystyle{plain}
+    \small
+    \bibliography{\bibfile}
+    \bibliographystyle{plain}
 \fi
 
 %% The end

@@ -4,6 +4,7 @@
 
 
 %% Bibliography
+\usepackage{etoolbox}
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
 % ref.bib should be a symbolic link to the universal BibTeX file, which should be a local copy of
 % https://github.com/equipez/bibliographie/blob/main/ref.bib
@@ -12,8 +13,9 @@
 \newcommand{\universalbib}{ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
 % 20221018: \iscite does not work as intended.
-\newcommand{\iscite}{0}  % \iscite=0: without citation; \iscite=1: with citation
-\def\oldcite{} \let\oldcite=\cite \def\cite{\renewcommand\iscite{1}\oldcite}
+% The counter `cite' is used to count the number of citations.
+\newcounter{cite}
+\pretocmd{\cite}{\stepcounter{cite}}{}{}
 
 
 %% Geometry
@@ -373,8 +375,8 @@ This is an article template for the team of Zaikun Zhang.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% References
-% Include references only if \iscite=1, i.e., there are citations.
-\ifnum\iscite=1
+% Include references only if there are citations.
+\ifnum\value{cite}>0
     \small
     \bibliography{\bibfile}
     \bibliographystyle{plain}

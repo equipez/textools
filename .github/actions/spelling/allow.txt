@@ -1286,3 +1286,7 @@ bibentries
 BIBFILES
 bibmacros
 https
+etoolbox
+ewcounter
+pretocmd
+stepcounter

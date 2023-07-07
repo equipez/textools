@@ -5,12 +5,18 @@
 
 
 %% Bibliography
+\usepackage{etoolbox}
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
+% ref.bib should be a symbolic link to the universal BibTeX file, which should be a local copy of
+% https://github.com/equipez/bibliographie/blob/main/ref.bib
+% When the paper is finished, run `getbib` in the current directory to get the BibTeX file
+% containing only the cited references. The name will be xyz.bib if this TeX file is xyz.tex.
 \newcommand{\universalbib}{/home/zaikunzhang/Bureau/bibliographie/ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
 % 20221018: \iscite does not work as intended.
-\newcommand{\iscite}{0}  % \iscite=0: without citation; \iscite=1: with citation
-\def\oldcite{} \let\oldcite=\cite \def\cite{\renewcommand\iscite{1}\oldcite}
+% The counter `cite' is used to count the number of citations.
+\newcounter{cite}
+\pretocmd{\cite}{\stepcounter{cite}}{}{}
 
 
 %% Geometry
@@ -99,13 +105,14 @@
 }{}
 
 
-%% Hyperref
+%% Hyperref, url, and email
 %% N.B.: DO NOT use `silence` together with `hyperref`. They will cause an infinite loop.
-\ifdraft{\usepackage{refcheck}}{
+\ifdraft{\usepackage{refcheck}\newcommand{\url}{\texttt}}{
 \usepackage{hyperref}
 \hypersetup{colorlinks, linkcolor=darkblue, anchorcolor=darkblue, citecolor=darkblue, urlcolor=darkblue}
 \usepackage{url}
 } % Check unused labels
+\newcommand{\email}{\texttt}
 
 
 %% Enumerate and itemize
@@ -127,20 +134,20 @@
 
 
 %% Theorem-like environments
-\newtheorem{theorem}{Theorem}%[section]
-\newtheorem{conjecture}{Conjecture}%[section]
-\newtheorem{corollary}{Corollary}%[section]
-\newtheorem{exercise}{Exercise}%[section]
-\newtheorem{lemma}{Lemma}%[section]
-\newtheorem{problem}{Problem}%[section]
-\newtheorem{proposition}{Proposition}%[section]
-\newtheorem{assumption}{Assumption}%[section]
-\newtheorem{example}{Example}%[section]
-\newtheorem{question}{Question}%[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{conjecture}{Conjecture}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{exercise}{Exercise}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{problem}{Problem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{example}{Example}[section]
+\newtheorem{question}{Question}[section]
 % Change theoremstyle to ``definition'', which uses textnormal for the text.
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}%[section]
-\newtheorem{remark}{Remark}%[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{remark}{Remark}[section]
 % proof
 \usepackage{xpatch}
 \xpatchcmd{\proof}{\itshape}{\normalfont\proofnamefont}{}{}
@@ -367,9 +374,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% References
-% Include references only if \iscite=1, i.e., there are citations.
-% 20221018: This part does not work as intended. Seems that \iscite is always 0. To be investigated.
-\ifnum\iscite=1
+% Include references only if there are citations.
+\ifnum\value{cite}>0
 \small
 \bibliography{\bibfile}
 \bibliographystyle{plain}

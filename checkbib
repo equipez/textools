@@ -124,6 +124,7 @@ $BCPY "$BIBFILE" | grep  "flawed name\|missing field\|wrong type\|non-unique id"
     | grep -v "arXiv" \
     | sed "s|^<div id=|WARN - |" | sed "s|</li></ul><form class='bibTag_control'>.*$||" \
     | sed "s|class='bibTag .*<ul class='enumprob'><li>|, |" | sed "s|</li><li>|, |" \
+    | grep -vi "'Reddi_Kale_Kumar_2018'.*missing field 'pages'" \
     | grep -v "$RELAXED_ENTRIES" \
     > $BCPYLOG 2>&1
 cat $BCPYLOG
@@ -140,10 +141,11 @@ printf "\n===> Running biber --tool -V %s ...\n" "$BIBFILE"
 biber --tool -V "$BIBFILE" \
     | grep -v  "Invalid value of field 'volume' must be datatype 'integer' - ignoring field" \
     | grep -v "INFO" | grep -v "_publisher" | grep -v "_number" | sed 's/skipping.*$//' \
-    | grep -v "Entry 'Conn_Scheinberg_Toint_1998'.*Missing mandatory field 'editor'" \
-    | grep -v "Entry 'Gallard_etal_2018'.*Missing mandatory field 'editor'" \
-    | grep -v "Entry 'Kennedy_Martins_2013'.*Missing mandatory field 'editor'" \
-    | grep -v "Entry 'Yao_etal_2019'.*Missing mandatory field 'editor'" \
+    | grep -vi "'Conn_Scheinberg_Toint_1998'.*missing mandatory field 'editor'" \
+    | grep -vi "'Gallard_etal_2018'.*missing mandatory field 'editor'" \
+    | grep -vi "'Kennedy_Martins_2013'.*missing mandatory field 'editor'" \
+    | grep -vi "'Yao_etal_2019'.*missing mandatory field 'editor'" \
+    | grep -vi "'Reddi_Kale_Kumar_2018'.*missing field 'pages'" \
     | grep -v "$RELAXED_ENTRIES" \
     > "$BIBERLOG" 2>&1
 rm "$BIBFILE.blg"

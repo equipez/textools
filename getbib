@@ -86,6 +86,9 @@ CITEDBIBS=$(grep bibcite "$AUXFILE" | sed 's/.*\\bibcite{//' | sed 's/}.*$//' | 
 CITEDBIBS_REDUCED="$CITEDBIBS"
 for FILE in $BIBDATAFILES
 do
+    if [[ ! -f $FILE && -f $FILE.bib ]]; then
+        FILE=$FILE.bib
+    fi
     CITEDBIBS="$CITEDBIBS_REDUCED"
     for BIB in $CITEDBIBS
     do

@@ -3,13 +3,13 @@
 LC := latexmk
 LCFLAGS := -file-line-error -halt-on-error -interaction=nonstopmode
 
-all: pdf bib
-
 pdf: *.tex
 	$(LC) $(LCFLAGS) $^
 
 bib: pdf *.bib
 	getbib
+
+all: pdf bib
 
 .PHONY: clean
 clean:

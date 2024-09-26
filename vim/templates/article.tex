@@ -11,7 +11,7 @@
 % https://github.com/equipez/bibliographie/blob/main/ref.bib
 % When the paper is finished, run `getbib` in the current directory to get the BibTeX file
 % containing only the cited references. The name will be xyz.bib if this TeX file is xyz.tex.
-\newcommand{\universalbib}{/home/zaikunzhang/Bureau/bibliographie/ref.bib}
+\newcommand{\universalbib}{ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
 % 20221018: \iscite does not work as intended.
 % The counter `cite' is used to count the number of citations.
@@ -223,7 +223,7 @@
 \newcommand{\TT}{\mathcal{T}}
 \newcommand{\ZZ}{\mathbb{Z}}
 \newcommand{\NN}{\mathbb{N}}
-\newcommand{\FF}{\mathbb{F}}
+\newcommand{\FF}{\mathcal{F}}
 \newcommand{\CC}{\mathbb{C}}
 \newcommand{\XX}{\mathcal{X}}
 \newcommand{\sset}{\mathcal{S}}
@@ -294,6 +294,7 @@
 \renewcommand{\pp}{\mathbf{p}}
 \renewcommand{\ggg}{\mathbf{g}}
 \newcommand{\GG}{\mathbf{G}}
+\DeclareMathOperator{\expc}{\mathbb{E}}
 \renewcommand{\Pr}{\mathbb{P}}
 \newcommand{\lb}{\underline}
 \newcommand{\ub}{\overline}

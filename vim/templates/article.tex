@@ -9,19 +9,25 @@
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
 % ref.bib should be a symbolic link to the universal BibTeX file, which should be a local copy of
 % https://github.com/equipez/bibliographie/blob/main/ref.bib
-% When the paper is finished, run `getbib` in the current directory to get the BibTeX file
-% containing only the cited references. The name will be xyz.bib if this TeX file is xyz.tex.
+% Run `getbib` in the current directory under the draft mode to get the BibTeX file containing only
+% the cited references. The name will be xyz.bib if this TeX file is xyz.tex.
 \newcommand{\universalbib}{ref.bib}
 \ifdraft{\IfFileExists{\universalbib}{\renewcommand{\bibfile}{\universalbib}}{}}{}
-% 20221018: \iscite does not work as intended.
 % The counter `cite' is used to count the number of citations.
 \newcounter{cite}
 \pretocmd{\cite}{\stepcounter{cite}}{}{}
 
 
+%% Add line numbers in draft mode
+\RequirePackage[mathlines]{lineno}
+\ifdraft{\linenumbers}{}
+\renewcommand{\linenumberfont}{\normalfont\scriptsize\sffamily\color{gray}}
+\setlength{\linenumbersep}{\marginparsep}
+
+
 %% Geometry
-\voffset=-1.5cm \hoffset=-1.4cm \textwidth=16cm \textheight=22.0cm  % Luis' setting
-%\usepackage[a4paper, textwidth=16.0cm, textheight=22.0cm]{geometry}
+%\voffset=-1.5cm \hoffset=-1.4cm \textwidth=16cm \textheight=22.0cm  % Luis' setting
+\usepackage[a4paper, textwidth=16.0cm, textheight=22.0cm]{geometry}
 \renewcommand{\baselinestretch}{1.2}
 
 
@@ -258,11 +264,12 @@
 \newcommand{\tg}{{\textnormal{g}}}
 \newcommand{\ts}{{\textnormal{s}}}
 \newcommand{\st}{\textnormal{s.t.}}
-\newcommand{\etc}{{etc.}}
-\newcommand{\ie}{{i.e.}}
-\newcommand{\eg}{{e.g.}}
-\newcommand{\etal}{{et al.}}
-\newcommand{\iid}{\text{i.i.d.}}
+\newcommand{\etc}{{etc.}\xspace}
+\newcommand{\ie}{{i.e.}\xspace}
+\newcommand{\eg}{{e.g.}\xspace}
+\newcommand{\etal}{{et al.}\xspace}
+\newcommand{\iid}{\text{i.i.d.}\xspace}
+\newcommand{\as}{\text{a.s.}\xspace}
 
 \newcommand{\me}{\mathrm{e}}
 \newcommand{\md}{\mathrm{d}}

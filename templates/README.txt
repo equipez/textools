@@ -6,6 +6,7 @@ https://github.com/equipez/bibliographie/blob/main/ref.bib
 
 Usage:
 
-- `make` or `make pdf` to get the pdf file.
-- `make bib` to get the BibTeX file.
+- `latexmk` or `make` or `make pdf` to get the pdf file.
+- `make bib` to get the BibTeX file; make sure to set the document to the draft mode, i.e., \documentclass[draft]{article}
 - `make all` to compile everything and get the BibTeX file.
+- `make clean` to clean up the directory.

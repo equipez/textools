@@ -1312,3 +1312,10 @@ texttt
 thepage
 todo
 ttt
+gmail
+lineno
+linenumberfont
+linenumbersep
+marginparsep
+mathlines
+scriptsize

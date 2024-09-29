@@ -1,7 +1,6 @@
 This directory contains LaTeX templates for the team of Dr. Zaikun Zhang.
 
-Before starting, under the directory containing the main TeX file, create a symbolic named "ref.bib"
-to the universal BibTeX file, which should be a local copy of
+Before starting, under the directory containing the main TeX file, create a symbolic link named "ref.bib" to the universal BibTeX file, which should be a local copy of
 https://github.com/equipez/bibliographie/blob/main/ref.bib
 
 Usage:

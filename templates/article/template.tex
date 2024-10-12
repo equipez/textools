@@ -80,7 +80,6 @@
 
 
 %% Graph, tikz and pgf
-%\usepackage{subfigure}
 \setlength{\unitlength}{1mm}
 % The \unitlength command is a Length command. It defines the units used in the Picture Environment.
 \usepackage{graphicx}
@@ -90,6 +89,8 @@
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepackage[justification=centering]{caption}
+\usepackage{subcaption}  % Provides the subfigure environment
+%\usepackage{subfigure}  % Obsolete
 \usepgfplotslibrary{fillbetween}
 \pgfplotsset{compat=1.11}
 
@@ -300,6 +301,8 @@
 \renewcommand{\pp}{\mathbf{p}}
 \renewcommand{\ggg}{\mathbf{g}}
 \newcommand{\GG}{\mathbf{G}}
+\DeclareMathOperator{\var}{Var}
+\DeclareMathOperator{\cov}{Cov}
 \DeclareMathOperator{\expc}{\mathbb{E}}
 \renewcommand{\Pr}{\mathbb{P}}
 \newcommand{\lb}{\underline}

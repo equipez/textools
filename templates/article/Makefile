@@ -14,5 +14,5 @@ all: pdf bib
 .PHONY: clean
 clean:
 	$(LC) -c
-	rm -f *.log *.aux *.bbl *.blg *.fdb_latexmk *.fls *.out *.synctex.gz *.toc *.bcf  \
+	rm -f *.dvi *.log *.aux *.bbl *.blg *.fdb_latexmk *.fls *.out *.synctex.gz *.toc *.bcf  \
 		*.synctex.gz\(busy\) *.synctex\(busy\) *.synctex.gz\(busy\)* *.synctex\(busy\)*

@@ -1,7 +1,14 @@
 ## latexmkrc
 ## Copyright 2023 Tom M. Ragonneau and Zaikun Zhang
 
-# Generate pdf using pdflatex
+# Generate pdf
+# Possible values for $pdf_mode are:
+# 0 = no pdf
+# 1 = pdflatex
+# 2 = pdf from ps
+# 3 = pdf from dvi
+# 4 = lualatex
+# 5 = xelatex
 $pdf_mode = 1;
 $postscript_mode = 0;
 $dvi_mode = 0;

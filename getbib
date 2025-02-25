@@ -95,6 +95,7 @@ do
         if grep -q "@.*{\s*$BIB\s*," "$FILE" ; then
             CITEDBIBS_REDUCED=$(echo "$CITEDBIBS_REDUCED" | sed "/^\s*$BIB\s*$/d")
             BIBENTRY=$(sed -n "/@.*{\s*$BIB/,/^\s*}/{p;/^\s*}/q}" "$FILE")
+            echo $BIBENTRY
             echo "" >> "$BIBENTRIES"
             echo "$BIBENTRY" >> "$BIBENTRIES"
             BIBMACRO=$(echo "$BIBENTRY" | grep "journal\s*=\|journaltitle\s*=\|series\s*=" \

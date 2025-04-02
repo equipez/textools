@@ -141,11 +141,11 @@ if [[ $BIBLATEX -eq 0 ]] ; then
     sed '/^[[:space:]]*%/d' "$INPUTBIB" | sed 's/%.*$//' | awk -v ORS="$LINEBREAKER" 1 \
         | sed "s/$LINEBREAKER[[:space:]]*@/\n@/g" | sed "s/$LINEBREAKER//g" > "$TMPBIB"
     {
-        grep -v "techreport\|phdthesis\|masterthesis" "$TMPBIB"
+        grep -v "techreport\|phdthesis\|mathesis" "$TMPBIB"
         grep techreport "$TMPBIB" | sed 's/^[[:space:]]*@report/@techreport/' | sed 's/type[[:space:]]*=[[:space:]]*{.*}[[:space:]]*,//'
         grep phdthesis "$TMPBIB" | sed 's/^[[:space:]]*@thesis/@phdthesis/' | sed 's/type[[:space:]]*=[[:space:]]*{.*}[[:space:]]*,//' \
             | sed 's/institution/school/'
-        grep masterthesis "$TMPBIB" | sed 's/^[[:space:]]*@thesis/@masterthesis/' | sed 's/type[[:space:]]*=[[:space:]]*{.*}[[:space:]]*,//' \
+        grep mathesis "$TMPBIB" | sed 's/^[[:space:]]*@thesis/@mastersthesis/' | sed 's/type[[:space:]]*=[[:space:]]*{.*}[[:space:]]*,//' \
             | sed 's/institution/school/'
     } > "$OUTPUTBIB"
     rm -f "$TMPBIB"
@@ -210,8 +210,8 @@ cat > biber.conf <<EOF
 	  		<field>journal</field>
 		</entryfields>
 		<entryfields>
-            <!--!!!For masterthesis, retain "school", "address", "note".!!!-->
-	  		<entrytype>masterthesis</entrytype>
+            <!--!!!For mastersthesis, retain "school", "address", "note".!!!-->
+	  		<entrytype>mastersthesis</entrytype>
 	  		<field>school</field>
 	  		<field>address</field>
 	  		<field>note</field>
@@ -240,14 +240,14 @@ cat >> biber.conf <<EOF
 EOF
 else
 cat >> biber.conf <<EOF
-	<!--!!!By default, biber maps "masterthesis" to "thesis" with a "type = {masterthesis}".!!!-->
+	<!--!!!By default, biber maps "mastersthesis" to "thesis" with a "type = {mathesis}".!!!-->
 	<!--!!!It does similar things on "phdthesis".!!!-->
     <!--!!!In addition, it maps "techreport" to "report" with type={techreport}.!!!-->
 	<!--!!!The following lines revokes this behavior.!!!-->
     <sourcemap>
         <maps datatype="bibtex">
             <map>
-                <map_step map_type_source="mastersthesis" map_type_target="masterthesis" map_final="1"/>
+                <map_step map_type_source="mastersthesis" map_type_target="mastersthesis" map_final="1"/>
             </map>
             <map>
                 <map_step map_type_source="phdthesis" map_type_target="phdthesis" map_final="1"/>

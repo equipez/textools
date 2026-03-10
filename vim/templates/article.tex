@@ -4,8 +4,15 @@
 \usepackage{ifdraft}
 
 
-%% Bibliography
+%% e-TeX tools for LaTeX. Some commands below need it, e.g., \pretocmd.
 \usepackage{etoolbox}
+
+
+%% Bibliography
+% Use natbib the citations like [ref1, ref2, ref3, ref4] appear in the order of citation instead of in the
+% order of appearance in the BibTeX file. In addition, consecutive citations become ranges.
+% Note that the natbib package has to be loaded before the following lines.
+%\usepackage[sort&compress]{natbib}
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
 % ref.bib should be a symbolic link to the universal BibTeX file, which should be a local copy of
 % https://github.com/equipez/bibliographie/blob/main/ref.bib
@@ -81,7 +88,6 @@
 
 
 %% Graph, tikz and pgf
-%\usepackage{subfigure}
 \setlength{\unitlength}{1mm}
 % The \unitlength command is a Length command. It defines the units used in the Picture Environment.
 \usepackage{graphicx}
@@ -91,6 +97,8 @@
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepackage[justification=centering]{caption}
+\usepackage{subcaption}  % Provides the subfigure environment
+%\usepackage{subfigure}  % Obsolete
 \usepgfplotslibrary{fillbetween}
 \pgfplotsset{compat=1.11}
 
@@ -218,6 +226,8 @@
 \DeclareMathOperator{\card}{card}
 \DeclareMathOperator{\diam}{diam}
 \DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator{\gap}{gap}
+\DeclareMathOperator{\clarke}{\partial_{\sss{\textnormal{C}\!}}}
 \newcommand{\disth}{{\operatorname{\updelta_{\sss{H}}}}}
 \newcommand{\ind}{\mathbbm{1}}
 %\newcommand*{\defeq}{\stackrel{\mbox{\normalfont\tiny{\textnormal{def}}}}{=}}
@@ -302,6 +312,8 @@
 \renewcommand{\ggg}{\mathbf{g}}
 \newcommand{\GG}{\mathbf{G}}
 \DeclareMathOperator{\expc}{\mathbb{E}}
+\DeclareMathOperator{\var}{Var}
+\DeclareMathOperator{\cov}{Cov}
 \renewcommand{\Pr}{\mathbb{P}}
 \newcommand{\lb}{\underline}
 \newcommand{\ub}{\overline}

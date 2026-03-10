@@ -3,8 +3,15 @@
 \usepackage{ifdraft}
 
 
-%% Bibliography
+%% e-TeX tools for LaTeX. Some commands below need it, e.g., \pretocmd.
 \usepackage{etoolbox}
+
+
+%% Bibliography
+% Use natbib the citations like [ref1, ref2, ref3, ref4] appear in the order of citation instead of in the
+% order of appearance in the BibTeX file. In addition, consecutive citations become ranges.
+% Note that the natbib package has to be loaded before the following lines.
+%\usepackage[sort&compress]{natbib}
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
 % ref.bib should be a symbolic link to the universal BibTeX file, which should be a local copy of
 % https://github.com/equipez/bibliographie/blob/main/ref.bib
@@ -218,6 +225,8 @@
 \DeclareMathOperator{\card}{card}
 \DeclareMathOperator{\diam}{diam}
 \DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator{\gap}{gap}
+\DeclareMathOperator{\clarke}{\partial_{\sss{\textnormal{C}\!}}}
 \newcommand{\disth}{{\operatorname{\updelta_{\sss{H}}}}}
 \newcommand{\ind}{\mathbbm{1}}
 %\newcommand*{\defeq}{\stackrel{\mbox{\normalfont\tiny{\textnormal{def}}}}{=}}
@@ -304,7 +313,6 @@
 \DeclareMathOperator{\expc}{\mathbb{E}}
 \DeclareMathOperator{\var}{Var}
 \DeclareMathOperator{\cov}{Cov}
-\DeclareMathOperator{\expc}{\mathbb{E}}
 \renewcommand{\Pr}{\mathbb{P}}
 \newcommand{\lb}{\underline}
 \newcommand{\ub}{\overline}
@@ -359,16 +367,13 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Template}
-
+\title{A Simple~\LaTeX~Template}
 \date{\DTMnow}
-
 \author{
-    Zaikun Zhang\thanks{The Hong Kong Polytechnic University, Hong Kong, China.
-    Email: \email{zaikunzhang@gmail.com}.}
-    %\and
-    %Author2
-    %\thanks{Information2}
+Z. Zhang
+\thanks{
+School of Mathematics, Sun Yat-sen University, China. Email:~\email{zhangzaikun@mail.sysu.edu.cn}.
+}
 }
 
 
@@ -377,19 +382,80 @@
 \maketitle
 
 \begin{abstract}
-    This is an abstract.
+  This is an example.
 \end{abstract}
 
-\textbf{Keywords}: Keyword1, Keyword2
+\textbf{Keywords}: Keyword1, Keyword2, Keyword3, Keyword4, Keyword5
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\section{Introduction}
+\section{Example section~1}
+\label{sec:example1}
 
-This is an article template for the team of Zaikun Zhang.
+\begin{definition}
+  \label{def:example}
+  This is an example definition.
+\end{definition}
 
-\section{Citation}
-I am citing~\cite{Zhang_2014} as an example.
+\begin{theorem}
+  \label{thm:example}
+  This is an example theorem.
+\end{theorem}
+
+\begin{proof}
+  This is the proof for Theorem~\ref{thm:example}.
+  Recall Definition~\ref{def:example}.
+  The proof is complete.
+\end{proof}
+
+\begin{proposition}
+  \label{prop:example}
+  This is an example proposition.
+\end{proposition}
+
+\begin{proof}
+According to \cite[Theorem~3.14]{Jordan_1874}, we have
+\begin{equation}
+  \label{eq:euler}
+  \me^{\mi \pi} + 1 \;=\; 0.
+\end{equation}
+This completes the proof.
+\end{proof}
+
+\begin{corollary}
+  \label{coro:example}
+  This is an example corollary.
+\end{corollary}
+
+\begin{proof}
+Equation~\eqref{eq:euler} implies that
+\begin{equation*}
+  \me^{\mi \pi} \;=\; -1,
+\end{equation*}
+which finishes the proof.
+\end{proof}
+
+
+\section{Example section~2}
+\label{sec:example2}
+
+To continue the discussion in Section~\ref{sec:example1}, we first recall Algorithm~6.18 in~\cite{Trefethen_Bau_1997}.
+
+\begin{algorithm}[htbp!]
+  \caption{\label{alg:example}An example algorithm}
+Input $x_0\in \RR^n$, $\rho_0>0$, $\eta_1 \ge 1> \eta_2>0$. For $k = 0, 1, 2, \dots$, do the following.
+\begin{algorithmic}[1]
+  \State Choose a set of nonzero vectors~$D_k\subset \RR^{n}$ (deterministically or stochastically).
+  \State Check whether there exists a~$y_k \in\left\{ x_k +\rho_k d\mathrel{:} d\in D_k \right\}$ such
+  that~$f(y_k) < f(x_k)$.
+  \State If~$y_k$ exists, set~$x_{k+1} = y_k$, $\rho_{k+1} = \eta_1 \rho_k$;
+  otherwise, set~$x_{k+1} = x_k$, $\rho_{k+1} = \eta_2 \rho_k$.
+  \State If a certain stopping criterion is met, exit and output~$x_{k+1}$.
+\end{algorithmic}
+\end{algorithm}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% References

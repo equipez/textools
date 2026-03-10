@@ -1319,3 +1319,17 @@ linenumbersep
 marginparsep
 mathlines
 scriptsize
+coro
+cov
+eaires
+emoire
+eqref
+htbp
+Lastname
+lualatex
+morenames
+natbib
+sysu
+thm
+xelatex
+zhangzaikun

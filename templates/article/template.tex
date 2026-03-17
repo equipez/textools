@@ -8,10 +8,12 @@
 
 
 %% Bibliography
-% Use natbib the citations like [ref1, ref2, ref3, ref4] appear in the order of citation instead of in the
-% order of appearance in the BibTeX file. In addition, consecutive citations become ranges.
-% Note that the natbib package has to be loaded before the following lines.
-%\usepackage[sort&compress]{natbib}
+% Use natbib the citations like [ref1, ref2, ref3, ref4] appear in the order of citation instead of
+% in the order of appearance in the BibTeX file. In addition, consecutive citations become ranges.
+% Note that the natbib package has to be loaded before the following lines. In the TeX file, order
+% the references chronologically, so that we can produce both orders by switching the natbib package
+% on and off.
+%\usepackage[sort&compress]{natbib} % Use the natbib package always.
 \newcommand{\bibfile}{\jobname.bib}  % Name of the BibTeX file.
 % ref.bib should be a symbolic link to the universal BibTeX file, which should be a local copy of
 % https://github.com/equipez/bibliographie/blob/main/ref.bib
@@ -79,7 +81,7 @@
 %% Todo notes
 \ifdraft{
     \setlength{\marginparwidth}{1.92cm}
-    \usepackage[tickmarkheight=3pt,textsize=small,backgroundcolor=blue!16,linecolor=purple,bordercolor=purple]{todonotes}
+    \usepackage[tickmarkheight=3pt,textsize=scriptsize,backgroundcolor=blue!16,linecolor=purple,bordercolor=purple]{todonotes}
 }{
     \newcommand{\todo}[1]{}
     \newcommand{\listoftodos}{}
@@ -407,6 +409,7 @@ School of Mathematics, Sun Yat-sen University, China. Email:~\email{zhangzaikun@
 \begin{proof}
   This is the proof for Theorem~\ref{thm:example}.
   Recall Definition~\ref{def:example}.
+  \todo{An example for TODO.}
   The proof is complete.
 \end{proof}
 

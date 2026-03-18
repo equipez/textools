@@ -122,7 +122,10 @@
 
 %% Hyperref, url, and email
 %% N.B.: DO NOT use `silence` together with `hyperref`. They will cause an infinite loop.
-\ifdraft{\usepackage{refcheck}\newcommand{\url}{\texttt}}{
+\ifdraft{
+    \usepackage{refcheck}
+    \newcommand{\url}{\texttt}
+}{
     \usepackage{hyperref}
     \hypersetup{colorlinks, linkcolor=darkblue, anchorcolor=darkblue, citecolor=darkblue, urlcolor=darkblue}
     \usepackage{url}
